@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="NCS-API: High-performance clustering and data processing API with real-time streaming capabilities. Transform complex data clustering into accessible, visual experiences.">
+    <meta name="keywords" content="clustering, machine learning, API, data processing, real-time, visualization, algorithm">
+    <meta name="author" content="NCS-API Team">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ncs-api.com/">
+    <meta property="og:title" content="NCS-API - High-Performance Clustering & Data Processing">
+    <meta property="og:description" content="Process 6,300+ points per second with 91.8% clustering quality. Real-time streaming, multiple SDKs, production ready.">
+    <meta property="og:image" content="/assets/images/og-preview.jpg">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://ncs-api.com/">
+    <meta property="twitter:title" content="NCS-API - High-Performance Clustering & Data Processing">
+    <meta property="twitter:description" content="Process 6,300+ points per second with 91.8% clustering quality. Real-time streaming, multiple SDKs, production ready.">
+    <meta property="twitter:image" content="/assets/images/twitter-preview.jpg">
+    
+    <title>NCS-API - High-Performance Clustering & Data Processing</title>
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://api.ncs-cluster.com">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#6366f1">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/components/hero.css">
+    <link rel="stylesheet" href="/css/components/header.css">
+    <link rel="stylesheet" href="/css/layout/animations.css">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/assets/fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/js/main.js" as="script">
+</head>
+<body class="theme-dark">
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <div class="cluster-animation">
+                <div class="cluster-point"></div>
+                <div class="cluster-point"></div>
+                <div class="cluster-point"></div>
+                <div class="cluster-point"></div>
+                <div class="cluster-point"></div>
+            </div>
+            <p>Initializing NCS-API...</p>
+        </div>
+    </div>
+    
+    <!-- Navigation Header -->
+    <header class="header" id="header">
+        <nav class="nav-container">
+            <div class="nav-brand">
+                <img src="/assets/images/logo.svg" alt="NCS-API" class="nav-logo">
+                <span class="nav-title">NCS-API</span>
+                <span class="nav-version">v2.1</span>
+            </div>
+            
+            <div class="nav-menu" id="nav-menu">
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#playground" class="nav-link">Playground</a>
+                <a href="/docs.html" class="nav-link">Documentation</a>
+                <a href="/benchmarks.html" class="nav-link">Benchmarks</a>
+                <a href="/examples.html" class="nav-link">Examples</a>
+            </div>
+            
+            <div class="nav-actions">
+                <div class="api-status" id="api-status">
+                    <span class="status-indicator status-online"></span>
+                    <span class="status-text">API Online</span>
+                </div>
+                
+                <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+                    <svg class="theme-icon theme-icon-light" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>
+                    </svg>
+                    <svg class="theme-icon theme-icon-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+                
+                <button class="btn btn-primary btn-get-started" id="get-started-btn">
+                    Get Started
+                </button>
+                
+                <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </nav>
+    </header>
+    
+    <!-- Main Content -->
+    <main id="main-content">
+        <!-- Hero Section -->
+        <section class="hero" id="hero">
+            <div class="hero-container">
+                <div class="hero-content">
+                    <div class="hero-badge">
+                        <span class="badge-icon">🚀</span>
+                        <span>Now processing 6,300+ points/second</span>
+                    </div>
+                    
+                    <h1 class="hero-title">
+                        Transform Data Into
+                        <span class="gradient-text">Intelligent Clusters</span>
+                    </h1>
+                    
+                    <p class="hero-description">
+                        High-performance clustering API with real-time streaming capabilities. 
+                        Achieve 91.8% clustering quality while processing thousands of data points per second.
+                    </p>
+                    
+                    <div class="hero-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" data-target="6300">0</div>
+                            <div class="stat-label">Points/Second</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" data-target="91.8">0</div>
+                            <div class="stat-label">Quality Score</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" data-target="99.9">0</div>
+                            <div class="stat-label">Uptime %</div>
+                        </div>
+                    </div>
+                    
+                    <div class="hero-actions">
+                        <button class="btn btn-primary btn-large" id="try-playground-btn">
+                            <span>Try Interactive Playground</span>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M13 17l5-5-5-5M6 17l5-5-5-5"></path>
+                            </svg>
+                        </button>
+                        
+                        <button class="btn btn-secondary btn-large" id="view-docs-btn">
+                            <span>View Documentation</span>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14,2 14,8 20,8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10,9 9,9 8,9"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="hero-visualization">
+                    <div class="viz-container" id="hero-viz">
+                        <!-- Real-time clustering visualization will be injected here -->
+                        <canvas id="hero-canvas" width="600" height="400"></canvas>
+                        <div class="viz-overlay">
+                            <div class="viz-controls">
+                                <button class="viz-control" data-action="pause" aria-label="Pause animation">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <rect x="6" y="4" width="4" height="16"></rect>
+                                        <rect x="14" y="4" width="4" height="16"></rect>
+                                    </svg>
+                                </button>
+                                <button class="viz-control" data-action="reset" aria-label="Reset animation">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <polyline points="23 4 23 10 17 10"></polyline>
+                                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Floating Elements -->
+            <div class="hero-floating-elements">
+                <div class="floating-element" style="--delay: 0s; --duration: 20s;">
+                    <div class="element-content">ML</div>
+                </div>
+                <div class="floating-element" style="--delay: 5s; --duration: 25s;">
+                    <div class="element-content">API</div>
+                </div>
+                <div class="floating-element" style="--delay: 10s; --duration: 30s;">
+                    <div class="element-content">⚡</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Features Section -->
+        <section class="features" id="features">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Powerful Features for Modern Applications</h2>
+                    <p class="section-description">
+                        Built for scale, designed for developers, optimized for performance
+                    </p>
+                </div>
+                
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="feature-title">Lightning Fast</h3>
+                        <p class="feature-description">
+                            Process over 6,300 data points per second with our optimized clustering algorithms
+                        </p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="feature-title">Production Ready</h3>
+                        <p class="feature-description">
+                            Comprehensive monitoring, security, and scalability features for enterprise deployment
+                        </p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                <polyline points="7.5 4.21 12 6.81 16.5 4.21"></polyline>
+                                <polyline points="7.5 19.79 7.5 14.6 3 12"></polyline>
+                                <polyline points="21 12 16.5 14.6 16.5 19.79"></polyline>
+                                <polyline points="12 22.81 12 17"></polyline>
+                            </svg>
+                        </div>
+                        <h3 class="feature-title">Real-time Streaming</h3>
+                        <p class="feature-description">
+                            WebSocket support for live data processing and real-time cluster updates
+                        </p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                <line x1="8" y1="21" x2="16" y2="21"></line>
+                                <line x1="12" y1="17" x2="12" y2="21"></line>
+                            </svg>
+                        </div>
+                        <h3 class="feature-title">Interactive Playground</h3>
+                        <p class="feature-description">
+                            Test algorithms in real-time with our browser-based clustering playground
+                        </p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14,2 14,8 20,8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10,9 9,9 8,9"></polyline>
+                            </svg>
+                        </div>
+                        <h3 class="feature-title">Multiple SDKs</h3>
+                        <p class="feature-description">
+                            Python and JavaScript client libraries with comprehensive documentation
+                        </p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M9 11H5a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h4l3 3h3a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3l-3 3z"></path>
+                                <path d="M22 9v6"></path>
+                                <path d="M19 12h.01"></path>
+                            </svg>
+                        </div>
+                        <h3 class="feature-title">Quality Assurance</h3>
+                        <p class="feature-description">
+                            91.8% clustering quality score with built-in metrics and validation
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Quick Demo Section -->
+        <section class="quick-demo" id="playground">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Try It Right Now</h2>
+                    <p class="section-description">
+                        Experience the power of NCS clustering in your browser
+                    </p>
+                </div>
+                
+                <div class="demo-container">
+                    <div class="demo-controls">
+                        <div class="control-group">
+                            <label for="demo-algorithm">Algorithm</label>
+                            <select id="demo-algorithm" class="demo-select">
+                                <option value="ncs">NCS Algorithm</option>
+                                <option value="kmeans">K-Means</option>
+                                <option value="dbscan">DBSCAN</option>
+                            </select>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="demo-points">Data Points</label>
+                            <input type="range" id="demo-points" min="50" max="1000" value="300" class="demo-slider">
+                            <span class="slider-value">300</span>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="demo-clusters">Clusters</label>
+                            <input type="range" id="demo-clusters" min="2" max="8" value="4" class="demo-slider">
+                            <span class="slider-value">4</span>
+                        </div>
+                        
+                        <div class="control-actions">
+                            <button class="btn btn-primary" id="demo-run">Run Clustering</button>
+                            <button class="btn btn-secondary" id="demo-reset">Reset Data</button>
+                        </div>
+                    </div>
+                    
+                    <div class="demo-visualization">
+                        <canvas id="demo-canvas" width="800" height="500"></canvas>
+                        <div class="demo-stats">
+                            <div class="stat">
+                                <span class="stat-label">Processing Time:</span>
+                                <span class="stat-value" id="demo-time">0ms</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Quality Score:</span>
+                                <span class="stat-value" id="demo-quality">0%</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Points/Second:</span>
+                                <span class="stat-value" id="demo-throughput">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="demo-footer">
+                    <p>Want more advanced features? <a href="/playground.html" class="link-primary">Open Full Playground</a></p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- CTA Section -->
+        <section class="cta">
+            <div class="container">
+                <div class="cta-content">
+                    <h2 class="cta-title">Ready to Get Started?</h2>
+                    <p class="cta-description">
+                        Join thousands of developers using NCS-API for high-performance clustering
+                    </p>
+                    <div class="cta-actions">
+                        <button class="btn btn-primary btn-large">Get API Key</button>
+                        <button class="btn btn-secondary btn-large">View Pricing</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-brand">
+                        <img src="/assets/images/logo.svg" alt="NCS-API" class="footer-logo">
+                        <span class="footer-title">NCS-API</span>
+                    </div>
+                    <p class="footer-description">
+                        High-performance clustering and data processing API for modern applications
+                    </p>
+                </div>
+                
+                <div class="footer-section">
+                    <h4 class="footer-heading">Product</h4>
+                    <ul class="footer-links">
+                        <li><a href="/playground.html">Playground</a></li>
+                        <li><a href="/docs.html">Documentation</a></li>
+                        <li><a href="/benchmarks.html">Benchmarks</a></li>
+                        <li><a href="/examples.html">Examples</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4 class="footer-heading">Developers</h4>
+                    <ul class="footer-links">
+                        <li><a href="/docs/api">API Reference</a></li>
+                        <li><a href="/docs/sdks">SDKs</a></li>
+                        <li><a href="/docs/guides">Guides</a></li>
+                        <li><a href="/support">Support</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4 class="footer-heading">Company</h4>
+                    <ul class="footer-links">
+                        <li><a href="/about">About</a></li>
+                        <li><a href="/blog">Blog</a></li>
+                        <li><a href="/careers">Careers</a></li>
+                        <li><a href="/contact">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p class="footer-copyright">
+                    © 2025 NCS-API. All rights reserved.
+                </p>
+                <div class="footer-legal">
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/terms">Terms of Service</a>
+                    <a href="/security">Security</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Scripts -->
+    <script type="module" src="/js/main.js"></script>
+    <script type="module" src="/pages/landing.js"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => console.log('SW registered'))
+                    .catch(error => console.log('SW registration failed'));
+            });
+        }
+    </script>
+</body>
+</html>

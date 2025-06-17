@@ -1,0 +1,230 @@
+NCS-API-Website Complete File Tree
+# NCS-API-Website Complete File Tree
+
+```
+ncs-api-website/
+│
+├── 📄 index.html                       # Landing page with hero section ✅ CREATED
+├── 📄 playground.html                  # Interactive clustering playground
+├── 📄 docs.html                       # API documentation & explorer
+├── 📄 benchmarks.html                 # Performance metrics & comparisons
+├── 📄 examples.html                   # Use cases & sample implementations
+├── 📄 README.md                       # Project documentation
+├── 📄 package.json                    # Project metadata & build scripts
+├── 📄 .gitignore                      # Git ignore rules
+├── 📄 manifest.json                   # PWA manifest
+├── 📄 sw.js                           # Service worker for PWA
+│
+├── 📁 assets/                         # Static assets
+│   ├── 📁 images/                     # Images & icons
+│   │   ├── 🖼️ logo.svg               # NCS-API logo
+│   │   ├── 🖼️ hero-bg.svg            # Hero background
+│   │   ├── 🖼️ favicon.svg            # SVG favicon
+│   │   ├── 🖼️ favicon.png            # PNG favicon fallback
+│   │   ├── 🖼️ og-preview.jpg         # Open Graph preview image
+│   │   ├── 🖼️ twitter-preview.jpg    # Twitter card preview
+│   │   ├── 📁 icons/                 # UI icons
+│   │   │   ├── 🖼️ cluster.svg
+│   │   │   ├── 🖼️ api.svg
+│   │   │   ├── 🖼️ performance.svg
+│   │   │   ├── 🖼️ docs.svg
+│   │   │   ├── 🖼️ realtime.svg
+│   │   │   └── 🖼️ quality.svg
+│   │   └── 📁 screenshots/           # Feature screenshots
+│   │       ├── 🖼️ playground-demo.png
+│   │       ├── 🖼️ api-explorer.png
+│   │       └── 🖼️ benchmarks.png
+│   │
+│   ├── 📁 data/                       # Sample datasets
+│   │   ├── 📊 iris.csv                # Classic iris dataset
+│   │   ├── 📊 customers.csv           # Customer segmentation sample
+│   │   ├── 📊 social-media.csv        # Social network clustering
+│   │   ├── 📊 financial.csv           # Financial data clustering
+│   │   └── 📊 ecommerce.csv           # E-commerce behavior data
+│   │
+│   └── 📁 fonts/                      # Custom fonts
+│       ├── 🔤 inter.woff2             # Main UI font
+│       └── 🔤 source-code-pro.woff2   # Code font
+│
+├── 📁 css/                           # Stylesheets
+│   ├── 📄 main.css                    # Main application styles ✅ CREATED
+│   ├── 📁 components/                 # Component-specific styles
+│   │   ├── 📄 header.css              # Navigation header
+│   │   ├── 📄 hero.css                # Hero section styles
+│   │   ├── 📄 playground.css          # Playground interface
+│   │   ├── 📄 charts.css              # Data visualization styles
+│   │   ├── 📄 docs.css                # Documentation styles
+│   │   ├── 📄 modal.css               # Modal dialogs
+│   │   ├── 📄 buttons.css             # Button components
+│   │   ├── 📄 forms.css               # Form elements
+│   │   └── 📄 toast.css               # Notification system
+│   ├── 📁 layout/                     # Layout styles
+│   │   ├── 📄 grid.css                # CSS Grid system
+│   │   ├── 📄 responsive.css          # Media queries
+│   │   └── 📄 animations.css          # Keyframe animations
+│   └── 📁 themes/                     # Color themes
+│       ├── 📄 light.css               # Light theme variables
+│       └── 📄 dark.css                # Dark theme variables
+│
+├── 📁 js/                            # JavaScript modules
+│   ├── 📄 main.js                     # Main application entry point
+│   ├── 📁 config/                     # Configuration
+│   │   ├── 📄 api.js                  # API endpoints & settings
+│   │   ├── 📄 constants.js            # Application constants
+│   │   └── 📄 themes.js               # Theme configuration
+│   │
+│   ├── 📁 core/                       # Core functionality
+│   │   ├── 📄 app.js                  # Main application class
+│   │   ├── 📄 router.js               # Client-side routing
+│   │   ├── 📄 state.js                # Global state management
+│   │   └── 📄 eventBus.js             # Event system
+│   │
+│   ├── 📁 api/                        # API communication
+│   │   ├── 📄 client.js               # HTTP API client
+│   │   ├── 📄 websocket.js            # WebSocket manager
+│   │   ├── 📄 auth.js                 # Authentication handling
+│   │   └── 📄 cache.js                # Response caching
+│   │
+│   ├── 📁 components/                 # UI components
+│   │   ├── 📄 Header.js               # Navigation header
+│   │   ├── 📄 Hero.js                 # Hero section
+│   │   ├── 📄 Playground.js           # Clustering playground
+│   │   ├── 📄 DataUploader.js         # File upload component
+│   │   ├── 📄 ClusterVisualizer.js    # Main visualization component
+│   │   ├── 📄 ParameterControls.js    # Algorithm controls
+│   │   ├── 📄 ResultsPanel.js         # Results display
+│   │   ├── 📄 ApiExplorer.js          # API documentation tool
+│   │   ├── 📄 CodeGenerator.js        # Code generation utility
+│   │   ├── 📄 PerformanceMonitor.js   # Live metrics display
+│   │   ├── 📄 Modal.js                # Modal dialog component
+│   │   ├── 📄 Toast.js                # Notification system
+│   │   └── 📄 ThemeToggle.js          # Theme switching
+│   │
+│   ├── 📁 visualizations/             # Data visualization
+│   │   ├── 📁 charts/                 # Chart implementations
+│   │   │   ├── 📄 ScatterPlot.js      # 2D scatter plot
+│   │   │   ├── 📄 ScatterPlot3D.js    # 3D scatter plot
+│   │   │   ├── 📄 Heatmap.js          # Cluster heatmap
+│   │   │   ├── 📄 Dendrogram.js       # Hierarchical tree
+│   │   │   ├── 📄 MetricsChart.js     # Performance metrics
+│   │   │   └── 📄 RealTimeChart.js    # Live streaming data
+│   │   ├── 📁 renderers/              # Rendering engines
+│   │   │   ├── 📄 CanvasRenderer.js   # Canvas-based rendering
+│   │   │   ├── 📄 WebGLRenderer.js    # WebGL for 3D
+│   │   │   └── 📄 SVGRenderer.js      # SVG for scalable graphics
+│   │   ├── 📁 animations/             # Animation utilities
+│   │   │   ├── 📄 Transitions.js      # Smooth transitions
+│   │   │   ├── 📄 Interpolation.js    # Data interpolation
+│   │   │   └── 📄 Timeline.js         # Animation timeline
+│   │   └── 📁 interactions/           # User interactions
+│   │       ├── 📄 PanZoom.js          # Pan & zoom controls
+│   │       ├── 📄 Selection.js        # Data point selection
+│   │       └── 📄 Hover.js            # Hover effects
+│   │
+│   ├── 📁 clustering/                 # Clustering algorithms (client demos)
+│   │   ├── 📄 KMeans.js               # K-means implementation
+│   │   ├── 📄 DBSCAN.js               # DBSCAN algorithm
+│   │   ├── 📄 Hierarchical.js         # Hierarchical clustering
+│   │   ├── 📄 NCSAlgorithm.js         # NCS algorithm demo
+│   │   └── 📄 QualityMetrics.js       # Clustering quality assessment
+│   │
+│   ├── 📁 data/                       # Data processing
+│   │   ├── 📄 parser.js               # CSV/JSON parsing
+│   │   ├── 📄 validator.js            # Data validation
+│   │   ├── 📄 preprocessor.js         # Data preprocessing
+│   │   └── 📄 generator.js            # Sample data generation
+│   │
+│   ├── 📁 utils/                      # Utility functions
+│   │   ├── 📄 math.js                 # Mathematical utilities
+│   │   ├── 📄 colors.js               # Color palette management
+│   │   ├── 📄 performance.js          # Performance monitoring
+│   │   ├── 📄 storage.js              # Local storage wrapper
+│   │   ├── 📄 download.js             # File download utilities
+│   │   ├── 📄 clipboard.js            # Clipboard operations
+│   │   └── 📄 debounce.js             # Function debouncing
+│   │
+│   └── 📁 workers/                    # Web Workers
+│       ├── 📄 clustering.worker.js    # Background clustering
+│       ├── 📄 data.worker.js          # Data processing
+│       └── 📄 export.worker.js        # Export operations
+│
+├── 📁 pages/                         # Page-specific JavaScript
+│   ├── 📄 landing.js                  # Landing page logic
+│   ├── 📄 playground.js               # Playground functionality
+│   ├── 📄 docs.js                     # Documentation features
+│   ├── 📄 benchmarks.js               # Benchmark displays
+│   └── 📄 examples.js                 # Examples showcase
+│
+├── 📁 tests/                         # Test suite
+│   ├── 📁 unit/                       # Unit tests
+│   │   ├── 📁 components/             # Component tests
+│   │   │   ├── 📄 Header.test.js
+│   │   │   ├── 📄 Playground.test.js
+│   │   │   └── 📄 ClusterVisualizer.test.js
+│   │   ├── 📁 api/                    # API tests
+│   │   │   ├── 📄 client.test.js
+│   │   │   └── 📄 websocket.test.js
+│   │   └── 📁 utils/                  # Utility tests
+│   │       ├── 📄 math.test.js
+│   │       └── 📄 colors.test.js
+│   ├── 📁 integration/                # Integration tests
+│   │   ├── 📄 playground.integration.js
+│   │   └── 📄 api.integration.js
+│   ├── 📁 e2e/                        # End-to-end tests
+│   │   ├── 📄 user-journey.e2e.js
+│   │   └── 📄 performance.e2e.js
+│   └── 📄 test-config.js              # Test configuration
+│
+├── 📁 docs/                          # Project documentation
+│   ├── 📄 DEVELOPMENT.md              # Development guide
+│   ├── 📄 DEPLOYMENT.md               # Deployment instructions
+│   ├── 📄 API_INTEGRATION.md          # API integration guide
+│   ├── 📄 PERFORMANCE.md              # Performance optimization
+│   ├── 📄 ACCESSIBILITY.md            # Accessibility guidelines
+│   └── 📄 CONTRIBUTING.md             # Contribution guidelines
+│
+└── 📁 build/                         # Build artifacts (generated)
+    ├── 📁 dist/                       # Production build
+    │   ├── 📄 index.html
+    │   ├── 📁 assets/
+    │   │   ├── 📄 main.min.css
+    │   │   ├── 📄 main.min.js
+    │   │   └── 📁 images/
+    │   └── 📄 manifest.json
+    └── 📁 dev/                        # Development build
+        └── 📁 temp/
+
+```
+
+## Legend
+- ✅ **CREATED** - Files already implemented
+- 📄 **File** - Individual files
+- 📁 **Folder** - Directory structure
+- 🖼️ **Image** - Image/graphic assets
+- 📊 **Data** - Dataset files
+- 🔤 **Font** - Typography files
+
+## File Priority for Next Steps
+
+### **HIGH PRIORITY** (Core functionality):
+1. `js/main.js` - Main application entry point
+2. `css/components/hero.css` - Hero section styles
+3. `js/components/Hero.js` - Hero interactive functionality
+4. `playground.html` - Interactive playground page
+5. `js/components/ClusterVisualizer.js` - Core visualization component
+
+### **MEDIUM PRIORITY** (Enhanced features):
+6. `css/components/header.css` - Navigation styles
+7. `js/components/Header.js` - Navigation functionality
+8. `js/api/client.js` - API communication
+9. `manifest.json` - PWA configuration
+10. `sw.js` - Service worker
+
+### **LOW PRIORITY** (Polish & extras):
+11. Sample data files (`assets/data/*.csv`)
+12. Additional page styles
+13. Test files
+14. Documentation files
+15. Build configuration
+
+###**Total files to create: ~80+ files**

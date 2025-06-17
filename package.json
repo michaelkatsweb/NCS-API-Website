@@ -1,0 +1,41 @@
+{
+  "name": "ncs-api-website",
+  "private": true,
+  "version": "1.0.0",
+  "description": "NCS API Website - Vanilla JS + Vite + Bootstrap + Three.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "serve": "vite preview --port 3000"
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.2",
+    "three": "^0.158.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  },
+  "keywords": [
+    "ncs",
+    "clustering",
+    "api",
+    "vanilla-js",
+    "three.js",
+    "bootstrap",
+    "machine-learning",
+    "real-time",
+    "data-processing"
+  ],
+  "author": "NCS API Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/ncs-api-website"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/ncs-api-website/issues"
+  },
+  "homepage": "ncs-api.netlify.app"
+}
