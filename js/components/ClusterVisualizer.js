@@ -1362,3 +1362,5 @@ export class ClusterVisualizer {
         }
     }
 }
+
+export default ClusterVisualizer;

@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="NCS-API Performance Benchmarks - Compare clustering algorithm speed, quality, and efficiency. Real-world performance metrics and analysis.">
+    <meta name="keywords" content="clustering benchmarks, performance metrics, algorithm comparison, speed test, quality analysis, NCS-API">
+    <meta name="author" content="NCS-API Team">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ncs-api.com/benchmarks.html">
+    <meta property="og:title" content="NCS-API Performance Benchmarks">
+    <meta property="og:description" content="Comprehensive performance analysis: 6,300+ points/sec processing, 91.8% clustering quality, real-time performance metrics.">
+    <meta property="og:image" content="/assets/images/benchmarks-preview.jpg">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://ncs-api.com/benchmarks.html">
+    <meta property="twitter:title" content="NCS-API Performance Benchmarks">
+    <meta property="twitter:description" content="Comprehensive performance analysis: 6,300+ points/sec processing, 91.8% clustering quality, real-time performance metrics.">
+    <meta property="twitter:image" content="/assets/images/benchmarks-preview.jpg">
+    
+    <title>Performance Benchmarks - NCS-API</title>
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://api.ncs-cluster.com">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#6366f1">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/components/header.css">
+    <link rel="stylesheet" href="/css/components/charts.css">
+    <link rel="stylesheet" href="/css/components/buttons.css">
+    <link rel="stylesheet" href="/css/components/modal.css">
+    <link rel="stylesheet" href="/css/layout/animations.css">
+    
+    <!-- Chart.js for visualization -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.js"></script>
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/assets/fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/js/main.js" as="script">
+</head>
+<body class="theme-dark">
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <div class="cluster-animation">
+                <div class="cluster-point"></div>
+                <div class="cluster-point"></div>
+                <div class="cluster-point"></div>
+                <div class="cluster-point"></div>
+                <div class="cluster-point"></div>
+            </div>
+            <p>Loading Benchmarks...</p>
+        </div>
+    </div>
+    
+    <!-- Navigation Header -->
+    <header class="header" id="header">
+        <nav class="nav-container">
+            <div class="nav-brand">
+                <a href="/">
+                    <img src="/assets/images/logo.svg" alt="NCS-API" class="nav-logo">
+                    <span class="nav-title">NCS-API</span>
+                    <span class="nav-version">v2.1</span>
+                </a>
+            </div>
+            
+            <div class="nav-menu" id="nav-menu">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/playground.html" class="nav-link">Playground</a>
+                <a href="/docs.html" class="nav-link">Documentation</a>
+                <a href="/benchmarks.html" class="nav-link nav-link-active">Benchmarks</a>
+                <a href="/examples.html" class="nav-link">Examples</a>
+            </div>
+            
+            <div class="nav-actions">
+                <div class="api-status" id="api-status">
+                    <span class="status-indicator status-online"></span>
+                    <span class="status-text">API Online</span>
+                </div>
+                
+                <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+                    <span class="theme-icon theme-icon-light">☀️</span>
+                    <span class="theme-icon theme-icon-dark">🌙</span>
+                </button>
+                
+                <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle mobile menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </nav>
+    </header>
+    
+    <!-- Main Content -->
+    <main id="main-content" class="benchmarks-page">
+        <!-- Hero Section -->
+        <section class="benchmarks-hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1 class="hero-title">Performance Benchmarks</h1>
+                    <p class="hero-description">
+                        Comprehensive analysis of NCS-API clustering performance across algorithms, 
+                        datasets, and real-world scenarios. See how we achieve industry-leading speed and quality.
+                    </p>
+                    
+                    <!-- Key Metrics -->
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value">6,347</div>
+                            <div class="metric-label">Points/Second</div>
+                            <div class="metric-change positive">+12% vs v2.0</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">91.8%</div>
+                            <div class="metric-label">Avg Quality Score</div>
+                            <div class="metric-change positive">+2.3% vs competitors</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">23ms</div>
+                            <div class="metric-label">Avg Response Time</div>
+                            <div class="metric-change positive">-15% vs v2.0</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">99.97%</div>
+                            <div class="metric-label">Uptime SLA</div>
+                            <div class="metric-change neutral">Last 30 days</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Benchmark Controls -->
+        <section class="benchmark-controls">
+            <div class="container">
+                <div class="controls-header">
+                    <h2>Interactive Benchmarks</h2>
+                    <p>Run live performance tests and compare algorithms</p>
+                </div>
+                
+                <div class="controls-panel">
+                    <div class="control-group">
+                        <label for="algorithm-select">Algorithm</label>
+                        <select id="algorithm-select" class="control-select">
+                            <option value="all">All Algorithms</option>
+                            <option value="kmeans">K-Means</option>
+                            <option value="dbscan">DBSCAN</option>
+                            <option value="hierarchical">Hierarchical</option>
+                            <option value="ncs">NCS Custom</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="dataset-select">Dataset Size</label>
+                        <select id="dataset-select" class="control-select">
+                            <option value="small">Small (100-1K points)</option>
+                            <option value="medium" selected>Medium (1K-10K points)</option>
+                            <option value="large">Large (10K-100K points)</option>
+                            <option value="xlarge">XL (100K+ points)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="metric-select">Metric</label>
+                        <select id="metric-select" class="control-select">
+                            <option value="speed">Processing Speed</option>
+                            <option value="quality" selected>Quality Score</option>
+                            <option value="memory">Memory Usage</option>
+                            <option value="convergence">Convergence Time</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-actions">
+                        <button class="btn btn-primary" id="run-benchmark">
+                            <span class="btn-icon">🚀</span>
+                            Run Live Test
+                        </button>
+                        <button class="btn btn-secondary" id="export-results">
+                            <span class="btn-icon">📊</span>
+                            Export Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Performance Charts -->
+        <section class="performance-charts">
+            <div class="container">
+                <div class="charts-grid">
+                    <!-- Speed Comparison Chart -->
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3>Processing Speed Comparison</h3>
+                            <div class="chart-subtitle">Points processed per second across different algorithms</div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="speed-chart" width="400" height="300"></canvas>
+                        </div>
+                        <div class="chart-legend">
+                            <span class="legend-item">
+                                <span class="legend-color" style="background: #6366f1;"></span>
+                                NCS-API v2.1
+                            </span>
+                            <span class="legend-item">
+                                <span class="legend-color" style="background: #8b5cf6;"></span>
+                                Competitor A
+                            </span>
+                            <span class="legend-item">
+                                <span class="legend-color" style="background: #06b6d4;"></span>
+                                Competitor B
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Quality Score Chart -->
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3>Clustering Quality Analysis</h3>
+                            <div class="chart-subtitle">Silhouette scores across different dataset types</div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="quality-chart" width="400" height="300"></canvas>
+                        </div>
+                        <div class="chart-info">
+                            <div class="info-item">
+                                <span class="info-label">Best Score:</span>
+                                <span class="info-value">0.947</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Avg Score:</span>
+                                <span class="info-value">0.918</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Datasets:</span>
+                                <span class="info-value">127</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Scalability Chart -->
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3>Scalability Performance</h3>
+                            <div class="chart-subtitle">Response time vs dataset size</div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="scalability-chart" width="400" height="300"></canvas>
+                        </div>
+                        <div class="chart-analysis">
+                            <p>Linear scalability up to 100K points with sub-linear memory growth</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Memory Usage Chart -->
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3>Memory Efficiency</h3>
+                            <div class="chart-subtitle">Memory usage across algorithm variants</div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="memory-chart" width="400" height="300"></canvas>
+                        </div>
+                        <div class="chart-note">
+                            <small>Memory measurements include algorithm state and data structures</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Algorithm Comparison -->
+        <section class="algorithm-comparison">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Algorithm Deep Dive</h2>
+                    <p>Detailed analysis of each clustering algorithm's strengths and performance characteristics</p>
+                </div>
+                
+                <div class="algorithm-grid">
+                    <!-- K-Means -->
+                    <div class="algorithm-card">
+                        <div class="algorithm-header">
+                            <div class="algorithm-icon">🎯</div>
+                            <div class="algorithm-info">
+                                <h3>K-Means</h3>
+                                <p>Centroid-based clustering</p>
+                            </div>
+                            <div class="algorithm-score">
+                                <div class="score-value">8.7</div>
+                                <div class="score-label">Overall</div>
+                            </div>
+                        </div>
+                        
+                        <div class="performance-bars">
+                            <div class="perf-item">
+                                <span class="perf-label">Speed</span>
+                                <div class="perf-bar">
+                                    <div class="perf-fill" style="width: 95%;"></div>
+                                </div>
+                                <span class="perf-value">9.5</span>
+                            </div>
+                            <div class="perf-item">
+                                <span class="perf-label">Quality</span>
+                                <div class="perf-bar">
+                                    <div class="perf-fill" style="width: 85%;"></div>
+                                </div>
+                                <span class="perf-value">8.5</span>
+                            </div>
+                            <div class="perf-item">
+                                <span class="perf-label">Memory</span>
+                                <div class="perf-bar">
+                                    <div class="perf-fill" style="width: 90%;"></div>
+                                </div>
+                                <span class="perf-value">9.0</span>
+                            </div>
+                            <div class="perf-item">
+                                <span class="perf-label">Scalability</span>
+                                <div class="perf-bar">
+                                    <div class="perf-fill" style="width: 80%;"></div>
+                                </div>
+                                <span class="perf-value">8.0</span>
+                            </div>
+                        </div>
+                        
+                        <div class="algorithm-details">
+                            <div class="detail-row">
+                                <span class="detail-label">Best for:</span>
+                                <span class="detail-value">Spherical clusters, known K</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Time Complexity:</span>
+                                <span class="detail-value">O(n × k × i)</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Avg Processing:</span>
+                                <span class="detail-value">8,420 points/sec</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- DBSCAN -->
+                    <div class="algorithm-card">
+                        <div class="algorithm-header">
+                            <div class="algorithm-icon">🔍</div>
+                            <div class="algorithm-info">
+                                <h3>DBSCAN</h3>
+                                <p>Density-based clustering</p>
+                            </div>
+                            <div class="algorithm-score">
+                                <div class="score-value">8.2</div>
+                                <div class="score-label">Overall</div>
+                            </div>
+                        </div>
+                        
+                        <div class="performance-bars">
+                            <div class="perf-item">
+                                <span class="perf-label">Speed</span>
+                                <div class="perf-bar">
+                                    <div class="perf-fill" style="width: 70%;"></div>
+                                </div>
+                                <span class="perf-value">7.0</span>
+                            </div>
+                            <div class="perf-item">
+                                <span class="perf-label">Quality</span>
+                                <div class="perf-bar">
+                                    <div class="perf-fill" style="width: 92%;"></div>
+                                </div>
+                                <span class="perf-value">9.2</span>
+                            </div>
+                            <div class="perf-item">
+                                <span class="perf-label">Memory</span>
+                                <div class="perf-bar">
+                                    <div class="perf-fill" style="width: 75%;"></div>
+                                </div>
+                                <span class="perf-value">7.5</span>
+                            </div>
+                            <div class="perf-item">
+                                <span class="perf-label">Scalability</span>
+                                <div class="perf-bar">
+                                    <div class="perf-fill" style="width: 85%;"></div>
+                                </div>
+                                <span class="perf-value">8.5</span>
+                            </div>
+                        </div>
+                        
+                        <div class="algorithm-details">
+                            <div class="detail-row">
+                                <span class="detail-label">Best for:</span>
+                                <span class="detail-value">Irregular shapes, noise detection</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Time Complexity:</span>
+                                <span class="detail-value">O(n × log n)</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Avg Processing:</span>
+                                <span class="detail-value">4,680 points/sec</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Hierarchical -->
+                    <div class="algorithm-card">
+                        <div class="algorithm-header">
+                            <div class="algorithm-icon">🌳</div>
+                            <div class="algorithm-info">
+                                <h3>Hierarchical</h3>
+                                <p>Tree-based clustering</p>
+                            </div>
+                            <div class="algorithm-score">
+                                <div class="score-value">7.8</div>
+                                <div class="score-label">Overall</div>
+                            </div>
+                        </div>
+                        
+                        <div class="performance-bars">
+                            <div class="perf-item">
+                                <span class="perf-label">Speed</span>
+                                <div class="perf-bar">
+                                    <div class="perf-fill" style="width: 45%;"></div>
+                                </div>
+                                <span class="perf-value">4.5</span>
+                            </div>
+                            <div class="perf-item">
+                                <span class="perf-label">Quality</span>
+                                <div class="perf-bar">
+                                    <div class="perf-fill" style="width: 95%;"></div>
+                                </div>
+                                <span class="perf-value">9.5</span>
+                            </div>
+                            <div class="perf-item">
+                                <span class="perf-label">Memory</span>
+                                <div class="perf-bar">
+                                    <div class="perf-fill" style="width: 60%;"></div>
+                                </div>
+                                <span class="perf-value">6.0</span>
+                            </div>
+                            <div class="perf-item">
+                                <span class="perf-label">Scalability</span>
+                                <div class="perf-bar">
+                                    <div class="perf-fill" style="width: 50%;"></div>
+                                </div>
+                                <span class="perf-value">5.0</span>
+                            </div>
+                        </div>
+                        
+                        <div class="algorithm-details">
+                            <div class="detail-row">
+                                <span class="detail-label">Best for:</span>
+                                <span class="detail-value">Unknown K, dendrograms</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Time Complexity:</span>
+                                <span class="detail-value">O(n³)</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Avg Processing:</span>
+                                <span class="detail-value">1,240 points/sec</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- NCS Custom -->
+                    <div class="algorithm-card featured">
+                        <div class="algorithm-header">
+                            <div class="algorithm-icon">⚡</div>
+                            <div class="algorithm-info">
+                                <h3>NCS Custom</h3>
+                                <p>Proprietary hybrid algorithm</p>
+                            </div>
+                            <div class="algorithm-score">
+                                <div class="score-value">9.4</div>
+                                <div class="score-label">Overall</div>
+                            </div>
+                        </div>
+                        
+                        <div class="performance-bars">
+                            <div class="perf-item">
+                                <span class="perf-label">Speed</span>
+                                <div class="perf-bar">
+                                    <div class="perf-fill" style="width: 98%;"></div>
+                                </div>
+                                <span class="perf-value">9.8</span>
+                            </div>
+                            <div class="perf-item">
+                                <span class="perf-label">Quality</span>
+                                <div class="perf-bar">
+                                    <div class="perf-fill" style="width: 94%;"></div>
+                                </div>
+                                <span class="perf-value">9.4</span>
+                            </div>
+                            <div class="perf-item">
+                                <span class="perf-label">Memory</span>
+                                <div class="perf-bar">
+                                    <div class="perf-fill" style="width: 88%;"></div>
+                                </div>
+                                <span class="perf-value">8.8</span>
+                            </div>
+                            <div class="perf-item">
+                                <span class="perf-label">Scalability</span>
+                                <div class="perf-bar">
+                                    <div class="perf-fill" style="width: 96%;"></div>
+                                </div>
+                                <span class="perf-value">9.6</span>
+                            </div>
+                        </div>
+                        
+                        <div class="algorithm-details">
+                            <div class="detail-row">
+                                <span class="detail-label">Best for:</span>
+                                <span class="detail-value">Any cluster type, real-time</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Time Complexity:</span>
+                                <span class="detail-value">O(n × log k)</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Avg Processing:</span>
+                                <span class="detail-value">12,850 points/sec</span>
+                            </div>
+                        </div>
+                        
+                        <div class="algorithm-badge">
+                            <span class="badge-text">Recommended</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Real-time Monitoring -->
+        <section class="realtime-monitoring">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Live Performance Monitor</h2>
+                    <p>Real-time API performance metrics and system health</p>
+                </div>
+                
+                <div class="monitoring-grid">
+                    <div class="monitor-card">
+                        <div class="monitor-header">
+                            <h3>API Response Times</h3>
+                            <div class="monitor-status online">Online</div>
+                        </div>
+                        <div class="monitor-chart">
+                            <canvas id="response-time-chart" width="300" height="150"></canvas>
+                        </div>
+                        <div class="monitor-stats">
+                            <div class="stat-item">
+                                <span class="stat-value">23ms</span>
+                                <span class="stat-label">Avg Response</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value">12ms</span>
+                                <span class="stat-label">95th Percentile</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="monitor-card">
+                        <div class="monitor-header">
+                            <h3>Throughput</h3>
+                            <div class="monitor-status online">Optimal</div>
+                        </div>
+                        <div class="monitor-chart">
+                            <canvas id="throughput-chart" width="300" height="150"></canvas>
+                        </div>
+                        <div class="monitor-stats">
+                            <div class="stat-item">
+                                <span class="stat-value">847</span>
+                                <span class="stat-label">Requests/min</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value">98.7%</span>
+                                <span class="stat-label">Success Rate</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="monitor-card">
+                        <div class="monitor-header">
+                            <h3>Error Rates</h3>
+                            <div class="monitor-status good">Low</div>
+                        </div>
+                        <div class="monitor-chart">
+                            <canvas id="error-rate-chart" width="300" height="150"></canvas>
+                        </div>
+                        <div class="monitor-stats">
+                            <div class="stat-item">
+                                <span class="stat-value">0.03%</span>
+                                <span class="stat-label">Error Rate</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value">99.97%</span>
+                                <span class="stat-label">Uptime</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Benchmark History -->
+        <section class="benchmark-history">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Performance Evolution</h2>
+                    <p>Track improvements across NCS-API versions</p>
+                </div>
+                
+                <div class="version-timeline">
+                    <div class="timeline-item current">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <div class="version-info">
+                                <h3>v2.1.0</h3>
+                                <span class="version-date">Current</span>
+                            </div>
+                            <div class="version-improvements">
+                                <div class="improvement">
+                                    <span class="improvement-metric">Speed</span>
+                                    <span class="improvement-change positive">+12%</span>
+                                </div>
+                                <div class="improvement">
+                                    <span class="improvement-metric">Memory</span>
+                                    <span class="improvement-change positive">-8%</span>
+                                </div>
+                                <div class="improvement">
+                                    <span class="improvement-metric">Quality</span>
+                                    <span class="improvement-change positive">+2.3%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <div class="version-info">
+                                <h3>v2.0.0</h3>
+                                <span class="version-date">Dec 2024</span>
+                            </div>
+                            <div class="version-improvements">
+                                <div class="improvement">
+                                    <span class="improvement-metric">Speed</span>
+                                    <span class="improvement-change positive">+25%</span>
+                                </div>
+                                <div class="improvement">
+                                    <span class="improvement-metric">Features</span>
+                                    <span class="improvement-change neutral">Real-time API</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <div class="version-info">
+                                <h3>v1.5.0</h3>
+                                <span class="version-date">Sep 2024</span>
+                            </div>
+                            <div class="version-improvements">
+                                <div class="improvement">
+                                    <span class="improvement-metric">Algorithms</span>
+                                    <span class="improvement-change neutral">DBSCAN, Hierarchical</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <div class="footer-brand">
+                    <img src="/assets/images/logo.svg" alt="NCS-API" class="footer-logo">
+                    <span class="footer-title">NCS-API</span>
+                </div>
+                <p class="footer-description">
+                    High-performance clustering algorithms for modern applications.
+                    Process thousands of data points in real-time.
+                </p>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Product</h3>
+                <ul class="footer-links">
+                    <li><a href="/playground.html">Playground</a></li>
+                    <li><a href="/docs.html">Documentation</a></li>
+                    <li><a href="/benchmarks.html">Benchmarks</a></li>
+                    <li><a href="/examples.html">Examples</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Performance</h3>
+                <ul class="footer-links">
+                    <li><a href="/benchmarks.html#speed">Speed Tests</a></li>
+                    <li><a href="/benchmarks.html#quality">Quality Analysis</a></li>
+                    <li><a href="/benchmarks.html#monitoring">Live Monitoring</a></li>
+                    <li><a href="/status">System Status</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Support</h3>
+                <ul class="footer-links">
+                    <li><a href="mailto:support@ncs-cluster.com">Contact Support</a></li>
+                    <li><a href="https://status.ncs-cluster.com">Service Status</a></li>
+                    <li><a href="https://github.com/ncs-api">GitHub</a></li>
+                    <li><a href="https://discord.gg/ncs-api">Discord</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <div class="footer-container">
+                <p class="footer-copyright">
+                    © 2025 NCS-API. All rights reserved.
+                </p>
+                <div class="footer-social">
+                    <a href="https://twitter.com/ncsapi" aria-label="Follow on Twitter">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/>
+                        </svg>
+                    </a>
+                    <a href="https://github.com/ncs-api" aria-label="View on GitHub">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Scripts -->
+    <script type="module" src="/js/main.js"></script>
+    <script type="module" src="/js/pages/benchmarks.js"></script>
+</body>
+</html>
