@@ -1,0 +1,583 @@
+/**
+ * FILE: css/layout/grid.css
+ * CSS Grid Layout System
+ * NCS-API Website - Comprehensive grid system for modern layouts
+ */
+
+/* ===================================
+   CSS Grid Container Classes
+   =================================== */
+
+.grid {
+  display: grid;
+}
+
+.inline-grid {
+  display: inline-grid;
+}
+
+/* ===================================
+   Grid Template Columns
+   =================================== */
+
+/* 12-Column Grid System */
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.grid-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.grid-cols-7 { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.grid-cols-8 { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+.grid-cols-9 { grid-template-columns: repeat(9, minmax(0, 1fr)); }
+.grid-cols-10 { grid-template-columns: repeat(10, minmax(0, 1fr)); }
+.grid-cols-11 { grid-template-columns: repeat(11, minmax(0, 1fr)); }
+.grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+
+/* Auto-fit and Auto-fill */
+.grid-cols-auto { grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); }
+.grid-cols-min { grid-template-columns: min-content; }
+.grid-cols-max { grid-template-columns: max-content; }
+.grid-cols-fr { grid-template-columns: minmax(0, 1fr); }
+
+/* Common Layout Patterns */
+.grid-cols-sidebar { grid-template-columns: 250px 1fr; }
+.grid-cols-sidebar-right { grid-template-columns: 1fr 250px; }
+.grid-cols-nav-content { grid-template-columns: 280px 1fr; }
+.grid-cols-content-aside { grid-template-columns: 1fr 320px; }
+.grid-cols-three-panel { grid-template-columns: 280px 1fr 320px; }
+
+/* Responsive Grid Columns */
+.grid-cols-auto-fit-sm { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.grid-cols-auto-fit-md { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+.grid-cols-auto-fit-lg { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.grid-cols-auto-fit-xl { grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); }
+
+/* ===================================
+   Grid Template Rows
+   =================================== */
+
+.grid-rows-1 { grid-template-rows: repeat(1, minmax(0, 1fr)); }
+.grid-rows-2 { grid-template-rows: repeat(2, minmax(0, 1fr)); }
+.grid-rows-3 { grid-template-rows: repeat(3, minmax(0, 1fr)); }
+.grid-rows-4 { grid-template-rows: repeat(4, minmax(0, 1fr)); }
+.grid-rows-5 { grid-template-rows: repeat(5, minmax(0, 1fr)); }
+.grid-rows-6 { grid-template-rows: repeat(6, minmax(0, 1fr)); }
+
+.grid-rows-auto { grid-template-rows: auto; }
+.grid-rows-min { grid-template-rows: min-content; }
+.grid-rows-max { grid-template-rows: max-content; }
+.grid-rows-fr { grid-template-rows: minmax(0, 1fr); }
+
+/* Common Row Patterns */
+.grid-rows-header-content { grid-template-rows: auto 1fr; }
+.grid-rows-header-content-footer { grid-template-rows: auto 1fr auto; }
+.grid-rows-full-viewport { grid-template-rows: 100vh; }
+.grid-rows-min-viewport { grid-template-rows: minmax(100vh, auto); }
+
+/* ===================================
+   Grid Areas (Named Grid Lines)
+   =================================== */
+
+/* Common Layout Templates */
+.grid-template-default {
+  grid-template-areas: 
+    "header header header"
+    "sidebar content aside"
+    "footer footer footer";
+  grid-template-columns: 280px 1fr 320px;
+  grid-template-rows: auto 1fr auto;
+}
+
+.grid-template-docs {
+  grid-template-areas: 
+    "sidebar content";
+  grid-template-columns: 280px 1fr;
+  grid-template-rows: 1fr;
+}
+
+.grid-template-playground {
+  grid-template-areas: 
+    "controls visualization results";
+  grid-template-columns: 320px 1fr 300px;
+  grid-template-rows: 1fr;
+}
+
+.grid-template-app {
+  grid-template-areas: 
+    "header header"
+    "sidebar main"
+    "sidebar footer";
+  grid-template-columns: 250px 1fr;
+  grid-template-rows: auto 1fr auto;
+}
+
+/* Grid Area Assignments */
+.grid-area-header { grid-area: header; }
+.grid-area-sidebar { grid-area: sidebar; }
+.grid-area-content { grid-area: content; }
+.grid-area-main { grid-area: main; }
+.grid-area-aside { grid-area: aside; }
+.grid-area-footer { grid-area: footer; }
+.grid-area-controls { grid-area: controls; }
+.grid-area-visualization { grid-area: visualization; }
+.grid-area-results { grid-area: results; }
+
+/* ===================================
+   Grid Column Span
+   =================================== */
+
+.col-span-1 { grid-column: span 1 / span 1; }
+.col-span-2 { grid-column: span 2 / span 2; }
+.col-span-3 { grid-column: span 3 / span 3; }
+.col-span-4 { grid-column: span 4 / span 4; }
+.col-span-5 { grid-column: span 5 / span 5; }
+.col-span-6 { grid-column: span 6 / span 6; }
+.col-span-7 { grid-column: span 7 / span 7; }
+.col-span-8 { grid-column: span 8 / span 8; }
+.col-span-9 { grid-column: span 9 / span 9; }
+.col-span-10 { grid-column: span 10 / span 10; }
+.col-span-11 { grid-column: span 11 / span 11; }
+.col-span-12 { grid-column: span 12 / span 12; }
+.col-span-full { grid-column: 1 / -1; }
+
+/* Grid Column Start/End */
+.col-start-1 { grid-column-start: 1; }
+.col-start-2 { grid-column-start: 2; }
+.col-start-3 { grid-column-start: 3; }
+.col-start-4 { grid-column-start: 4; }
+.col-start-5 { grid-column-start: 5; }
+.col-start-6 { grid-column-start: 6; }
+.col-start-7 { grid-column-start: 7; }
+.col-start-8 { grid-column-start: 8; }
+.col-start-9 { grid-column-start: 9; }
+.col-start-10 { grid-column-start: 10; }
+.col-start-11 { grid-column-start: 11; }
+.col-start-12 { grid-column-start: 12; }
+.col-start-13 { grid-column-start: 13; }
+.col-start-auto { grid-column-start: auto; }
+
+.col-end-1 { grid-column-end: 1; }
+.col-end-2 { grid-column-end: 2; }
+.col-end-3 { grid-column-end: 3; }
+.col-end-4 { grid-column-end: 4; }
+.col-end-5 { grid-column-end: 5; }
+.col-end-6 { grid-column-end: 6; }
+.col-end-7 { grid-column-end: 7; }
+.col-end-8 { grid-column-end: 8; }
+.col-end-9 { grid-column-end: 9; }
+.col-end-10 { grid-column-end: 10; }
+.col-end-11 { grid-column-end: 11; }
+.col-end-12 { grid-column-end: 12; }
+.col-end-13 { grid-column-end: 13; }
+.col-end-auto { grid-column-end: auto; }
+
+/* ===================================
+   Grid Row Span
+   =================================== */
+
+.row-span-1 { grid-row: span 1 / span 1; }
+.row-span-2 { grid-row: span 2 / span 2; }
+.row-span-3 { grid-row: span 3 / span 3; }
+.row-span-4 { grid-row: span 4 / span 4; }
+.row-span-5 { grid-row: span 5 / span 5; }
+.row-span-6 { grid-row: span 6 / span 6; }
+.row-span-full { grid-row: 1 / -1; }
+
+/* Grid Row Start/End */
+.row-start-1 { grid-row-start: 1; }
+.row-start-2 { grid-row-start: 2; }
+.row-start-3 { grid-row-start: 3; }
+.row-start-4 { grid-row-start: 4; }
+.row-start-5 { grid-row-start: 5; }
+.row-start-6 { grid-row-start: 6; }
+.row-start-7 { grid-row-start: 7; }
+.row-start-auto { grid-row-start: auto; }
+
+.row-end-1 { grid-row-end: 1; }
+.row-end-2 { grid-row-end: 2; }
+.row-end-3 { grid-row-end: 3; }
+.row-end-4 { grid-row-end: 4; }
+.row-end-5 { grid-row-end: 5; }
+.row-end-6 { grid-row-end: 6; }
+.row-end-7 { grid-row-end: 7; }
+.row-end-auto { grid-row-end: auto; }
+
+/* ===================================
+   Grid Gap/Spacing
+   =================================== */
+
+.gap-0 { gap: 0; }
+.gap-1 { gap: var(--space-1, 0.25rem); }
+.gap-2 { gap: var(--space-2, 0.5rem); }
+.gap-3 { gap: var(--space-3, 0.75rem); }
+.gap-4 { gap: var(--space-4, 1rem); }
+.gap-5 { gap: var(--space-5, 1.25rem); }
+.gap-6 { gap: var(--space-6, 1.5rem); }
+.gap-8 { gap: var(--space-8, 2rem); }
+.gap-10 { gap: var(--space-10, 2.5rem); }
+.gap-12 { gap: var(--space-12, 3rem); }
+.gap-16 { gap: var(--space-16, 4rem); }
+.gap-20 { gap: var(--space-20, 5rem); }
+.gap-24 { gap: var(--space-24, 6rem); }
+
+/* Column Gap */
+.gap-x-0 { column-gap: 0; }
+.gap-x-1 { column-gap: var(--space-1, 0.25rem); }
+.gap-x-2 { column-gap: var(--space-2, 0.5rem); }
+.gap-x-3 { column-gap: var(--space-3, 0.75rem); }
+.gap-x-4 { column-gap: var(--space-4, 1rem); }
+.gap-x-5 { column-gap: var(--space-5, 1.25rem); }
+.gap-x-6 { column-gap: var(--space-6, 1.5rem); }
+.gap-x-8 { column-gap: var(--space-8, 2rem); }
+.gap-x-10 { column-gap: var(--space-10, 2.5rem); }
+.gap-x-12 { column-gap: var(--space-12, 3rem); }
+.gap-x-16 { column-gap: var(--space-16, 4rem); }
+
+/* Row Gap */
+.gap-y-0 { row-gap: 0; }
+.gap-y-1 { row-gap: var(--space-1, 0.25rem); }
+.gap-y-2 { row-gap: var(--space-2, 0.5rem); }
+.gap-y-3 { row-gap: var(--space-3, 0.75rem); }
+.gap-y-4 { row-gap: var(--space-4, 1rem); }
+.gap-y-5 { row-gap: var(--space-5, 1.25rem); }
+.gap-y-6 { row-gap: var(--space-6, 1.5rem); }
+.gap-y-8 { row-gap: var(--space-8, 2rem); }
+.gap-y-10 { row-gap: var(--space-10, 2.5rem); }
+.gap-y-12 { row-gap: var(--space-12, 3rem); }
+.gap-y-16 { row-gap: var(--space-16, 4rem); }
+
+/* ===================================
+   Grid Auto Flow
+   =================================== */
+
+.grid-flow-row { grid-auto-flow: row; }
+.grid-flow-col { grid-auto-flow: column; }
+.grid-flow-row-dense { grid-auto-flow: row dense; }
+.grid-flow-col-dense { grid-auto-flow: column dense; }
+
+/* ===================================
+   Grid Auto Columns/Rows
+   =================================== */
+
+.auto-cols-auto { grid-auto-columns: auto; }
+.auto-cols-min { grid-auto-columns: min-content; }
+.auto-cols-max { grid-auto-columns: max-content; }
+.auto-cols-fr { grid-auto-columns: minmax(0, 1fr); }
+
+.auto-rows-auto { grid-auto-rows: auto; }
+.auto-rows-min { grid-auto-rows: min-content; }
+.auto-rows-max { grid-auto-rows: max-content; }
+.auto-rows-fr { grid-auto-rows: minmax(0, 1fr); }
+
+/* ===================================
+   Justify & Align Grid Items
+   =================================== */
+
+/* Justify Items */
+.justify-items-start { justify-items: start; }
+.justify-items-end { justify-items: end; }
+.justify-items-center { justify-items: center; }
+.justify-items-stretch { justify-items: stretch; }
+
+/* Align Items */
+.align-items-start { align-items: start; }
+.align-items-end { align-items: end; }
+.align-items-center { align-items: center; }
+.align-items-stretch { align-items: stretch; }
+
+/* Justify Content */
+.justify-content-start { justify-content: start; }
+.justify-content-end { justify-content: end; }
+.justify-content-center { justify-content: center; }
+.justify-content-stretch { justify-content: stretch; }
+.justify-content-around { justify-content: space-around; }
+.justify-content-between { justify-content: space-between; }
+.justify-content-evenly { justify-content: space-evenly; }
+
+/* Align Content */
+.align-content-start { align-content: start; }
+.align-content-end { align-content: end; }
+.align-content-center { align-content: center; }
+.align-content-stretch { align-content: stretch; }
+.align-content-around { align-content: space-around; }
+.align-content-between { align-content: space-between; }
+.align-content-evenly { align-content: space-evenly; }
+
+/* ===================================
+   Individual Grid Item Alignment
+   =================================== */
+
+/* Justify Self */
+.justify-self-auto { justify-self: auto; }
+.justify-self-start { justify-self: start; }
+.justify-self-end { justify-self: end; }
+.justify-self-center { justify-self: center; }
+.justify-self-stretch { justify-self: stretch; }
+
+/* Align Self */
+.align-self-auto { align-self: auto; }
+.align-self-start { align-self: start; }
+.align-self-end { align-self: end; }
+.align-self-center { align-self: center; }
+.align-self-stretch { align-self: stretch; }
+
+/* ===================================
+   Application-Specific Grid Layouts
+   =================================== */
+
+/* Hero Section Grid */
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  align-items: center;
+  justify-items: center;
+  min-height: 100vh;
+  padding: var(--space-8);
+}
+
+/* Feature Grid */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-6);
+  margin: var(--space-8) 0;
+}
+
+/* Dashboard Grid */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+
+/* Card Grid */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-6);
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-4);
+}
+
+/* Metrics Grid */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--space-6);
+  margin: var(--space-8) 0;
+}
+
+/* Gallery Grid */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: var(--space-4);
+  align-items: start;
+}
+
+/* ===================================
+   Container Grid Wrappers
+   =================================== */
+
+.container-grid {
+  display: grid;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+}
+
+.container-grid-full {
+  display: grid;
+  width: 100%;
+  padding: 0 var(--space-4);
+}
+
+.container-grid-narrow {
+  display: grid;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+}
+
+.container-grid-wide {
+  display: grid;
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+}
+
+/* ===================================
+   Responsive Grid Utilities
+   =================================== */
+
+/* Small screens (mobile) */
+@media (max-width: 639px) {
+  .sm\:grid { display: grid; }
+  .sm\:grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+  .sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sm\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .sm\:col-span-1 { grid-column: span 1 / span 1; }
+  .sm\:col-span-2 { grid-column: span 2 / span 2; }
+  .sm\:col-span-full { grid-column: 1 / -1; }
+  .sm\:gap-2 { gap: var(--space-2); }
+  .sm\:gap-4 { gap: var(--space-4); }
+  
+  /* Mobile-specific layouts */
+  .grid-template-playground {
+    grid-template-areas: 
+      "controls"
+      "visualization"
+      "results";
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+  }
+  
+  .grid-template-docs {
+    grid-template-areas: "content";
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Medium screens (tablet) */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .md\:grid { display: grid; }
+  .md\:grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+  .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .md\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .md\:col-span-1 { grid-column: span 1 / span 1; }
+  .md\:col-span-2 { grid-column: span 2 / span 2; }
+  .md\:col-span-3 { grid-column: span 3 / span 3; }
+  .md\:col-span-full { grid-column: 1 / -1; }
+  .md\:gap-4 { gap: var(--space-4); }
+  .md\:gap-6 { gap: var(--space-6); }
+  
+  /* Tablet-specific layouts */
+  .grid-template-playground {
+    grid-template-areas: 
+      "controls results"
+      "visualization visualization";
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto 1fr;
+  }
+}
+
+/* Large screens (desktop) */
+@media (min-width: 1024px) {
+  .lg\:grid { display: grid; }
+  .lg\:grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+  .lg\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .lg\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .lg\:grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .lg\:grid-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .lg\:col-span-1 { grid-column: span 1 / span 1; }
+  .lg\:col-span-2 { grid-column: span 2 / span 2; }
+  .lg\:col-span-3 { grid-column: span 3 / span 3; }
+  .lg\:col-span-4 { grid-column: span 4 / span 4; }
+  .lg\:col-span-full { grid-column: 1 / -1; }
+  .lg\:gap-6 { gap: var(--space-6); }
+  .lg\:gap-8 { gap: var(--space-8); }
+}
+
+/* Extra large screens */
+@media (min-width: 1280px) {
+  .xl\:grid { display: grid; }
+  .xl\:grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+  .xl\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .xl\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .xl\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .xl\:grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .xl\:grid-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .xl\:col-span-1 { grid-column: span 1 / span 1; }
+  .xl\:col-span-2 { grid-column: span 2 / span 2; }
+  .xl\:col-span-3 { grid-column: span 3 / span 3; }
+  .xl\:col-span-4 { grid-column: span 4 / span 4; }
+  .xl\:col-span-5 { grid-column: span 5 / span 5; }
+  .xl\:col-span-6 { grid-column: span 6 / span 6; }
+  .xl\:col-span-full { grid-column: 1 / -1; }
+  .xl\:gap-8 { gap: var(--space-8); }
+  .xl\:gap-10 { gap: var(--space-10); }
+}
+
+/* ===================================
+   Debug Grid Utilities (Development)
+   =================================== */
+
+.grid-debug {
+  position: relative;
+}
+
+.grid-debug::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    linear-gradient(rgba(255, 0, 0, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 0, 0, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.grid-debug-columns::before {
+  background-image: linear-gradient(90deg, rgba(0, 255, 0, 0.1) 1px, transparent 1px);
+  background-size: calc(100% / var(--grid-cols, 12)) 100%;
+}
+
+.grid-debug-item {
+  background: rgba(255, 0, 0, 0.1);
+  border: 1px solid rgba(255, 0, 0, 0.3);
+}
+
+/* ===================================
+   Performance Optimizations
+   =================================== */
+
+/* Use contain for better performance on large grids */
+.grid-contain {
+  contain: layout style;
+}
+
+/* Use subgrid where supported */
+@supports (grid-template-rows: subgrid) {
+  .subgrid-rows {
+    grid-template-rows: subgrid;
+  }
+  
+  .subgrid-cols {
+    grid-template-columns: subgrid;
+  }
+}
+
+/* ===================================
+   Print Styles
+   =================================== */
+
+@media print {
+  .grid,
+  .inline-grid {
+    break-inside: avoid;
+  }
+  
+  .grid-template-playground,
+  .grid-template-docs {
+    grid-template-areas: "content";
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+}

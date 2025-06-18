@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Real-world examples and use cases for NCS-API clustering algorithms. Customer segmentation, anomaly detection, and data analysis implementations.">
+    <meta name="keywords" content="clustering examples, customer segmentation, anomaly detection, data analysis, machine learning, NCS API, use cases">
+    <meta name="author" content="NCS-API Team">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="NCS-API">
+    <meta property="og:url" content="https://ncs-api.com/examples.html">
+    <meta property="og:title" content="Real-World Examples - NCS-API Clustering Solutions">
+    <meta property="og:description" content="Explore practical implementations of NCS clustering algorithms across industries. Customer segmentation, fraud detection, and data analysis examples.">
+    <meta property="og:image" content="/assets/images/examples-preview.jpg">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://ncs-api.com/examples.html">
+    <meta property="twitter:title" content="Real-World Examples - NCS-API Clustering Solutions">
+    <meta property="twitter:description" content="Explore practical implementations of NCS clustering algorithms across industries. Customer segmentation, fraud detection, and data analysis examples.">
+    <meta property="twitter:image" content="/assets/images/examples-preview.jpg">
+    
+    <title>Real-World Examples - NCS-API</title>
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://api.ncs-cluster.com">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#6366f1">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/components/header.css">
+    <link rel="stylesheet" href="/css/components/hero.css">
+    <link rel="stylesheet" href="/css/components/buttons.css">
+    <link rel="stylesheet" href="/css/components/cards.css">
+    <link rel="stylesheet" href="/css/components/modal.css">
+    <link rel="stylesheet" href="/css/layout/grid.css">
+    <link rel="stylesheet" href="/css/layout/responsive.css">
+    <link rel="stylesheet" href="/css/layout/animations.css">
+    <link rel="stylesheet" href="/css/themes/light.css">
+    <link rel="stylesheet" href="/css/themes/dark.css">
+    
+    <!-- Syntax highlighting for code examples -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/assets/fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/assets/fonts/source-code-pro.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/js/main.js" as="script">
+    
+    <!-- JSON-LD Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": "NCS-API Examples",
+      "description": "Real-world examples and use cases for NCS-API clustering algorithms",
+      "url": "https://ncs-api.com/examples.html",
+      "mainEntity": {
+        "@type": "SoftwareApplication",
+        "name": "NCS-API",
+        "applicationCategory": "Machine Learning API",
+        "operatingSystem": "Web-based",
+        "description": "High-performance clustering algorithms API"
+      }
+    }
+    </script>
+</head>
+<body class="theme-dark">
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <div class="cluster-animation">
+                <div class="cluster-point"></div>
+                <div class="cluster-point"></div>
+                <div class="cluster-point"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Header -->
+    <header class="header" role="banner">
+        <div class="header-container">
+            <div class="header-brand">
+                <a href="/" class="brand-link" aria-label="NCS-API Home">
+                    <div class="brand-icon">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="8" cy="8" r="3" fill="currentColor" opacity="0.8"/>
+                            <circle cx="24" cy="8" r="3" fill="currentColor" opacity="0.6"/>
+                            <circle cx="8" cy="24" r="3" fill="currentColor" opacity="0.4"/>
+                            <circle cx="24" cy="24" r="3" fill="currentColor" opacity="0.9"/>
+                            <circle cx="16" cy="16" r="4" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    <span class="brand-text">NCS-API</span>
+                </a>
+            </div>
+            
+            <nav class="header-nav" role="navigation" aria-label="Main navigation">
+                <ul class="nav-list">
+                    <li><a href="/" class="nav-link">Home</a></li>
+                    <li><a href="/playground.html" class="nav-link">Playground</a></li>
+                    <li><a href="/docs.html" class="nav-link">Documentation</a></li>
+                    <li><a href="/benchmarks.html" class="nav-link">Benchmarks</a></li>
+                    <li><a href="/examples.html" class="nav-link active" aria-current="page">Examples</a></li>
+                </ul>
+            </nav>
+            
+            <div class="header-actions">
+                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+                    <span class="theme-icon">🌙</span>
+                </button>
+                <a href="/docs.html" class="btn btn-primary">Get Started</a>
+            </div>
+            
+            <button class="mobile-menu-toggle" aria-label="Toggle mobile menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main id="main-content" class="main-content" role="main">
+        
+        <!-- Hero Section -->
+        <section class="hero" aria-labelledby="hero-title">
+            <div class="hero-background">
+                <div class="hero-gradient"></div>
+                <div class="hero-pattern"></div>
+            </div>
+            
+            <div class="container">
+                <div class="hero-content">
+                    <h1 id="hero-title" class="hero-title">
+                        Real-World Examples
+                    </h1>
+                    <p class="hero-subtitle">
+                        Discover how NCS-API transforms data across industries with practical clustering solutions that drive business intelligence and decision-making.
+                    </p>
+                    <div class="hero-actions">
+                        <a href="#examples" class="btn btn-primary btn-large">
+                            Explore Examples
+                        </a>
+                        <a href="/playground.html" class="btn btn-secondary btn-large">
+                            Try Live Demo
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Industries Section -->
+        <section class="section" aria-labelledby="industries-title">
+            <div class="container">
+                <div class="section-header text-center">
+                    <h2 id="industries-title" class="section-title">Industry Applications</h2>
+                    <p class="section-subtitle">
+                        NCS clustering algorithms power insights across diverse sectors
+                    </p>
+                </div>
+                
+                <div class="industries-grid">
+                    <div class="industry-card">
+                        <div class="industry-icon">🏦</div>
+                        <h3>Financial Services</h3>
+                        <p>Risk assessment, fraud detection, and customer segmentation for banking and fintech</p>
+                        <ul class="industry-examples">
+                            <li>Credit risk clustering</li>
+                            <li>Fraud pattern detection</li>
+                            <li>Investment portfolio grouping</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="industry-card">
+                        <div class="industry-icon">🛒</div>
+                        <h3>E-commerce & Retail</h3>
+                        <p>Product recommendations, inventory optimization, and customer behavior analysis</p>
+                        <ul class="industry-examples">
+                            <li>Customer purchase patterns</li>
+                            <li>Product similarity grouping</li>
+                            <li>Market basket analysis</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="industry-card">
+                        <div class="industry-icon">🏥</div>
+                        <h3>Healthcare</h3>
+                        <p>Patient stratification, treatment optimization, and medical research</p>
+                        <ul class="industry-examples">
+                            <li>Patient cohort identification</li>
+                            <li>Treatment response clustering</li>
+                            <li>Disease pattern analysis</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="industry-card">
+                        <div class="industry-icon">🏭</div>
+                        <h3>Manufacturing</h3>
+                        <p>Quality control, predictive maintenance, and supply chain optimization</p>
+                        <ul class="industry-examples">
+                            <li>Equipment failure patterns</li>
+                            <li>Quality defect clustering</li>
+                            <li>Supply chain optimization</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="industry-card">
+                        <div class="industry-icon">📱</div>
+                        <h3>Technology</h3>
+                        <p>User behavior analysis, feature optimization, and system monitoring</p>
+                        <ul class="industry-examples">
+                            <li>User engagement patterns</li>
+                            <li>Feature usage clustering</li>
+                            <li>System performance monitoring</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="industry-card">
+                        <div class="industry-icon">🎯</div>
+                        <h3>Marketing</h3>
+                        <p>Campaign optimization, audience segmentation, and content personalization</p>
+                        <ul class="industry-examples">
+                            <li>Audience micro-segmentation</li>
+                            <li>Campaign performance clustering</li>
+                            <li>Content recommendation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Examples Section -->
+        <section id="examples" class="section" aria-labelledby="examples-title">
+            <div class="container">
+                <div class="section-header text-center">
+                    <h2 id="examples-title" class="section-title">Implementation Examples</h2>
+                    <p class="section-subtitle">
+                        Step-by-step guides with code samples and real datasets
+                    </p>
+                </div>
+                
+                <div class="examples-grid">
+                    
+                    <!-- Customer Segmentation Example -->
+                    <article class="example-card" data-category="business">
+                        <div class="example-header">
+                            <div class="example-icon">👥</div>
+                            <div class="example-meta">
+                                <h3 class="example-title">Customer Segmentation</h3>
+                                <div class="example-tags">
+                                    <span class="tag">Business</span>
+                                    <span class="tag">E-commerce</span>
+                                    <span class="tag">RFM Analysis</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="example-content">
+                            <p class="example-description">
+                                Segment customers based on purchase behavior using RFM (Recency, Frequency, Monetary) analysis to optimize marketing campaigns and increase customer lifetime value.
+                            </p>
+                            
+                            <div class="example-stats">
+                                <div class="stat">
+                                    <span class="stat-value">4</span>
+                                    <span class="stat-label">Customer Segments</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-value">10k</span>
+                                    <span class="stat-label">Sample Records</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-value">98%</span>
+                                    <span class="stat-label">Accuracy</span>
+                                </div>
+                            </div>
+                            
+                            <div class="example-code">
+                                <pre><code class="language-javascript">const response = await fetch('https://api.ncs-cluster.com/v1/cluster', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer YOUR_API_KEY',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    data: customerData,
+    algorithm: 'ncs',
+    features: ['recency', 'frequency', 'monetary'],
+    clusters: 4,
+    normalize: true
+  })
+});
+
+const clusters = await response.json();</code></pre>
+                            </div>
+                            
+                            <div class="example-actions">
+                                <button class="btn btn-primary" onclick="loadExample('customer-segmentation')">
+                                    View Full Example
+                                </button>
+                                <button class="btn btn-secondary" onclick="downloadDataset('customers.csv')">
+                                    Download Dataset
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+                    
+                    <!-- Anomaly Detection Example -->
+                    <article class="example-card" data-category="security">
+                        <div class="example-header">
+                            <div class="example-icon">🔍</div>
+                            <div class="example-meta">
+                                <h3 class="example-title">Anomaly Detection</h3>
+                                <div class="example-tags">
+                                    <span class="tag">Security</span>
+                                    <span class="tag">Fraud Detection</span>
+                                    <span class="tag">Real-time</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="example-content">
+                            <p class="example-description">
+                                Detect fraudulent transactions and unusual patterns in financial data using density-based clustering to identify outliers and anomalous behavior.
+                            </p>
+                            
+                            <div class="example-stats">
+                                <div class="stat">
+                                    <span class="stat-value">0.1%</span>
+                                    <span class="stat-label">False Positives</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-value">99.7%</span>
+                                    <span class="stat-label">Detection Rate</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-value">< 100ms</span>
+                                    <span class="stat-label">Response Time</span>
+                                </div>
+                            </div>
+                            
+                            <div class="example-code">
+                                <pre><code class="language-javascript">const anomalyDetection = await fetch('https://api.ncs-cluster.com/v1/anomaly', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer YOUR_API_KEY',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    data: transactionData,
+    algorithm: 'dbscan',
+    features: ['amount', 'frequency', 'location', 'time'],
+    sensitivity: 0.95,
+    realtime: true
+  })
+});
+
+const anomalies = await anomalyDetection.json();</code></pre>
+                            </div>
+                            
+                            <div class="example-actions">
+                                <button class="btn btn-primary" onclick="loadExample('anomaly-detection')">
+                                    View Full Example
+                                </button>
+                                <button class="btn btn-secondary" onclick="downloadDataset('transactions.csv')">
+                                    Download Dataset
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+                    
+                    <!-- Social Network Analysis Example -->
+                    <article class="example-card" data-category="social">
+                        <div class="example-header">
+                            <div class="example-icon">🌐</div>
+                            <div class="example-meta">
+                                <h3 class="example-title">Social Network Analysis</h3>
+                                <div class="example-tags">
+                                    <span class="tag">Social Media</span>
+                                    <span class="tag">Community Detection</span>
+                                    <span class="tag">Graph Analysis</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="example-content">
+                            <p class="example-description">
+                                Identify communities and influential nodes in social networks to understand information flow, recommend connections, and detect coordinated behavior.
+                            </p>
+                            
+                            <div class="example-stats">
+                                <div class="stat">
+                                    <span class="stat-value">12</span>
+                                    <span class="stat-label">Communities Found</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-value">50k</span>
+                                    <span class="stat-label">Network Nodes</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-value">0.85</span>
+                                    <span class="stat-label">Modularity Score</span>
+                                </div>
+                            </div>
+                            
+                            <div class="example-code">
+                                <pre><code class="language-javascript">const networkAnalysis = await fetch('https://api.ncs-cluster.com/v1/graph', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer YOUR_API_KEY',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    nodes: nodeData,
+    edges: edgeData,
+    algorithm: 'community_detection',
+    features: ['connections', 'activity', 'influence'],
+    resolution: 1.0
+  })
+});
+
+const communities = await networkAnalysis.json();</code></pre>
+                            </div>
+                            
+                            <div class="example-actions">
+                                <button class="btn btn-primary" onclick="loadExample('social-network')">
+                                    View Full Example
+                                </button>
+                                <button class="btn btn-secondary" onclick="downloadDataset('social-network.csv')">
+                                    Download Dataset
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+                    
+                    <!-- IoT Sensor Clustering Example -->
+                    <article class="example-card" data-category="iot">
+                        <div class="example-header">
+                            <div class="example-icon">📡</div>
+                            <div class="example-meta">
+                                <h3 class="example-title">IoT Sensor Clustering</h3>
+                                <div class="example-tags">
+                                    <span class="tag">IoT</span>
+                                    <span class="tag">Time Series</span>
+                                    <span class="tag">Predictive Maintenance</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="example-content">
+                            <p class="example-description">
+                                Group IoT sensors by behavioral patterns to optimize maintenance schedules, predict failures, and improve operational efficiency in smart buildings and industrial systems.
+                            </p>
+                            
+                            <div class="example-stats">
+                                <div class="stat">
+                                    <span class="stat-value">8</span>
+                                    <span class="stat-label">Sensor Groups</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-value">500</span>
+                                    <span class="stat-label">Connected Sensors</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-value">95%</span>
+                                    <span class="stat-label">Uptime Improvement</span>
+                                </div>
+                            </div>
+                            
+                            <div class="example-code">
+                                <pre><code class="language-javascript">const iotClustering = await fetch('https://api.ncs-cluster.com/v1/timeseries', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer YOUR_API_KEY',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    data: sensorData,
+    algorithm: 'hierarchical',
+    features: ['temperature', 'humidity', 'vibration', 'power'],
+    window_size: 24,
+    preprocessing: 'zscore'
+  })
+});
+
+const sensorGroups = await iotClustering.json();</code></pre>
+                            </div>
+                            
+                            <div class="example-actions">
+                                <button class="btn btn-primary" onclick="loadExample('iot-sensors')">
+                                    View Full Example
+                                </button>
+                                <button class="btn btn-secondary" onclick="downloadDataset('iot-sensors.csv')">
+                                    Download Dataset
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+                    
+                    <!-- Text Document Clustering Example -->
+                    <article class="example-card" data-category="nlp">
+                        <div class="example-header">
+                            <div class="example-icon">📄</div>
+                            <div class="example-meta">
+                                <h3 class="example-title">Document Clustering</h3>
+                                <div class="example-tags">
+                                    <span class="tag">NLP</span>
+                                    <span class="tag">Text Mining</span>
+                                    <span class="tag">Content Analysis</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="example-content">
+                            <p class="example-description">
+                                Automatically organize and categorize text documents, research papers, and content by topic similarity using advanced NLP-powered clustering techniques.
+                            </p>
+                            
+                            <div class="example-stats">
+                                <div class="stat">
+                                    <span class="stat-value">15</span>
+                                    <span class="stat-label">Topic Clusters</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-value">10k</span>
+                                    <span class="stat-label">Documents</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-value">92%</span>
+                                    <span class="stat-label">Topic Coherence</span>
+                                </div>
+                            </div>
+                            
+                            <div class="example-code">
+                                <pre><code class="language-javascript">const textClustering = await fetch('https://api.ncs-cluster.com/v1/text', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer YOUR_API_KEY',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    documents: documentTexts,
+    algorithm: 'lda_clustering',
+    features: 'tfidf',
+    max_features: 5000,
+    min_cluster_size: 10,
+    language: 'en'
+  })
+});
+
+const topicClusters = await textClustering.json();</code></pre>
+                            </div>
+                            
+                            <div class="example-actions">
+                                <button class="btn btn-primary" onclick="loadExample('document-clustering')">
+                                    View Full Example
+                                </button>
+                                <button class="btn btn-secondary" onclick="downloadDataset('documents.zip')">
+                                    Download Dataset
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+                    
+                    <!-- Image Clustering Example -->
+                    <article class="example-card" data-category="computer-vision">
+                        <div class="example-header">
+                            <div class="example-icon">🖼️</div>
+                            <div class="example-meta">
+                                <h3 class="example-title">Image Clustering</h3>
+                                <div class="example-tags">
+                                    <span class="tag">Computer Vision</span>
+                                    <span class="tag">Image Analysis</span>
+                                    <span class="tag">Feature Extraction</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="example-content">
+                            <p class="example-description">
+                                Group images by visual similarity using deep learning features to organize photo libraries, detect duplicate content, and improve search capabilities.
+                            </p>
+                            
+                            <div class="example-stats">
+                                <div class="stat">
+                                    <span class="stat-value">20</span>
+                                    <span class="stat-label">Visual Groups</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-value">5k</span>
+                                    <span class="stat-label">Images</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-value">96%</span>
+                                    <span class="stat-label">Similarity Accuracy</span>
+                                </div>
+                            </div>
+                            
+                            <div class="example-code">
+                                <pre><code class="language-javascript">const imageClustering = await fetch('https://api.ncs-cluster.com/v1/vision', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer YOUR_API_KEY',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    images: imageUrls,
+    algorithm: 'visual_clustering',
+    feature_extractor: 'resnet50',
+    similarity_threshold: 0.8,
+    batch_size: 32
+  })
+});
+
+const imageGroups = await imageClustering.json();</code></pre>
+                            </div>
+                            
+                            <div class="example-actions">
+                                <button class="btn btn-primary" onclick="loadExample('image-clustering')">
+                                    View Full Example
+                                </button>
+                                <button class="btn btn-secondary" onclick="downloadDataset('image-dataset.zip')">
+                                    Download Dataset
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+                    
+                </div>
+                
+                <!-- Example Filters -->
+                <div class="example-filters">
+                    <h3>Filter by Category</h3>
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" data-filter="all">All Examples</button>
+                        <button class="filter-btn" data-filter="business">Business</button>
+                        <button class="filter-btn" data-filter="security">Security</button>
+                        <button class="filter-btn" data-filter="social">Social</button>
+                        <button class="filter-btn" data-filter="iot">IoT</button>
+                        <button class="filter-btn" data-filter="nlp">NLP</button>
+                        <button class="filter-btn" data-filter="computer-vision">Computer Vision</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Integration Guide Section -->
+        <section class="section bg-surface" aria-labelledby="integration-title">
+            <div class="container">
+                <div class="section-header text-center">
+                    <h2 id="integration-title" class="section-title">Quick Integration</h2>
+                    <p class="section-subtitle">
+                        Get started with NCS-API in minutes using your preferred technology stack
+                    </p>
+                </div>
+                
+                <div class="integration-tabs">
+                    <div class="tab-buttons">
+                        <button class="tab-btn active" data-tab="javascript">JavaScript</button>
+                        <button class="tab-btn" data-tab="python">Python</button>
+                        <button class="tab-btn" data-tab="curl">cURL</button>
+                        <button class="tab-btn" data-tab="nodejs">Node.js</button>
+                    </div>
+                    
+                    <div class="tab-content">
+                        <div class="tab-panel active" id="javascript-panel">
+                            <pre><code class="language-javascript">// Install the NCS-API client
+npm install @ncs-api/client
+
+// Initialize and use
+import NCSClient from '@ncs-api/client';
+
+const client = new NCSClient('YOUR_API_KEY');
+
+const result = await client.cluster({
+  data: yourData,
+  algorithm: 'ncs',
+  clusters: 5
+});
+
+console.log('Clusters:', result.clusters);
+console.log('Quality score:', result.quality);</code></pre>
+                        </div>
+                        
+                        <div class="tab-panel" id="python-panel">
+                            <pre><code class="language-python"># Install the NCS-API Python client
+pip install ncs-api-client
+
+# Initialize and use
+from ncs_api import NCSClient
+
+client = NCSClient(api_key='YOUR_API_KEY')
+
+result = client.cluster(
+    data=your_data,
+    algorithm='ncs',
+    clusters=5
+)
+
+print(f"Clusters: {result['clusters']}")
+print(f"Quality score: {result['quality']}")</code></pre>
+                        </div>
+                        
+                        <div class="tab-panel" id="curl-panel">
+                            <pre><code class="language-bash"># Direct API call using cURL
+curl -X POST https://api.ncs-cluster.com/v1/cluster \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "data": [[1,2], [3,4], [5,6]],
+    "algorithm": "ncs",
+    "clusters": 2
+  }'</code></pre>
+                        </div>
+                        
+                        <div class="tab-panel" id="nodejs-panel">
+                            <pre><code class="language-javascript">// Node.js with Express integration
+const express = require('express');
+const NCSClient = require('@ncs-api/client');
+
+const app = express();
+const ncsClient = new NCSClient(process.env.NCS_API_KEY);
+
+app.post('/analyze', async (req, res) => {
+  try {
+    const result = await ncsClient.cluster({
+      data: req.body.data,
+      algorithm: 'ncs',
+      clusters: req.body.clusters || 'auto'
+    });
+    
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Resources Section -->
+        <section class="section" aria-labelledby="resources-title">
+            <div class="container">
+                <div class="section-header text-center">
+                    <h2 id="resources-title" class="section-title">Additional Resources</h2>
+                    <p class="section-subtitle">
+                        Tools and guides to help you succeed with clustering
+                    </p>
+                </div>
+                
+                <div class="resources-grid">
+                    <div class="resource-card">
+                        <div class="resource-icon">📚</div>
+                        <h3>Complete Documentation</h3>
+                        <p>Comprehensive API reference with detailed explanations and parameter guides</p>
+                        <a href="/docs.html" class="resource-link">Read Documentation →</a>
+                    </div>
+                    
+                    <div class="resource-card">
+                        <div class="resource-icon">🎮</div>
+                        <h3>Interactive Playground</h3>
+                        <p>Test algorithms and visualize results with our browser-based clustering tool</p>
+                        <a href="/playground.html" class="resource-link">Try Playground →</a>
+                    </div>
+                    
+                    <div class="resource-card">
+                        <div class="resource-icon">📊</div>
+                        <h3>Performance Benchmarks</h3>
+                        <p>Compare algorithm performance across different datasets and use cases</p>
+                        <a href="/benchmarks.html" class="resource-link">View Benchmarks →</a>
+                    </div>
+                    
+                    <div class="resource-card">
+                        <div class="resource-icon">💬</div>
+                        <h3>Community Support</h3>
+                        <p>Join our developer community for help, discussions, and shared examples</p>
+                        <a href="#" class="resource-link">Join Community →</a>
+                    </div>
+                    
+                    <div class="resource-card">
+                        <div class="resource-icon">🎓</div>
+                        <h3>Tutorials & Guides</h3>
+                        <p>Step-by-step tutorials for common clustering scenarios and best practices</p>
+                        <a href="#" class="resource-link">Browse Tutorials →</a>
+                    </div>
+                    
+                    <div class="resource-card">
+                        <div class="resource-icon">🔧</div>
+                        <h3>SDK & Tools</h3>
+                        <p>Official SDKs, CLI tools, and integrations for your development workflow</p>
+                        <a href="#" class="resource-link">Download Tools →</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- CTA Section -->
+        <section class="section cta-section" aria-labelledby="cta-title">
+            <div class="container">
+                <div class="cta-content text-center">
+                    <h2 id="cta-title" class="cta-title">Ready to Transform Your Data?</h2>
+                    <p class="cta-subtitle">
+                        Start clustering with NCS-API today and discover the insights hidden in your data
+                    </p>
+                    <div class="cta-actions">
+                        <a href="/docs.html" class="btn btn-primary btn-large">
+                            Get API Key
+                        </a>
+                        <a href="/playground.html" class="btn btn-secondary btn-large">
+                            Try Demo
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="footer" role="contentinfo">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="brand-icon">
+                        <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="8" cy="8" r="3" fill="currentColor" opacity="0.8"/>
+                            <circle cx="24" cy="8" r="3" fill="currentColor" opacity="0.6"/>
+                            <circle cx="8" cy="24" r="3" fill="currentColor" opacity="0.4"/>
+                            <circle cx="24" cy="24" r="3" fill="currentColor" opacity="0.9"/>
+                            <circle cx="16" cy="16" r="4" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    <span class="brand-text">NCS-API</span>
+                </div>
+                
+                <nav class="footer-nav">
+                    <div class="footer-section">
+                        <h4>Product</h4>
+                        <ul>
+                            <li><a href="/docs.html">Documentation</a></li>
+                            <li><a href="/playground.html">Playground</a></li>
+                            <li><a href="/benchmarks.html">Benchmarks</a></li>
+                            <li><a href="/examples.html">Examples</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="footer-section">
+                        <h4>Resources</h4>
+                        <ul>
+                            <li><a href="#">Tutorials</a></li>
+                            <li><a href="#">Blog</a></li>
+                            <li><a href="#">Community</a></li>
+                            <li><a href="#">Support</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="footer-section">
+                        <h4>Company</h4>
+                        <ul>
+                            <li><a href="#">About</a></li>
+                            <li><a href="#">Careers</a></li>
+                            <li><a href="#">Contact</a></li>
+                            <li><a href="#">Privacy</a></li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2024 NCS-API. All rights reserved.</p>
+                <div class="footer-links">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Security</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Example Detail Modal -->
+    <div id="example-modal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="modal-title">
+        <div class="modal-backdrop" onclick="closeModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Example Details</h3>
+                <button class="modal-close" onclick="closeModal()" aria-label="Close modal">×</button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Dynamic content will be loaded here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    
+    <script src="/js/main.js" type="module"></script>
+    <script src="/js/components/Header.js" type="module"></script>
+    <script src="/js/components/ThemeToggle.js" type="module"></script>
+    <script src="/js/pages/examples.js" type="module"></script>
+</body>
+</html>

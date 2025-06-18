@@ -1,0 +1,622 @@
+/**
+ * FILE: css/themes/light.css
+ * Light Theme Variables
+ * NCS-API Website - Light theme color palette and design tokens
+ */
+
+/* ===================================
+   Light Theme Root Variables
+   =================================== */
+
+.theme-light {
+  /* ===================================
+     Primary Brand Colors
+     =================================== */
+  --color-primary: #6366f1;
+  --color-primary-50: #eef2ff;
+  --color-primary-100: #e0e7ff;
+  --color-primary-200: #c7d2fe;
+  --color-primary-300: #a5b4fc;
+  --color-primary-400: #818cf8;
+  --color-primary-500: #6366f1;
+  --color-primary-600: #4f46e5;
+  --color-primary-700: #4338ca;
+  --color-primary-800: #3730a3;
+  --color-primary-900: #312e81;
+  --color-primary-950: #1e1b4b;
+  --color-primary-rgb: 99, 102, 241;
+
+  /* ===================================
+     Secondary Colors
+     =================================== */
+  --color-secondary: #06b6d4;
+  --color-secondary-50: #ecfeff;
+  --color-secondary-100: #cffafe;
+  --color-secondary-200: #a5f3fc;
+  --color-secondary-300: #67e8f9;
+  --color-secondary-400: #22d3ee;
+  --color-secondary-500: #06b6d4;
+  --color-secondary-600: #0891b2;
+  --color-secondary-700: #0e7490;
+  --color-secondary-800: #155e75;
+  --color-secondary-900: #164e63;
+  --color-secondary-950: #083344;
+  --color-secondary-rgb: 6, 182, 212;
+
+  /* ===================================
+     Neutral Grays
+     =================================== */
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+  --color-gray-950: #030712;
+
+  /* ===================================
+     Background Colors
+     =================================== */
+  --color-background: #ffffff;
+  --color-background-primary: #ffffff;
+  --color-background-secondary: #f9fafb;
+  --color-background-muted: #f3f4f6;
+  --color-background-elevated: #ffffff;
+  --color-background-overlay: rgba(0, 0, 0, 0.05);
+
+  /* ===================================
+     Surface Colors
+     =================================== */
+  --color-surface: #ffffff;
+  --color-surface-elevated: #f9fafb;
+  --color-surface-muted: #f3f4f6;
+  --color-surface-hover: #f9fafb;
+  --color-surface-pressed: #f3f4f6;
+  --color-surface-disabled: #e5e7eb;
+
+  /* ===================================
+     Text Colors
+     =================================== */
+  --color-text: #111827;
+  --color-text-primary: #111827;
+  --color-text-secondary: #4b5563;
+  --color-text-tertiary: #6b7280;
+  --color-text-muted: #9ca3af;
+  --color-text-disabled: #d1d5db;
+  --color-text-inverse: #ffffff;
+  --color-text-link: #6366f1;
+  --color-text-link-hover: #4f46e5;
+
+  /* ===================================
+     Border Colors
+     =================================== */
+  --color-border: #e5e7eb;
+  --color-border-light: #f3f4f6;
+  --color-border-strong: #d1d5db;
+  --color-border-inverse: #374151;
+  --color-border-brand: #6366f1;
+  --color-border-focus: #6366f1;
+  --color-border-error: #ef4444;
+  --color-border-warning: #f59e0b;
+  --color-border-success: #10b981;
+
+  /* ===================================
+     Interactive Colors
+     =================================== */
+  --color-interactive: #6366f1;
+  --color-interactive-hover: #4f46e5;
+  --color-interactive-active: #4338ca;
+  --color-interactive-disabled: #d1d5db;
+  --color-interactive-muted: #e0e7ff;
+
+  /* ===================================
+     Status Colors
+     =================================== */
+  
+  /* Success */
+  --color-success: #10b981;
+  --color-success-50: #ecfdf5;
+  --color-success-100: #d1fae5;
+  --color-success-200: #a7f3d0;
+  --color-success-300: #6ee7b7;
+  --color-success-400: #34d399;
+  --color-success-500: #10b981;
+  --color-success-600: #059669;
+  --color-success-700: #047857;
+  --color-success-800: #065f46;
+  --color-success-900: #064e3b;
+  --color-success-950: #022c22;
+
+  /* Error */
+  --color-error: #ef4444;
+  --color-error-50: #fef2f2;
+  --color-error-100: #fee2e2;
+  --color-error-200: #fecaca;
+  --color-error-300: #fca5a5;
+  --color-error-400: #f87171;
+  --color-error-500: #ef4444;
+  --color-error-600: #dc2626;
+  --color-error-700: #b91c1c;
+  --color-error-800: #991b1b;
+  --color-error-900: #7f1d1d;
+  --color-error-950: #450a0a;
+
+  /* Warning */
+  --color-warning: #f59e0b;
+  --color-warning-50: #fffbeb;
+  --color-warning-100: #fef3c7;
+  --color-warning-200: #fde68a;
+  --color-warning-300: #fcd34d;
+  --color-warning-400: #fbbf24;
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #d97706;
+  --color-warning-700: #b45309;
+  --color-warning-800: #92400e;
+  --color-warning-900: #78350f;
+  --color-warning-950: #451a03;
+
+  /* Info */
+  --color-info: #3b82f6;
+  --color-info-50: #eff6ff;
+  --color-info-100: #dbeafe;
+  --color-info-200: #bfdbfe;
+  --color-info-300: #93c5fd;
+  --color-info-400: #60a5fa;
+  --color-info-500: #3b82f6;
+  --color-info-600: #2563eb;
+  --color-info-700: #1d4ed8;
+  --color-info-800: #1e40af;
+  --color-info-900: #1e3a8a;
+  --color-info-950: #172554;
+
+  /* ===================================
+     Data Visualization Colors
+     =================================== */
+  --color-chart-1: #6366f1;
+  --color-chart-2: #06b6d4;
+  --color-chart-3: #10b981;
+  --color-chart-4: #f59e0b;
+  --color-chart-5: #ef4444;
+  --color-chart-6: #8b5cf6;
+  --color-chart-7: #f97316;
+  --color-chart-8: #84cc16;
+  --color-chart-9: #ec4899;
+  --color-chart-10: #14b8a6;
+
+  /* Cluster colors */
+  --color-cluster-1: #6366f1;
+  --color-cluster-2: #06b6d4;
+  --color-cluster-3: #10b981;
+  --color-cluster-4: #f59e0b;
+  --color-cluster-5: #ef4444;
+  --color-cluster-6: #8b5cf6;
+  --color-cluster-7: #f97316;
+  --color-cluster-8: #84cc16;
+
+  /* ===================================
+     Shadows
+     =================================== */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+  --shadow-crisp: 0 1px 1px 0 rgba(0, 0, 0, 0.1);
+
+  /* Focus shadows */
+  --shadow-focus: 0 0 0 3px rgba(99, 102, 241, 0.2);
+  --shadow-focus-error: 0 0 0 3px rgba(239, 68, 68, 0.2);
+  --shadow-focus-warning: 0 0 0 3px rgba(245, 158, 11, 0.2);
+  --shadow-focus-success: 0 0 0 3px rgba(16, 185, 129, 0.2);
+
+  /* ===================================
+     Gradients
+     =================================== */
+  --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  --gradient-secondary: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+  --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  --gradient-error: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  --gradient-text: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  --gradient-background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+  --gradient-surface: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+
+  /* ===================================
+     Component-Specific Colors
+     =================================== */
+
+  /* Header */
+  --header-background: rgba(255, 255, 255, 0.95);
+  --header-border: rgba(229, 231, 235, 0.8);
+  --header-text: #111827;
+  --header-text-hover: #6366f1;
+
+  /* Sidebar */
+  --sidebar-background: #ffffff;
+  --sidebar-border: #e5e7eb;
+  --sidebar-text: #4b5563;
+  --sidebar-text-active: #6366f1;
+  --sidebar-item-hover: #f9fafb;
+  --sidebar-item-active: rgba(99, 102, 241, 0.1);
+
+  /* Button variations */
+  --button-primary-bg: #6366f1;
+  --button-primary-bg-hover: #4f46e5;
+  --button-primary-text: #ffffff;
+  --button-secondary-bg: #ffffff;
+  --button-secondary-bg-hover: #f9fafb;
+  --button-secondary-text: #374151;
+  --button-secondary-border: #d1d5db;
+
+  /* Form elements */
+  --form-background: #ffffff;
+  --form-border: #d1d5db;
+  --form-border-focus: #6366f1;
+  --form-text: #111827;
+  --form-placeholder: #9ca3af;
+  --form-disabled-bg: #f3f4f6;
+  --form-disabled-text: #9ca3af;
+
+  /* Code blocks */
+  --code-background: #f3f4f6;
+  --code-border: #e5e7eb;
+  --code-text: #374151;
+  --code-comment: #6b7280;
+  --code-keyword: #7c3aed;
+  --code-string: #059669;
+  --code-number: #dc2626;
+  --code-function: #0891b2;
+
+  /* Data visualization */
+  --viz-background: #ffffff;
+  --viz-grid: #f3f4f6;
+  --viz-axis: #9ca3af;
+  --viz-label: #4b5563;
+  --viz-tooltip-bg: rgba(0, 0, 0, 0.9);
+  --viz-tooltip-text: #ffffff;
+
+  /* Toast notifications */
+  --toast-success-bg: #ecfdf5;
+  --toast-success-border: #10b981;
+  --toast-success-text: #064e3b;
+  --toast-error-bg: #fef2f2;
+  --toast-error-border: #ef4444;
+  --toast-error-text: #7f1d1d;
+  --toast-warning-bg: #fffbeb;
+  --toast-warning-border: #f59e0b;
+  --toast-warning-text: #78350f;
+  --toast-info-bg: #eff6ff;
+  --toast-info-border: #3b82f6;
+  --toast-info-text: #1e3a8a;
+
+  /* Modal/Overlay */
+  --modal-background: #ffffff;
+  --modal-border: #e5e7eb;
+  --modal-overlay: rgba(0, 0, 0, 0.5);
+  --modal-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+
+  /* Playground specific */
+  --playground-panel-bg: #ffffff;
+  --playground-panel-border: #e5e7eb;
+  --playground-control-bg: #f9fafb;
+  --playground-control-border: #d1d5db;
+  --playground-control-hover: #f3f4f6;
+  --playground-result-bg: #ffffff;
+  --playground-result-border: #e5e7eb;
+
+  /* ===================================
+     Z-Index Scale
+     =================================== */
+  --z-base: 1;
+  --z-docked: 10;
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-overlay: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+  --z-toast: 1080;
+  --z-loading: 1090;
+  --z-max: 9999;
+
+  /* ===================================
+     Animation & Transition Values
+     =================================== */
+  --transition-fast: 150ms ease-in-out;
+  --transition-normal: 250ms ease-in-out;
+  --transition-slow: 350ms ease-in-out;
+  --transition-bounce: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ===================================
+     Border Radius Scale
+     =================================== */
+  --radius-none: 0;
+  --radius-xs: 0.125rem;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* ===================================
+     Space Scale
+     =================================== */
+  --space-0: 0;
+  --space-px: 1px;
+  --space-0-5: 0.125rem;
+  --space-1: 0.25rem;
+  --space-1-5: 0.375rem;
+  --space-2: 0.5rem;
+  --space-2-5: 0.625rem;
+  --space-3: 0.75rem;
+  --space-3-5: 0.875rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-7: 1.75rem;
+  --space-8: 2rem;
+  --space-9: 2.25rem;
+  --space-10: 2.5rem;
+  --space-11: 2.75rem;
+  --space-12: 3rem;
+  --space-14: 3.5rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+  --space-28: 7rem;
+  --space-32: 8rem;
+  --space-36: 9rem;
+  --space-40: 10rem;
+  --space-44: 11rem;
+  --space-48: 12rem;
+  --space-52: 13rem;
+  --space-56: 14rem;
+  --space-60: 15rem;
+  --space-64: 16rem;
+  --space-72: 18rem;
+  --space-80: 20rem;
+  --space-96: 24rem;
+
+  /* ===================================
+     Typography Scale
+     =================================== */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-5xl: 3rem;
+  --text-6xl: 3.75rem;
+  --text-7xl: 4.5rem;
+  --text-8xl: 6rem;
+  --text-9xl: 8rem;
+
+  /* Line heights */
+  --leading-none: 1;
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+  --leading-loose: 2;
+
+  /* Font weights */
+  --font-thin: 100;
+  --font-extralight: 200;
+  --font-light: 300;
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  --font-extrabold: 800;
+  --font-black: 900;
+
+  /* Font families */
+  --font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-family-mono: 'Source Code Pro', 'SF Mono', Monaco, Inconsolata, 'Roboto Mono', 'Courier New', monospace;
+}
+
+/* ===================================
+   Light Theme Component Overrides
+   =================================== */
+
+.theme-light .cluster-point {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.theme-light .cluster-animation {
+  background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+}
+
+.theme-light .loading-spinner {
+  border-color: #e5e7eb;
+  border-top-color: #6366f1;
+}
+
+.theme-light .hero-gradient {
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+}
+
+.theme-light .feature-card:hover {
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-primary-200);
+}
+
+.theme-light .code-block {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+}
+
+.theme-light .syntax-highlight .keyword {
+  color: #7c3aed;
+}
+
+.theme-light .syntax-highlight .string {
+  color: #059669;
+}
+
+.theme-light .syntax-highlight .comment {
+  color: #64748b;
+  font-style: italic;
+}
+
+.theme-light .syntax-highlight .number {
+  color: #dc2626;
+}
+
+.theme-light .syntax-highlight .function {
+  color: #0891b2;
+}
+
+/* ===================================
+   Light Theme Scroll Bar Styles
+   =================================== */
+
+.theme-light ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.theme-light ::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 4px;
+}
+
+.theme-light ::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+.theme-light ::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+.theme-light ::-webkit-scrollbar-corner {
+  background: #f3f4f6;
+}
+
+/* ===================================
+   Light Theme Selection Styles
+   =================================== */
+
+.theme-light ::selection {
+  background-color: rgba(99, 102, 241, 0.2);
+  color: #111827;
+}
+
+.theme-light ::-moz-selection {
+  background-color: rgba(99, 102, 241, 0.2);
+  color: #111827;
+}
+
+/* ===================================
+   Light Theme Focus Styles
+   =================================== */
+
+.theme-light *:focus {
+  outline: none;
+}
+
+.theme-light .focus-visible:focus,
+.theme-light *:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.theme-light .btn:focus-visible {
+  box-shadow: var(--shadow-focus);
+}
+
+.theme-light .form-input:focus-visible,
+.theme-light .form-textarea:focus-visible,
+.theme-light .form-select:focus-visible {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-focus);
+}
+
+/* ===================================
+   Light Theme Print Styles
+   =================================== */
+
+@media print {
+  .theme-light {
+    --color-background: white;
+    --color-text: black;
+    --color-text-secondary: #333333;
+    --color-border: #cccccc;
+    --shadow-md: none;
+    --shadow-lg: none;
+    --shadow-xl: none;
+  }
+  
+  .theme-light .card,
+  .theme-light .feature-card {
+    border: 1px solid #cccccc;
+    box-shadow: none;
+  }
+  
+  .theme-light .btn {
+    border: 1px solid #333333;
+    box-shadow: none;
+  }
+}
+
+/* ===================================
+   Light Theme Accessibility Enhancements
+   =================================== */
+
+.theme-light .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.theme-light .skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: var(--color-background);
+  color: var(--color-text);
+  padding: 8px;
+  text-decoration: none;
+  border-radius: 4px;
+  border: 2px solid var(--color-border);
+  z-index: var(--z-max);
+}
+
+.theme-light .skip-link:focus {
+  top: 6px;
+}
+
+/* ===================================
+   Light Theme High Contrast Support
+   =================================== */
+
+@media (prefers-contrast: high) {
+  .theme-light {
+    --color-text: #000000;
+    --color-text-secondary: #333333;
+    --color-border: #666666;
+    --color-border-strong: #333333;
+    --color-primary: #0000ee;
+    --color-primary-hover: #0000cc;
+  }
+}
