@@ -1,6 +1,11 @@
 📁 NCS-API-Website/
 ├─ 📁 assets/
 │  ├─ 📁 data/
+│  │  ├─ 📄 customers.csv
+│  │  ├─ 📄 ecommerce.csv
+│  │  ├─ 📄 financial.csv
+│  │  ├─ 📄 iris.csv
+│  │  └─ 📄 social-media.csv
 │  ├─ 📁 fonts/
 │  └─ 📁 images/
 │     ├─ 📁 icons/

@@ -202,7 +202,7 @@ ncs-api-website/
 - 📁 **Folder** - Directory structure
 - 🖼️ **Image** - Image/graphic assets
 - 📊 **Data** - Dataset files
-- 🔤 **Font** - Typography files
+- 🔤 **Font** - Typography files 
 
 ## File Priority for Next Steps
 
