@@ -3,7 +3,7 @@
 // Landing page logic for NCS-API-Website
 // Handles hero interactions, animations, feature demos, and user engagement
 
-import { EventBus } from '../core/eventBus.js';
+import eventBus from "../core/eventBus.js";
 import { transitionManager, EasingFunctions } from '../visualizations/animations/Transitions.js';
 import { debounce } from '../utils/debounce.js';
 
