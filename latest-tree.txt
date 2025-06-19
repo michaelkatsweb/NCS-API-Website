@@ -1,0 +1,102 @@
+F:/Programs/NCS-API-Website
+
+├── Website-map
+├── assets
+│   ├── data
+│   ├── fonts
+│   └── images
+│       ├── icons
+│       └── screnshots
+├── benchmarks.html
+├── build
+│   ├── dev
+│   │   └── temp
+│   └── dist
+│       └── assets
+│           └── images
+├── css
+│   ├── components
+│   │   ├── buttons.css
+│   │   ├── charts.css
+│   │   ├── docs.css
+│   │   ├── forms.css
+│   │   ├── header.css
+│   │   ├── hero.css
+│   │   ├── modal.css
+│   │   ├── playground.css
+│   │   └── toast.css
+│   ├── layout
+│   │   ├── animations.css
+│   │   ├── grid.css
+│   │   └── responsive.css
+│   ├── main.css
+│   └── themes
+│       ├── dark.css
+│       └── light.css
+├── docs
+├── docs.html
+├── examples.html
+├── index.html
+├── js
+│   ├── api
+│   │   ├── auth.js
+│   │   ├── cache.js
+│   │   ├── client.js
+│   │   └── websocket.js
+│   ├── clustering
+│   │   └── KMeans.js
+│   ├── components
+│   │   ├── ApiExplorer.js
+│   │   ├── ClusterVisualizer.js
+│   │   ├── CodeGenerator.js
+│   │   ├── DataUploader.js
+│   │   ├── Header.js
+│   │   ├── Hero.js
+│   │   ├── Modal.js
+│   │   ├── ParameterControls.js
+│   │   ├── PerformanceMonitor.js
+│   │   ├── Playground.js
+│   │   ├── ResultsPanel.js
+│   │   ├── ThemeToggle.js
+│   │   └── Toast.js
+│   ├── config
+│   │   ├── Constants.js
+│   │   ├── api.js
+│   │   └── themes.js
+│   ├── core
+│   │   ├── app.js
+│   │   ├── eventBus.js
+│   │   ├── router.js
+│   │   └── state.js
+│   ├── data
+│   ├── main.js
+│   ├── utils
+│   │   ├── Colors.js
+│   │   ├── math.js
+│   │   └── performance.js
+│   ├── visualizations
+│   │   ├── animations
+│   │   ├── charts
+│   │   │   ├── Dendrogram.js
+│   │   │   ├── Heatmap.js
+│   │   │   ├── ScatterPlot.js
+│   │   │   └── ScatterPlot3D.js
+│   │   ├── interactions
+│   │   └── renderers
+│   │       ├── CanvasRenderer.js
+│   │       └── WebGLRenderer.js
+│   └── workers
+├── manifest.js
+├── package.json
+├── pages
+├── playground.html
+├── public
+│   └── vite.svg
+├── sw.js
+└── tests
+    ├── e2e
+    ├── integration
+    └── unit
+        ├── api
+        ├── components
+        └── utils
