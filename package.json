@@ -1,41 +1,730 @@
-{
-  "name": "ncs-api-website",
-  "private": true,
-  "version": "1.0.0",
-  "description": "NCS API Website - Vanilla JS + Vite + Bootstrap + Three.js",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "serve": "vite preview --port 3000"
-  },
-  "dependencies": {
-    "bootstrap": "^5.3.2",
-    "three": "^0.158.0"
-  },
-  "devDependencies": {
-    "vite": "^5.0.0"
-  },
-  "keywords": [
-    "ncs",
-    "clustering",
-    "api",
-    "vanilla-js",
-    "three.js",
-    "bootstrap",
-    "machine-learning",
-    "real-time",
-    "data-processing"
-  ],
-  "author": "NCS API Team",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/your-org/ncs-api-website"
-  },
-  "bugs": {
-    "url": "https://github.com/your-org/ncs-api-website/issues"
-  },
-  "homepage": "ncs-api.com"
+/**
+ * FILE: js/utils/debounce.js
+ * Debounce & Throttle Utility - Function execution control and optimization
+ * NCS-API Website
+ * 
+ * Features:
+ * - Classic debounce with configurable delay
+ * - Throttle with rate limiting
+ * - Leading and trailing edge execution
+ * - Promise-based debounce with result caching
+ * - Batch processing with automatic flushing
+ * - Adaptive debouncing based on frequency
+ * - Memory-efficient cleanup
+ * - Performance monitoring and statistics
+ */
+
+export class DebouncedFunction {
+    constructor(func, delay, options = {}) {
+        this.func = func;
+        this.delay = delay;
+        this.options = {
+            leading: false,
+            trailing: true,
+            maxWait: null,
+            immediate: false,
+            ...options
+        };
+        
+        this.timeoutId = null;
+        this.maxTimeoutId = null;
+        this.lastCallTime = 0;
+        this.lastInvokeTime = 0;
+        this.lastArgs = null;
+        this.lastThis = null;
+        this.result = undefined;
+        
+        // Statistics
+        this.stats = {
+            totalCalls: 0,
+            executedCalls: 0,
+            skippedCalls: 0,
+            averageDelay: 0,
+            lastExecutionTime: 0
+        };
+        
+        // Bind the debounced function
+        this.debouncedFn = this.debounce.bind(this);
+        this.debouncedFn.cancel = this.cancel.bind(this);
+        this.debouncedFn.flush = this.flush.bind(this);
+        this.debouncedFn.pending = this.pending.bind(this);
+        this.debouncedFn.getStats = this.getStats.bind(this);
+        
+        return this.debouncedFn;
+    }
+
+    debounce(...args) {
+        const currentTime = Date.now();
+        const timeSinceLastCall = currentTime - this.lastCallTime;
+        
+        this.lastCallTime = currentTime;
+        this.lastArgs = args;
+        this.lastThis = this;
+        this.stats.totalCalls++;
+        
+        const shouldInvoke = this.shouldInvoke(currentTime);
+        
+        if (shouldInvoke) {
+            if (this.timeoutId) {
+                clearTimeout(this.timeoutId);
+                this.timeoutId = null;
+            }
+            if (this.maxTimeoutId) {
+                clearTimeout(this.maxTimeoutId);
+                this.maxTimeoutId = null;
+            }
+            return this.invokeFunction(currentTime);
+        }
+        
+        this.timeoutId = this.startTimer(currentTime);
+        
+        if (this.options.maxWait && !this.maxTimeoutId) {
+            this.maxTimeoutId = setTimeout(() => {
+                this.flush();
+            }, this.options.maxWait);
+        }
+        
+        return this.result;
+    }
+
+    shouldInvoke(time) {
+        const timeSinceLastCall = time - this.lastCallTime;
+        const timeSinceLastInvoke = time - this.lastInvokeTime;
+        
+        // First call
+        if (this.lastInvokeTime === 0) {
+            return this.options.leading;
+        }
+        
+        // Maximum wait exceeded
+        if (this.options.maxWait && timeSinceLastInvoke >= this.options.maxWait) {
+            return true;
+        }
+        
+        // Immediate execution requested
+        if (this.options.immediate && !this.timeoutId) {
+            return true;
+        }
+        
+        return false;
+    }
+
+    startTimer(time) {
+        return setTimeout(() => {
+            this.timerExpired();
+        }, this.remainingWait(time));
+    }
+
+    remainingWait(time) {
+        const timeSinceLastCall = time - this.lastCallTime;
+        const timeSinceLastInvoke = time - this.lastInvokeTime;
+        const timeWaiting = this.delay - timeSinceLastCall;
+        
+        if (this.options.maxWait) {
+            const maxTimeWaiting = this.options.maxWait - timeSinceLastInvoke;
+            return Math.min(timeWaiting, maxTimeWaiting);
+        }
+        
+        return timeWaiting;
+    }
+
+    timerExpired() {
+        const time = Date.now();
+        
+        if (this.shouldInvoke(time)) {
+            return this.trailingEdge(time);
+        }
+        
+        this.timeoutId = this.startTimer(time);
+    }
+
+    trailingEdge(time) {
+        this.timeoutId = null;
+        
+        if (this.options.trailing && this.lastArgs) {
+            return this.invokeFunction(time);
+        }
+        
+        this.lastArgs = null;
+        return this.result;
+    }
+
+    invokeFunction(time) {
+        const args = this.lastArgs;
+        const thisArg = this.lastThis;
+        
+        this.lastArgs = null;
+        this.lastThis = null;
+        this.lastInvokeTime = time;
+        this.stats.executedCalls++;
+        this.stats.lastExecutionTime = time;
+        
+        // Calculate average delay
+        if (this.stats.executedCalls > 1) {
+            const totalDelay = time - (this.stats.lastExecutionTime || time);
+            this.stats.averageDelay = (this.stats.averageDelay * (this.stats.executedCalls - 1) + totalDelay) / this.stats.executedCalls;
+        }
+        
+        this.result = this.func.apply(thisArg, args);
+        return this.result;
+    }
+
+    cancel() {
+        if (this.timeoutId) {
+            clearTimeout(this.timeoutId);
+            this.timeoutId = null;
+        }
+        if (this.maxTimeoutId) {
+            clearTimeout(this.maxTimeoutId);
+            this.maxTimeoutId = null;
+        }
+        
+        this.lastInvokeTime = 0;
+        this.lastArgs = null;
+        this.lastThis = null;
+        this.stats.skippedCalls++;
+    }
+
+    flush() {
+        if (this.timeoutId || this.maxTimeoutId) {
+            const result = this.invokeFunction(Date.now());
+            this.cancel();
+            return result;
+        }
+        return this.result;
+    }
+
+    pending() {
+        return this.timeoutId !== null;
+    }
+
+    getStats() {
+        return {
+            ...this.stats,
+            skippedCalls: this.stats.totalCalls - this.stats.executedCalls,
+            executionRate: this.stats.totalCalls > 0 ? 
+                ((this.stats.executedCalls / this.stats.totalCalls) * 100).toFixed(1) + '%' : '0%'
+        };
+    }
 }
+
+export class ThrottledFunction {
+    constructor(func, delay, options = {}) {
+        this.func = func;
+        this.delay = delay;
+        this.options = {
+            leading: true,
+            trailing: true,
+            ...options
+        };
+        
+        this.lastCallTime = 0;
+        this.timeoutId = null;
+        this.lastArgs = null;
+        this.lastThis = null;
+        this.result = undefined;
+        
+        // Statistics
+        this.stats = {
+            totalCalls: 0,
+            executedCalls: 0,
+            skippedCalls: 0,
+            averageInterval: 0,
+            lastExecutionTime: 0
+        };
+        
+        // Bind the throttled function
+        this.throttledFn = this.throttle.bind(this);
+        this.throttledFn.cancel = this.cancel.bind(this);
+        this.throttledFn.flush = this.flush.bind(this);
+        this.throttledFn.getStats = this.getStats.bind(this);
+        
+        return this.throttledFn;
+    }
+
+    throttle(...args) {
+        const currentTime = Date.now();
+        const timeSinceLastCall = currentTime - this.lastCallTime;
+        
+        this.stats.totalCalls++;
+        this.lastArgs = args;
+        this.lastThis = this;
+        
+        const shouldExecute = this.shouldExecute(currentTime, timeSinceLastCall);
+        
+        if (shouldExecute) {
+            this.result = this.executeFunction(currentTime);
+            
+            if (this.options.trailing && !this.timeoutId) {
+                this.timeoutId = setTimeout(() => {
+                    this.timeoutId = null;
+                    if (this.lastArgs && Date.now() - this.lastCallTime < this.delay) {
+                        this.result = this.executeFunction(Date.now());
+                    }
+                }, this.delay - timeSinceLastCall);
+            }
+        } else if (this.options.trailing && !this.timeoutId) {
+            this.timeoutId = setTimeout(() => {
+                this.timeoutId = null;
+                this.result = this.executeFunction(Date.now());
+            }, this.delay - timeSinceLastCall);
+        }
+        
+        return this.result;
+    }
+
+    shouldExecute(currentTime, timeSinceLastCall) {
+        // First call
+        if (this.lastCallTime === 0) {
+            return this.options.leading;
+        }
+        
+        // Enough time has passed
+        return timeSinceLastCall >= this.delay;
+    }
+
+    executeFunction(time) {
+        const args = this.lastArgs;
+        const thisArg = this.lastThis;
+        
+        this.lastCallTime = time;
+        this.stats.executedCalls++;
+        this.stats.lastExecutionTime = time;
+        
+        // Calculate average interval
+        if (this.stats.executedCalls > 1) {
+            const interval = time - (this.stats.lastExecutionTime || time);
+            this.stats.averageInterval = (this.stats.averageInterval * (this.stats.executedCalls - 1) + interval) / this.stats.executedCalls;
+        }
+        
+        return this.func.apply(thisArg, args);
+    }
+
+    cancel() {
+        if (this.timeoutId) {
+            clearTimeout(this.timeoutId);
+            this.timeoutId = null;
+        }
+        
+        this.lastCallTime = 0;
+        this.lastArgs = null;
+        this.lastThis = null;
+        this.stats.skippedCalls++;
+    }
+
+    flush() {
+        if (this.timeoutId) {
+            clearTimeout(this.timeoutId);
+            this.timeoutId = null;
+            return this.executeFunction(Date.now());
+        }
+        return this.result;
+    }
+
+    getStats() {
+        return {
+            ...this.stats,
+            skippedCalls: this.stats.totalCalls - this.stats.executedCalls,
+            executionRate: this.stats.totalCalls > 0 ? 
+                ((this.stats.executedCalls / this.stats.totalCalls) * 100).toFixed(1) + '%' : '0%'
+        };
+    }
+}
+
+export class AdaptiveDebouncer {
+    constructor(func, options = {}) {
+        this.func = func;
+        this.options = {
+            minDelay: 100,
+            maxDelay: 2000,
+            scaleFactor: 1.5,
+            decayFactor: 0.8,
+            adaptationThreshold: 5,
+            ...options
+        };
+        
+        this.currentDelay = this.options.minDelay;
+        this.callFrequency = [];
+        this.lastCallTime = 0;
+        this.debouncedFn = null;
+        
+        this.updateDebouncedFunction();
+    }
+
+    adaptiveDebounce(...args) {
+        const currentTime = Date.now();
+        const timeSinceLastCall = currentTime - this.lastCallTime;
+        
+        // Track call frequency
+        this.callFrequency.push(currentTime);
+        
+        // Keep only recent calls for frequency calculation
+        const recentWindow = currentTime - 5000; // 5 seconds
+        this.callFrequency = this.callFrequency.filter(time => time > recentWindow);
+        
+        // Adapt delay based on call frequency
+        if (this.callFrequency.length >= this.options.adaptationThreshold) {
+            this.adaptDelay();
+        }
+        
+        this.lastCallTime = currentTime;
+        
+        return this.debouncedFn(...args);
+    }
+
+    adaptDelay() {
+        const callCount = this.callFrequency.length;
+        const timeSpan = this.callFrequency[this.callFrequency.length - 1] - this.callFrequency[0];
+        const frequency = callCount / (timeSpan / 1000); // calls per second
+        
+        if (frequency > 2) {
+            // High frequency, increase delay
+            this.currentDelay = Math.min(
+                this.currentDelay * this.options.scaleFactor,
+                this.options.maxDelay
+            );
+        } else if (frequency < 0.5) {
+            // Low frequency, decrease delay
+            this.currentDelay = Math.max(
+                this.currentDelay * this.options.decayFactor,
+                this.options.minDelay
+            );
+        }
+        
+        this.updateDebouncedFunction();
+    }
+
+    updateDebouncedFunction() {
+        if (this.debouncedFn) {
+            this.debouncedFn.cancel();
+        }
+        
+        this.debouncedFn = debounce(this.func, this.currentDelay);
+    }
+
+    getCurrentDelay() {
+        return this.currentDelay;
+    }
+
+    getFrequencyStats() {
+        const recentCalls = this.callFrequency.length;
+        const timeSpan = recentCalls > 1 ? 
+            this.callFrequency[this.callFrequency.length - 1] - this.callFrequency[0] : 0;
+        const frequency = timeSpan > 0 ? recentCalls / (timeSpan / 1000) : 0;
+        
+        return {
+            recentCalls,
+            frequency: frequency.toFixed(2) + ' calls/sec',
+            currentDelay: this.currentDelay,
+            minDelay: this.options.minDelay,
+            maxDelay: this.options.maxDelay
+        };
+    }
+}
+
+export class BatchProcessor {
+    constructor(func, options = {}) {
+        this.func = func;
+        this.options = {
+            batchSize: 10,
+            flushInterval: 1000,
+            maxWaitTime: 5000,
+            ...options
+        };
+        
+        this.batch = [];
+        this.timeoutId = null;
+        this.maxTimeoutId = null;
+        this.batchStartTime = 0;
+        
+        // Statistics
+        this.stats = {
+            totalItems: 0,
+            totalBatches: 0,
+            averageBatchSize: 0,
+            averageWaitTime: 0
+        };
+    }
+
+    add(item) {
+        if (this.batch.length === 0) {
+            this.batchStartTime = Date.now();
+        }
+        
+        this.batch.push(item);
+        this.stats.totalItems++;
+        
+        // Auto-flush if batch is full
+        if (this.batch.length >= this.options.batchSize) {
+            this.flush();
+            return;
+        }
+        
+        // Set up automatic flush
+        if (!this.timeoutId) {
+            this.timeoutId = setTimeout(() => {
+                this.flush();
+            }, this.options.flushInterval);
+        }
+        
+        // Set up maximum wait timeout
+        if (!this.maxTimeoutId && this.options.maxWaitTime) {
+            this.maxTimeoutId = setTimeout(() => {
+                this.flush();
+            }, this.options.maxWaitTime);
+        }
+    }
+
+    flush() {
+        if (this.batch.length === 0) return;
+        
+        const batchToProcess = [...this.batch];
+        const waitTime = Date.now() - this.batchStartTime;
+        
+        // Clear timers
+        if (this.timeoutId) {
+            clearTimeout(this.timeoutId);
+            this.timeoutId = null;
+        }
+        if (this.maxTimeoutId) {
+            clearTimeout(this.maxTimeoutId);
+            this.maxTimeoutId = null;
+        }
+        
+        // Reset batch
+        this.batch = [];
+        this.batchStartTime = 0;
+        
+        // Update statistics
+        this.stats.totalBatches++;
+        this.stats.averageBatchSize = this.stats.totalItems / this.stats.totalBatches;
+        this.stats.averageWaitTime = (this.stats.averageWaitTime * (this.stats.totalBatches - 1) + waitTime) / this.stats.totalBatches;
+        
+        // Process batch
+        return this.func(batchToProcess);
+    }
+
+    clear() {
+        this.batch = [];
+        if (this.timeoutId) {
+            clearTimeout(this.timeoutId);
+            this.timeoutId = null;
+        }
+        if (this.maxTimeoutId) {
+            clearTimeout(this.maxTimeoutId);
+            this.maxTimeoutId = null;
+        }
+    }
+
+    size() {
+        return this.batch.length;
+    }
+
+    getStats() {
+        return {
+            ...this.stats,
+            currentBatchSize: this.batch.length,
+            isProcessing: this.timeoutId !== null
+        };
+    }
+}
+
+// Main utility functions
+export function debounce(func, delay, options = {}) {
+    return new DebouncedFunction(func, delay, options);
+}
+
+export function throttle(func, delay, options = {}) {
+    return new ThrottledFunction(func, delay, options);
+}
+
+export function adaptive(func, options = {}) {
+    const adaptive = new AdaptiveDebouncer(func, options);
+    return adaptive.adaptiveDebounce.bind(adaptive);
+}
+
+export function batch(func, options = {}) {
+    return new BatchProcessor(func, options);
+}
+
+// Promise-based debounce with result caching
+export function debouncePromise(func, delay, options = {}) {
+    let timeoutId = null;
+    let lastPromise = null;
+    let promiseResolve = null;
+    let promiseReject = null;
+    
+    const config = {
+        cacheResults: true,
+        ...options
+    };
+    
+    return function(...args) {
+        return new Promise((resolve, reject) => {
+            // Clear existing timeout
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+            
+            // If caching is enabled and we have a recent promise, return it
+            if (config.cacheResults && lastPromise && promiseResolve) {
+                return lastPromise;
+            }
+            
+            promiseResolve = resolve;
+            promiseReject = reject;
+            
+            timeoutId = setTimeout(async () => {
+                try {
+                    const result = await func.apply(this, args);
+                    
+                    if (config.cacheResults) {
+                        lastPromise = Promise.resolve(result);
+                        setTimeout(() => {
+                            lastPromise = null;
+                        }, delay * 2); // Cache for twice the debounce delay
+                    }
+                    
+                    resolve(result);
+                } catch (error) {
+                    reject(error);
+                } finally {
+                    promiseResolve = null;
+                    promiseReject = null;
+                }
+            }, delay);
+        });
+    };
+}
+
+// Specialized debounce functions for common use cases
+export const searchDebounce = (func, delay = 300) => 
+    debounce(func, delay, { leading: false, trailing: true });
+
+export const scrollDebounce = (func, delay = 16) => 
+    throttle(func, delay, { leading: true, trailing: false });
+
+export const resizeDebounce = (func, delay = 250) => 
+    debounce(func, delay, { leading: false, trailing: true, maxWait: 500 });
+
+export const clickDebounce = (func, delay = 100) => 
+    debounce(func, delay, { leading: true, trailing: false, immediate: true });
+
+export const apiDebounce = (func, delay = 500) => 
+    debouncePromise(func, delay, { cacheResults: true });
+
+// Utility for creating multiple debounced functions with shared configuration
+export class DebounceManager {
+    constructor(defaultDelay = 300, defaultOptions = {}) {
+        this.defaultDelay = defaultDelay;
+        this.defaultOptions = defaultOptions;
+        this.functions = new Map();
+        this.stats = {
+            totalFunctions: 0,
+            totalCalls: 0,
+            totalExecutions: 0
+        };
+    }
+
+    create(key, func, delay = this.defaultDelay, options = {}) {
+        const mergedOptions = { ...this.defaultOptions, ...options };
+        const debouncedFn = debounce(func, delay, mergedOptions);
+        
+        this.functions.set(key, debouncedFn);
+        this.stats.totalFunctions++;
+        
+        return debouncedFn;
+    }
+
+    get(key) {
+        return this.functions.get(key);
+    }
+
+    cancel(key) {
+        const fn = this.functions.get(key);
+        if (fn && fn.cancel) {
+            fn.cancel();
+        }
+    }
+
+    cancelAll() {
+        this.functions.forEach(fn => {
+            if (fn.cancel) {
+                fn.cancel();
+            }
+        });
+    }
+
+    flush(key) {
+        const fn = this.functions.get(key);
+        if (fn && fn.flush) {
+            return fn.flush();
+        }
+    }
+
+    flushAll() {
+        const results = {};
+        this.functions.forEach((fn, key) => {
+            if (fn.flush) {
+                results[key] = fn.flush();
+            }
+        });
+        return results;
+    }
+
+    remove(key) {
+        const fn = this.functions.get(key);
+        if (fn && fn.cancel) {
+            fn.cancel();
+        }
+        return this.functions.delete(key);
+    }
+
+    clear() {
+        this.cancelAll();
+        this.functions.clear();
+    }
+
+    getStats() {
+        const functionStats = {};
+        let totalCalls = 0;
+        let totalExecutions = 0;
+        
+        this.functions.forEach((fn, key) => {
+            if (fn.getStats) {
+                const stats = fn.getStats();
+                functionStats[key] = stats;
+                totalCalls += stats.totalCalls;
+                totalExecutions += stats.executedCalls;
+            }
+        });
+        
+        return {
+            totalFunctions: this.functions.size,
+            totalCalls,
+            totalExecutions,
+            functions: functionStats,
+            globalExecutionRate: totalCalls > 0 ? 
+                ((totalExecutions / totalCalls) * 100).toFixed(1) + '%' : '0%'
+        };
+    }
+}
+
+// Export a default debounce manager instance
+export const debounceManager = new DebounceManager();
+
+// Default export with most commonly used functions
+export default {
+    debounce,
+    throttle,
+    adaptive,
+    batch,
+    debouncePromise,
+    searchDebounce,
+    scrollDebounce,
+    resizeDebounce,
+    clickDebounce,
+    apiDebounce,
+    DebounceManager,
+    debounceManager
+};

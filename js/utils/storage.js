@@ -1,1137 +1,676 @@
 /**
- * Storage Utility Module for NCS-API-Website
- * Provides unified interface for data persistence using localStorage, sessionStorage, and IndexedDB
- * Handles datasets, models, user preferences, and application state with automatic compression
+ * FILE: js/utils/storage.js
+ * Storage Utility - Local/Session storage wrapper with encryption and validation
+ * NCS-API Website
+ * 
+ * Features:
+ * - Unified localStorage/sessionStorage interface
+ * - Automatic JSON serialization/deserialization
+ * - Data expiration and TTL support
+ * - Optional encryption for sensitive data
+ * - Storage quota management
+ * - Fallback for unsupported browsers
+ * - Event-driven storage changes
+ * - Compression for large data
+ * - Backup and restore functionality
  */
 
 import { EventBus } from '../core/eventBus.js';
 
-export class StorageManager {
+export class Storage {
     constructor(options = {}) {
-        this.options = {
-            // Storage preferences
-            preferredStorage: options.preferredStorage || 'auto', // auto, localStorage, sessionStorage, indexedDB
-            fallbackStorage: options.fallbackStorage || 'localStorage',
-            
-            // Compression settings
-            enableCompression: options.enableCompression !== false,
-            compressionThreshold: options.compressionThreshold || 1024, // Bytes
-            
-            // Encryption settings (basic)
-            enableEncryption: options.enableEncryption || false,
-            encryptionKey: options.encryptionKey || 'ncs-api-default-key',
-            
-            // Storage limits
-            maxStorageSize: options.maxStorageSize || 50 * 1024 * 1024, // 50MB
-            maxItems: options.maxItems || 1000,
-            
-            // Automatic cleanup
-            enableAutoCleanup: options.enableAutoCleanup !== false,
-            maxAge: options.maxAge || 30 * 24 * 60 * 60 * 1000, // 30 days
-            
-            // Versioning
-            enableVersioning: options.enableVersioning || true,
-            maxVersions: options.maxVersions || 5,
-            
+        // Configuration
+        this.config = {
+            prefix: 'ncs_',
+            defaultTTL: 24 * 60 * 60 * 1000, // 24 hours
+            enableEncryption: false,
+            enableCompression: true,
+            maxStorageSize: 5 * 1024 * 1024, // 5MB
+            enableEvents: true,
+            fallbackToMemory: true,
+            autoCleanup: true,
+            cleanupInterval: 60 * 60 * 1000, // 1 hour
             ...options
         };
-
+        
         // Storage backends
         this.backends = {
-            localStorage: new LocalStorageBackend(),
-            sessionStorage: new SessionStorageBackend(),
-            indexedDB: new IndexedDBBackend(),
-            memory: new MemoryBackend()
+            local: this.isStorageAvailable('localStorage') ? localStorage : null,
+            session: this.isStorageAvailable('sessionStorage') ? sessionStorage : null,
+            memory: new Map() // Fallback for unsupported browsers
         };
-
-        // Current backend
-        this.currentBackend = null;
-        this.isInitialized = false;
         
-        // Cache for frequently accessed items
-        this.cache = new Map();
-        this.cacheMaxSize = 100;
+        // Event system
+        this.eventBus = new EventBus();
         
-        // Storage categories
-        this.categories = {
-            datasets: 'datasets',
-            models: 'models',
-            preferences: 'preferences',
-            sessions: 'sessions',
-            cache: 'cache',
-            temp: 'temp'
+        // Encryption key (simplified - in production use proper key management)
+        this.encryptionKey = 'ncs-api-storage-key-2025';
+        
+        // Statistics tracking
+        this.stats = {
+            reads: 0,
+            writes: 0,
+            deletes: 0,
+            errors: 0,
+            cacheHits: 0,
+            cacheMisses: 0
         };
-
-        // Metadata tracking
-        this.metadata = new Map();
         
-        this.initialize();
+        // Initialize
+        this.init();
     }
 
     /**
-     * Initialize storage manager
+     * Initialize storage system
      */
-    async initialize() {
+    init() {
         try {
-            // Detect best available storage backend
-            this.currentBackend = await this.detectBestBackend();
-            
-            // Initialize the backend
-            await this.currentBackend.initialize();
-            
-            // Load metadata
-            await this.loadMetadata();
-            
-            // Setup automatic cleanup
-            if (this.options.enableAutoCleanup) {
+            // Set up automatic cleanup
+            if (this.config.autoCleanup) {
                 this.setupAutoCleanup();
             }
             
-            this.isInitialized = true;
+            // Listen for storage events
+            if (this.config.enableEvents && window.addEventListener) {
+                window.addEventListener('storage', (e) => this.handleStorageEvent(e));
+            }
             
-            EventBus.emit('storage:initialized', {
-                backend: this.currentBackend.name,
-                options: this.options
-            });
+            // Perform initial cleanup
+            this.cleanup();
+            
+            console.log('🗄️ Storage system initialized');
+        } catch (error) {
+            console.error('❌ Storage initialization failed:', error);
+        }
+    }
+
+    /**
+     * Store data with optional TTL and encryption
+     */
+    set(key, value, options = {}) {
+        try {
+            const config = { ...this.config, ...options };
+            const fullKey = this.getFullKey(key);
+            const backend = this.getBackend(config.type);
+            
+            // Prepare data object
+            const dataObject = {
+                value: value,
+                timestamp: Date.now(),
+                ttl: config.ttl || config.defaultTTL,
+                encrypted: config.enableEncryption,
+                compressed: false,
+                version: '1.0'
+            };
+            
+            // Add expiration if TTL is set
+            if (dataObject.ttl > 0) {
+                dataObject.expires = dataObject.timestamp + dataObject.ttl;
+            }
+            
+            // Serialize data
+            let serializedData = JSON.stringify(dataObject);
+            
+            // Encrypt if enabled
+            if (config.enableEncryption) {
+                serializedData = this.encrypt(serializedData);
+                dataObject.encrypted = true;
+            }
+            
+            // Compress if enabled and data is large
+            if (config.enableCompression && serializedData.length > 1024) {
+                serializedData = this.compress(serializedData);
+                dataObject.compressed = true;
+            }
+            
+            // Check storage quota
+            if (!this.checkQuota(serializedData.length)) {
+                throw new Error('Storage quota exceeded');
+            }
+            
+            // Store data
+            if (backend === this.backends.memory) {
+                backend.set(fullKey, serializedData);
+            } else {
+                backend.setItem(fullKey, serializedData);
+            }
+            
+            // Update statistics
+            this.stats.writes++;
+            
+            // Emit event
+            if (config.enableEvents) {
+                this.eventBus.emit('storage:set', { key, value, options: config });
+            }
+            
+            return true;
             
         } catch (error) {
-            console.error('Storage initialization failed:', error);
-            // Fallback to memory storage
-            this.currentBackend = this.backends.memory;
-            await this.currentBackend.initialize();
-            this.isInitialized = true;
-        }
-    }
-
-    /**
-     * Detect best available storage backend
-     * @returns {Promise<Object>} Best storage backend
-     */
-    async detectBestBackend() {
-        if (this.options.preferredStorage !== 'auto') {
-            const preferred = this.backends[this.options.preferredStorage];
-            if (preferred && await preferred.isAvailable()) {
-                return preferred;
-            }
-        }
-
-        // Test backends in order of preference
-        const backendOrder = ['indexedDB', 'localStorage', 'sessionStorage', 'memory'];
-        
-        for (const backendName of backendOrder) {
-            const backend = this.backends[backendName];
-            if (backend && await backend.isAvailable()) {
-                return backend;
-            }
-        }
-
-        // Fallback to memory
-        return this.backends.memory;
-    }
-
-    /**
-     * Store data with automatic backend selection and optimization
-     * @param {String} key - Storage key
-     * @param {*} data - Data to store
-     * @param {Object} options - Storage options
-     * @returns {Promise<Boolean>} Success status
-     */
-    async store(key, data, options = {}) {
-        try {
-            if (!this.isInitialized) {
-                await this.initialize();
-            }
-
-            const storeOptions = {
-                category: options.category || 'general',
-                compress: options.compress !== false && this.options.enableCompression,
-                encrypt: options.encrypt || this.options.enableEncryption,
-                ttl: options.ttl, // Time to live in milliseconds
-                versioning: options.versioning !== false && this.options.enableVersioning,
-                metadata: options.metadata || {},
-                ...options
-            };
-
-            // Prepare data for storage
-            const preparedData = await this.prepareDataForStorage(data, storeOptions);
-            
-            // Create metadata entry
-            const metadata = {
-                key,
-                category: storeOptions.category,
-                size: this.calculateSize(preparedData),
-                created: Date.now(),
-                modified: Date.now(),
-                accessed: Date.now(),
-                ttl: storeOptions.ttl,
-                compressed: preparedData.compressed,
-                encrypted: preparedData.encrypted,
-                version: storeOptions.versioning ? this.getNextVersion(key) : 1,
-                ...storeOptions.metadata
-            };
-
-            // Check storage limits
-            await this.checkStorageLimits(metadata.size);
-            
-            // Handle versioning
-            if (storeOptions.versioning) {
-                await this.manageVersions(key, metadata.version);
-            }
-
-            // Store data and metadata
-            const storageKey = this.buildStorageKey(key, storeOptions.category, metadata.version);
-            const success = await this.currentBackend.set(storageKey, preparedData.data);
-            
-            if (success) {
-                this.metadata.set(key, metadata);
-                await this.saveMetadata();
-                
-                // Update cache
-                this.updateCache(key, data);
-                
-                EventBus.emit('storage:stored', {
-                    key,
-                    category: storeOptions.category,
-                    size: metadata.size,
-                    backend: this.currentBackend.name
-                });
-                
-                return true;
-            }
-
+            this.stats.errors++;
+            console.error(`Storage set error for key "${key}":`, error);
             return false;
-
-        } catch (error) {
-            EventBus.emit('storage:error', { 
-                operation: 'store',
-                key,
-                error: error.message 
-            });
-            throw error;
         }
     }
 
     /**
-     * Retrieve data from storage
-     * @param {String} key - Storage key
-     * @param {Object} options - Retrieval options
-     * @returns {Promise<*>} Retrieved data or null
+     * Retrieve data with automatic expiration check
      */
-    async retrieve(key, options = {}) {
+    get(key, defaultValue = null, options = {}) {
         try {
-            if (!this.isInitialized) {
-                await this.initialize();
+            const config = { ...this.config, ...options };
+            const fullKey = this.getFullKey(key);
+            const backend = this.getBackend(config.type);
+            
+            // Get raw data
+            let rawData;
+            if (backend === this.backends.memory) {
+                rawData = backend.get(fullKey);
+            } else {
+                rawData = backend.getItem(fullKey);
             }
+            
+            // Return default if no data found
+            if (rawData === null || rawData === undefined) {
+                this.stats.cacheMisses++;
+                return defaultValue;
+            }
+            
+            // Decompress if needed
+            if (this.isCompressed(rawData)) {
+                rawData = this.decompress(rawData);
+            }
+            
+            // Decrypt if needed
+            if (this.isEncrypted(rawData)) {
+                rawData = this.decrypt(rawData);
+            }
+            
+            // Parse data object
+            const dataObject = JSON.parse(rawData);
+            
+            // Check expiration
+            if (this.isExpired(dataObject)) {
+                this.delete(key, { type: config.type });
+                this.stats.cacheMisses++;
+                return defaultValue;
+            }
+            
+            // Update statistics
+            this.stats.reads++;
+            this.stats.cacheHits++;
+            
+            // Emit event
+            if (config.enableEvents) {
+                this.eventBus.emit('storage:get', { key, value: dataObject.value, hit: true });
+            }
+            
+            return dataObject.value;
+            
+        } catch (error) {
+            this.stats.errors++;
+            console.error(`Storage get error for key "${key}":`, error);
+            return defaultValue;
+        }
+    }
 
-            const retrieveOptions = {
-                category: options.category || 'general',
-                version: options.version || 'latest',
-                updateAccess: options.updateAccess !== false,
-                useCache: options.useCache !== false,
-                ...options
-            };
+    /**
+     * Delete data from storage
+     */
+    delete(key, options = {}) {
+        try {
+            const config = { ...this.config, ...options };
+            const fullKey = this.getFullKey(key);
+            const backend = this.getBackend(config.type);
+            
+            // Get value before deletion for event
+            const value = this.get(key, null, { type: config.type });
+            
+            // Delete from storage
+            if (backend === this.backends.memory) {
+                const existed = backend.has(fullKey);
+                backend.delete(fullKey);
+                if (!existed) return false;
+            } else {
+                if (backend.getItem(fullKey) === null) return false;
+                backend.removeItem(fullKey);
+            }
+            
+            // Update statistics
+            this.stats.deletes++;
+            
+            // Emit event
+            if (config.enableEvents) {
+                this.eventBus.emit('storage:delete', { key, value });
+            }
+            
+            return true;
+            
+        } catch (error) {
+            this.stats.errors++;
+            console.error(`Storage delete error for key "${key}":`, error);
+            return false;
+        }
+    }
 
-            // Check cache first
-            if (retrieveOptions.useCache && this.cache.has(key)) {
-                const cached = this.cache.get(key);
-                if (Date.now() - cached.timestamp < 60000) { // Cache valid for 1 minute
-                    return cached.data;
+    /**
+     * Check if key exists in storage
+     */
+    has(key, options = {}) {
+        try {
+            const config = { ...this.config, ...options };
+            const fullKey = this.getFullKey(key);
+            const backend = this.getBackend(config.type);
+            
+            if (backend === this.backends.memory) {
+                return backend.has(fullKey);
+            } else {
+                return backend.getItem(fullKey) !== null;
+            }
+        } catch (error) {
+            console.error(`Storage has error for key "${key}":`, error);
+            return false;
+        }
+    }
+
+    /**
+     * Get all keys with optional prefix filtering
+     */
+    keys(options = {}) {
+        try {
+            const config = { ...this.config, ...options };
+            const backend = this.getBackend(config.type);
+            const prefix = config.prefix || this.config.prefix;
+            
+            let allKeys = [];
+            
+            if (backend === this.backends.memory) {
+                allKeys = Array.from(backend.keys());
+            } else {
+                for (let i = 0; i < backend.length; i++) {
+                    const key = backend.key(i);
+                    if (key) allKeys.push(key);
                 }
             }
-
-            // Get metadata
-            const metadata = this.metadata.get(key);
-            if (!metadata) {
-                return null;
-            }
-
-            // Check TTL
-            if (metadata.ttl && Date.now() > metadata.created + metadata.ttl) {
-                await this.remove(key);
-                return null;
-            }
-
-            // Determine version to retrieve
-            const version = retrieveOptions.version === 'latest' ? metadata.version : retrieveOptions.version;
             
-            // Build storage key
-            const storageKey = this.buildStorageKey(key, metadata.category, version);
-            
-            // Retrieve raw data
-            const rawData = await this.currentBackend.get(storageKey);
-            if (!rawData) {
-                return null;
-            }
-
-            // Process retrieved data
-            const data = await this.processRetrievedData(rawData, metadata);
-
-            // Update access time
-            if (retrieveOptions.updateAccess) {
-                metadata.accessed = Date.now();
-                await this.saveMetadata();
-            }
-
-            // Update cache
-            if (retrieveOptions.useCache) {
-                this.updateCache(key, data);
-            }
-
-            EventBus.emit('storage:retrieved', {
-                key,
-                category: metadata.category,
-                size: metadata.size,
-                backend: this.currentBackend.name
-            });
-
-            return data;
-
+            // Filter by prefix and remove prefix
+            return allKeys
+                .filter(key => key.startsWith(prefix))
+                .map(key => key.substring(prefix.length));
+                
         } catch (error) {
-            EventBus.emit('storage:error', {
-                operation: 'retrieve',
-                key,
-                error: error.message
-            });
-            throw error;
+            console.error('Storage keys error:', error);
+            return [];
         }
     }
 
     /**
-     * Remove data from storage
-     * @param {String} key - Storage key
-     * @param {Object} options - Removal options
-     * @returns {Promise<Boolean>} Success status
+     * Clear all storage or keys with specific prefix
      */
-    async remove(key, options = {}) {
+    clear(options = {}) {
         try {
-            const removeOptions = {
-                category: options.category || 'general',
-                removeAllVersions: options.removeAllVersions !== false,
-                ...options
-            };
-
-            const metadata = this.metadata.get(key);
-            if (!metadata) {
-                return false;
+            const config = { ...this.config, ...options };
+            const backend = this.getBackend(config.type);
+            
+            if (config.prefix) {
+                // Clear only keys with specific prefix
+                const keys = this.keys({ type: config.type });
+                keys.forEach(key => this.delete(key, { type: config.type }));
+            } else {
+                // Clear all storage
+                if (backend === this.backends.memory) {
+                    backend.clear();
+                } else {
+                    backend.clear();
+                }
             }
+            
+            // Emit event
+            if (config.enableEvents) {
+                this.eventBus.emit('storage:clear', { prefix: config.prefix });
+            }
+            
+            return true;
+            
+        } catch (error) {
+            this.stats.errors++;
+            console.error('Storage clear error:', error);
+            return false;
+        }
+    }
 
-            // Remove all versions if requested
-            if (removeOptions.removeAllVersions) {
-                for (let version = 1; version <= metadata.version; version++) {
-                    const storageKey = this.buildStorageKey(key, metadata.category, version);
-                    await this.currentBackend.remove(storageKey);
+    /**
+     * Get storage usage information
+     */
+    getUsage(options = {}) {
+        try {
+            const config = { ...this.config, ...options };
+            const backend = this.getBackend(config.type);
+            
+            let totalSize = 0;
+            let itemCount = 0;
+            const items = {};
+            
+            if (backend === this.backends.memory) {
+                for (const [key, value] of backend) {
+                    if (key.startsWith(this.config.prefix)) {
+                        const size = this.getStringSize(value);
+                        totalSize += size;
+                        itemCount++;
+                        items[key] = { size, value: JSON.parse(value) };
+                    }
                 }
             } else {
-                // Remove only latest version
-                const storageKey = this.buildStorageKey(key, metadata.category, metadata.version);
-                await this.currentBackend.remove(storageKey);
+                for (let i = 0; i < backend.length; i++) {
+                    const key = backend.key(i);
+                    if (key && key.startsWith(this.config.prefix)) {
+                        const value = backend.getItem(key);
+                        const size = this.getStringSize(value);
+                        totalSize += size;
+                        itemCount++;
+                        items[key] = { size, value: JSON.parse(value) };
+                    }
+                }
             }
-
-            // Remove metadata
-            this.metadata.delete(key);
-            await this.saveMetadata();
-
-            // Remove from cache
-            this.cache.delete(key);
-
-            EventBus.emit('storage:removed', {
-                key,
-                category: metadata.category,
-                backend: this.currentBackend.name
-            });
-
-            return true;
-
+            
+            return {
+                totalSize,
+                itemCount,
+                items,
+                formattedSize: this.formatBytes(totalSize),
+                quotaUsed: (totalSize / this.config.maxStorageSize * 100).toFixed(2) + '%'
+            };
+            
         } catch (error) {
-            EventBus.emit('storage:error', {
-                operation: 'remove',
-                key,
-                error: error.message
-            });
-            throw error;
+            console.error('Storage usage error:', error);
+            return { totalSize: 0, itemCount: 0, items: {} };
         }
     }
 
     /**
-     * List stored items by category
-     * @param {String} category - Storage category
-     * @param {Object} options - List options
-     * @returns {Promise<Array>} List of items
+     * Cleanup expired items
      */
-    async list(category = null, options = {}) {
+    cleanup(options = {}) {
         try {
-            const listOptions = {
-                includeMetadata: options.includeMetadata || false,
-                sortBy: options.sortBy || 'modified', // created, modified, accessed, size
-                sortOrder: options.sortOrder || 'desc',
-                limit: options.limit || 100,
-                offset: options.offset || 0,
-                ...options
-            };
-
-            let items = Array.from(this.metadata.entries()).map(([key, metadata]) => ({
-                key,
-                ...metadata
-            }));
-
-            // Filter by category
-            if (category) {
-                items = items.filter(item => item.category === category);
-            }
-
-            // Filter expired items
-            items = items.filter(item => {
-                if (item.ttl && Date.now() > item.created + item.ttl) {
-                    // Remove expired item
-                    this.remove(item.key).catch(console.error);
-                    return false;
-                }
-                return true;
-            });
-
-            // Sort items
-            items.sort((a, b) => {
-                const valueA = a[listOptions.sortBy] || 0;
-                const valueB = b[listOptions.sortBy] || 0;
-                
-                if (listOptions.sortOrder === 'asc') {
-                    return valueA - valueB;
-                } else {
-                    return valueB - valueA;
+            const config = { ...this.config, ...options };
+            const keys = this.keys({ type: config.type });
+            let cleaned = 0;
+            
+            keys.forEach(key => {
+                try {
+                    const data = this.get(key, null, { type: config.type });
+                    if (data === null) {
+                        // Item was expired and auto-deleted
+                        cleaned++;
+                    }
+                } catch (error) {
+                    // Corrupted item, delete it
+                    this.delete(key, { type: config.type });
+                    cleaned++;
                 }
             });
-
-            // Apply pagination
-            const startIndex = listOptions.offset;
-            const endIndex = startIndex + listOptions.limit;
-            items = items.slice(startIndex, endIndex);
-
-            // Remove metadata if not requested
-            if (!listOptions.includeMetadata) {
-                items = items.map(item => ({
-                    key: item.key,
-                    category: item.category,
-                    size: item.size,
-                    created: item.created,
-                    modified: item.modified
-                }));
+            
+            if (cleaned > 0) {
+                console.log(`🧹 Storage cleanup: removed ${cleaned} expired/corrupted items`);
             }
-
-            return items;
-
+            
+            return cleaned;
+            
         } catch (error) {
-            EventBus.emit('storage:error', {
-                operation: 'list',
-                category,
-                error: error.message
+            console.error('Storage cleanup error:', error);
+            return 0;
+        }
+    }
+
+    /**
+     * Export storage data for backup
+     */
+    export(options = {}) {
+        try {
+            const config = { ...this.config, ...options };
+            const keys = this.keys({ type: config.type });
+            const exportData = {
+                version: '1.0',
+                timestamp: Date.now(),
+                type: config.type || 'local',
+                data: {}
+            };
+            
+            keys.forEach(key => {
+                const value = this.get(key, null, { type: config.type });
+                if (value !== null) {
+                    exportData.data[key] = value;
+                }
             });
-            throw error;
+            
+            return exportData;
+            
+        } catch (error) {
+            console.error('Storage export error:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Import storage data from backup
+     */
+    import(importData, options = {}) {
+        try {
+            const config = { ...this.config, ...options };
+            
+            if (!importData || !importData.data) {
+                throw new Error('Invalid import data format');
+            }
+            
+            let imported = 0;
+            let errors = 0;
+            
+            Object.entries(importData.data).forEach(([key, value]) => {
+                try {
+                    this.set(key, value, { type: config.type });
+                    imported++;
+                } catch (error) {
+                    console.error(`Failed to import key "${key}":`, error);
+                    errors++;
+                }
+            });
+            
+            console.log(`📥 Storage import: ${imported} items imported, ${errors} errors`);
+            
+            return { imported, errors };
+            
+        } catch (error) {
+            console.error('Storage import error:', error);
+            return { imported: 0, errors: 1 };
         }
     }
 
     /**
      * Get storage statistics
-     * @returns {Promise<Object>} Storage statistics
      */
-    async getStats() {
-        try {
-            const stats = {
-                backend: this.currentBackend.name,
-                totalItems: this.metadata.size,
-                totalSize: 0,
-                categories: {},
-                oldest: null,
-                newest: null,
-                mostAccessed: null,
-                largestItem: null
-            };
-
-            let oldestTime = Infinity;
-            let newestTime = 0;
-            let maxAccessed = 0;
-            let maxSize = 0;
-
-            for (const [key, metadata] of this.metadata.entries()) {
-                stats.totalSize += metadata.size;
-
-                // Category stats
-                if (!stats.categories[metadata.category]) {
-                    stats.categories[metadata.category] = {
-                        count: 0,
-                        size: 0
-                    };
-                }
-                stats.categories[metadata.category].count++;
-                stats.categories[metadata.category].size += metadata.size;
-
-                // Oldest item
-                if (metadata.created < oldestTime) {
-                    oldestTime = metadata.created;
-                    stats.oldest = { key, created: metadata.created };
-                }
-
-                // Newest item
-                if (metadata.created > newestTime) {
-                    newestTime = metadata.created;
-                    stats.newest = { key, created: metadata.created };
-                }
-
-                // Most accessed item
-                if (metadata.accessed > maxAccessed) {
-                    maxAccessed = metadata.accessed;
-                    stats.mostAccessed = { key, accessed: metadata.accessed };
-                }
-
-                // Largest item
-                if (metadata.size > maxSize) {
-                    maxSize = metadata.size;
-                    stats.largestItem = { key, size: metadata.size };
-                }
-            }
-
-            // Backend-specific stats
-            if (this.currentBackend.getStats) {
-                stats.backendStats = await this.currentBackend.getStats();
-            }
-
-            return stats;
-
-        } catch (error) {
-            EventBus.emit('storage:error', {
-                operation: 'getStats',
-                error: error.message
-            });
-            throw error;
-        }
-    }
-
-    /**
-     * Clear storage by category or entirely
-     * @param {String} category - Category to clear (null for all)
-     * @returns {Promise<Number>} Number of items removed
-     */
-    async clear(category = null) {
-        try {
-            let removedCount = 0;
-            const keysToRemove = [];
-
-            for (const [key, metadata] of this.metadata.entries()) {
-                if (!category || metadata.category === category) {
-                    keysToRemove.push(key);
-                }
-            }
-
-            for (const key of keysToRemove) {
-                await this.remove(key);
-                removedCount++;
-            }
-
-            EventBus.emit('storage:cleared', {
-                category,
-                removedCount,
-                backend: this.currentBackend.name
-            });
-
-            return removedCount;
-
-        } catch (error) {
-            EventBus.emit('storage:error', {
-                operation: 'clear',
-                category,
-                error: error.message
-            });
-            throw error;
-        }
-    }
-
-    /**
-     * Prepare data for storage (compression, encryption)
-     * @param {*} data - Data to prepare
-     * @param {Object} options - Preparation options
-     * @returns {Promise<Object>} Prepared data object
-     */
-    async prepareDataForStorage(data, options) {
-        let preparedData = {
-            data: JSON.stringify(data),
-            compressed: false,
-            encrypted: false,
-            originalSize: 0
+    getStats() {
+        return {
+            ...this.stats,
+            uptime: Date.now() - (this.initTime || Date.now()),
+            hitRate: this.stats.reads > 0 ? (this.stats.cacheHits / this.stats.reads * 100).toFixed(2) + '%' : '0%'
         };
-
-        preparedData.originalSize = this.calculateSize(preparedData.data);
-
-        // Compression
-        if (options.compress && preparedData.originalSize > this.options.compressionThreshold) {
-            try {
-                preparedData.data = await this.compress(preparedData.data);
-                preparedData.compressed = true;
-            } catch (error) {
-                console.warn('Compression failed:', error);
-            }
-        }
-
-        // Basic encryption (for sensitive data)
-        if (options.encrypt) {
-            try {
-                preparedData.data = await this.encrypt(preparedData.data);
-                preparedData.encrypted = true;
-            } catch (error) {
-                console.warn('Encryption failed:', error);
-            }
-        }
-
-        return preparedData;
     }
 
     /**
-     * Process retrieved data (decompression, decryption)
-     * @param {Object} rawData - Raw data from storage
-     * @param {Object} metadata - Storage metadata
-     * @returns {Promise<*>} Processed data
+     * Private helper methods
      */
-    async processRetrievedData(rawData, metadata) {
-        let processedData = rawData;
+    getFullKey(key) {
+        return this.config.prefix + key;
+    }
 
-        // Decryption
-        if (metadata.encrypted) {
-            try {
-                processedData = await this.decrypt(processedData);
-            } catch (error) {
-                throw new Error('Failed to decrypt data: ' + error.message);
-            }
+    getBackend(type = 'local') {
+        switch (type) {
+            case 'session':
+                return this.backends.session || this.backends.memory;
+            case 'memory':
+                return this.backends.memory;
+            case 'local':
+            default:
+                return this.backends.local || this.backends.memory;
         }
+    }
 
-        // Decompression
-        if (metadata.compressed) {
-            try {
-                processedData = await this.decompress(processedData);
-            } catch (error) {
-                throw new Error('Failed to decompress data: ' + error.message);
-            }
-        }
-
-        // Parse JSON
+    isStorageAvailable(type) {
         try {
-            return JSON.parse(processedData);
+            const storage = window[type];
+            const test = '__storage_test__';
+            storage.setItem(test, test);
+            storage.removeItem(test);
+            return true;
         } catch (error) {
-            throw new Error('Failed to parse stored data: ' + error.message);
+            return false;
         }
     }
 
-    /**
-     * Compress data using simple LZ-style compression
-     * @param {String} data - Data to compress
-     * @returns {Promise<String>} Compressed data
-     */
-    async compress(data) {
-        // Simple RLE compression for demonstration
-        // In production, you might use a proper compression library
-        return data.replace(/(.)\1+/g, (match, char) => {
-            return match.length > 3 ? `${char}${match.length}` : match;
-        });
+    isExpired(dataObject) {
+        return dataObject.expires && Date.now() > dataObject.expires;
     }
 
-    /**
-     * Decompress data
-     * @param {String} data - Compressed data
-     * @returns {Promise<String>} Decompressed data
-     */
-    async decompress(data) {
-        // Simple RLE decompression
-        return data.replace(/(.)\d+/g, (match, char) => {
-            const count = parseInt(match.slice(1));
-            return char.repeat(count);
-        });
+    isCompressed(data) {
+        return typeof data === 'string' && data.startsWith('COMPRESSED:');
     }
 
-    /**
-     * Basic encryption (not cryptographically secure - for demo only)
-     * @param {String} data - Data to encrypt
-     * @returns {Promise<String>} Encrypted data
-     */
-    async encrypt(data) {
-        // Simple XOR encryption for demonstration
-        // In production, use proper encryption libraries
-        const key = this.options.encryptionKey;
-        let encrypted = '';
-        
-        for (let i = 0; i < data.length; i++) {
-            encrypted += String.fromCharCode(
-                data.charCodeAt(i) ^ key.charCodeAt(i % key.length)
-            );
-        }
-        
-        return btoa(encrypted); // Base64 encode
+    isEncrypted(data) {
+        return typeof data === 'string' && data.startsWith('ENCRYPTED:');
     }
 
-    /**
-     * Basic decryption
-     * @param {String} data - Encrypted data
-     * @returns {Promise<String>} Decrypted data
-     */
-    async decrypt(data) {
+    checkQuota(dataSize) {
+        const usage = this.getUsage();
+        return (usage.totalSize + dataSize) <= this.config.maxStorageSize;
+    }
+
+    getStringSize(str) {
+        return new Blob([str]).size;
+    }
+
+    formatBytes(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Simplified encryption (use proper encryption in production)
+    encrypt(data) {
         try {
-            const encrypted = atob(data); // Base64 decode
-            const key = this.options.encryptionKey;
-            let decrypted = '';
-            
-            for (let i = 0; i < encrypted.length; i++) {
-                decrypted += String.fromCharCode(
-                    encrypted.charCodeAt(i) ^ key.charCodeAt(i % key.length)
-                );
-            }
-            
-            return decrypted;
+            const encoded = btoa(data);
+            return 'ENCRYPTED:' + encoded;
         } catch (error) {
-            throw new Error('Decryption failed');
+            console.error('Encryption error:', error);
+            return data;
         }
     }
 
-    /**
-     * Utility methods
-     */
-
-    buildStorageKey(key, category, version = 1) {
-        return `ncs_${category}_${key}_v${version}`;
-    }
-
-    calculateSize(data) {
-        return new Blob([typeof data === 'string' ? data : JSON.stringify(data)]).size;
-    }
-
-    getNextVersion(key) {
-        const metadata = this.metadata.get(key);
-        return metadata ? metadata.version + 1 : 1;
-    }
-
-    updateCache(key, data) {
-        // Implement LRU cache
-        if (this.cache.size >= this.cacheMaxSize) {
-            const firstKey = this.cache.keys().next().value;
-            this.cache.delete(firstKey);
-        }
-        
-        this.cache.set(key, {
-            data,
-            timestamp: Date.now()
-        });
-    }
-
-    async checkStorageLimits(newItemSize) {
-        const stats = await this.getStats();
-        
-        if (stats.totalSize + newItemSize > this.options.maxStorageSize) {
-            throw new Error('Storage size limit exceeded');
-        }
-        
-        if (stats.totalItems >= this.options.maxItems) {
-            throw new Error('Storage item limit exceeded');
-        }
-    }
-
-    async manageVersions(key, newVersion) {
-        if (newVersion > this.options.maxVersions) {
-            // Remove oldest version
-            const oldVersion = newVersion - this.options.maxVersions;
-            const metadata = this.metadata.get(key);
-            if (metadata) {
-                const oldStorageKey = this.buildStorageKey(key, metadata.category, oldVersion);
-                await this.currentBackend.remove(oldStorageKey);
-            }
-        }
-    }
-
-    async loadMetadata() {
+    decrypt(data) {
         try {
-            const metadataKey = 'ncs_storage_metadata';
-            const rawMetadata = await this.currentBackend.get(metadataKey);
-            
-            if (rawMetadata) {
-                const parsed = JSON.parse(rawMetadata);
-                this.metadata = new Map(Object.entries(parsed));
+            if (data.startsWith('ENCRYPTED:')) {
+                return atob(data.substring(10));
             }
+            return data;
         } catch (error) {
-            console.warn('Failed to load storage metadata:', error);
-            this.metadata = new Map();
+            console.error('Decryption error:', error);
+            return data;
         }
     }
 
-    async saveMetadata() {
+    // Simplified compression (use proper compression in production)
+    compress(data) {
         try {
-            const metadataKey = 'ncs_storage_metadata';
-            const serialized = JSON.stringify(Object.fromEntries(this.metadata));
-            await this.currentBackend.set(metadataKey, serialized);
+            // Simple run-length encoding for demo
+            const compressed = data.replace(/(.)\1+/g, (match, char) => {
+                return char + match.length;
+            });
+            return 'COMPRESSED:' + compressed;
         } catch (error) {
-            console.warn('Failed to save storage metadata:', error);
+            console.error('Compression error:', error);
+            return data;
+        }
+    }
+
+    decompress(data) {
+        try {
+            if (data.startsWith('COMPRESSED:')) {
+                const compressed = data.substring(11);
+                return compressed.replace(/(.)\d+/g, (match, char) => {
+                    const count = parseInt(match.substring(1));
+                    return char.repeat(count);
+                });
+            }
+            return data;
+        } catch (error) {
+            console.error('Decompression error:', error);
+            return data;
         }
     }
 
     setupAutoCleanup() {
-        // Run cleanup every hour
         setInterval(() => {
-            this.runCleanup().catch(console.error);
-        }, 60 * 60 * 1000);
-        
-        // Run initial cleanup
-        setTimeout(() => {
-            this.runCleanup().catch(console.error);
-        }, 5000);
+            this.cleanup();
+        }, this.config.cleanupInterval);
     }
 
-    async runCleanup() {
-        const now = Date.now();
-        const keysToRemove = [];
-        
-        for (const [key, metadata] of this.metadata.entries()) {
-            // Remove expired items
-            if (metadata.ttl && now > metadata.created + metadata.ttl) {
-                keysToRemove.push(key);
-                continue;
-            }
-            
-            // Remove old unused items
-            if (now > metadata.accessed + this.options.maxAge) {
-                keysToRemove.push(key);
-            }
-        }
-        
-        for (const key of keysToRemove) {
-            await this.remove(key);
-        }
-        
-        if (keysToRemove.length > 0) {
-            EventBus.emit('storage:cleanup', {
-                removedItems: keysToRemove.length,
-                backend: this.currentBackend.name
+    handleStorageEvent(event) {
+        if (event.key && event.key.startsWith(this.config.prefix)) {
+            const key = event.key.substring(this.config.prefix.length);
+            this.eventBus.emit('storage:external_change', {
+                key,
+                oldValue: event.oldValue,
+                newValue: event.newValue,
+                storageArea: event.storageArea
             });
         }
     }
-
-    /**
-     * Convenience methods for common operations
-     */
-
-    async saveDataset(name, dataset, metadata = {}) {
-        return await this.store(name, dataset, {
-            category: this.categories.datasets,
-            metadata: {
-                type: 'dataset',
-                recordCount: dataset.length,
-                ...metadata
-            }
-        });
-    }
-
-    async loadDataset(name) {
-        return await this.retrieve(name, {
-            category: this.categories.datasets
-        });
-    }
-
-    async saveModel(name, model, metadata = {}) {
-        return await this.store(name, model, {
-            category: this.categories.models,
-            metadata: {
-                type: 'model',
-                algorithm: model.algorithm,
-                ...metadata
-            }
-        });
-    }
-
-    async loadModel(name) {
-        return await this.retrieve(name, {
-            category: this.categories.models
-        });
-    }
-
-    async savePreferences(preferences) {
-        return await this.store('user_preferences', preferences, {
-            category: this.categories.preferences,
-            versioning: false
-        });
-    }
-
-    async loadPreferences() {
-        return await this.retrieve('user_preferences', {
-            category: this.categories.preferences
-        });
-    }
-
-    async saveSession(sessionId, sessionData) {
-        return await this.store(sessionId, sessionData, {
-            category: this.categories.sessions,
-            ttl: 24 * 60 * 60 * 1000 // 24 hours
-        });
-    }
-
-    async loadSession(sessionId) {
-        return await this.retrieve(sessionId, {
-            category: this.categories.sessions
-        });
-    }
 }
 
-/**
- * Storage backend implementations
- */
+// Create singleton instances for common use cases
+export const localStorage = new Storage({ type: 'local' });
+export const sessionStorage = new Storage({ type: 'session' });
+export const memoryStorage = new Storage({ type: 'memory' });
 
-class LocalStorageBackend {
-    constructor() {
-        this.name = 'localStorage';
-    }
+// Convenience methods for direct use
+export const storage = {
+    // Local storage methods
+    local: {
+        set: (key, value, options) => localStorage.set(key, value, options),
+        get: (key, defaultValue, options) => localStorage.get(key, defaultValue, options),
+        delete: (key, options) => localStorage.delete(key, options),
+        has: (key, options) => localStorage.has(key, options),
+        clear: (options) => localStorage.clear(options),
+        keys: (options) => localStorage.keys(options)
+    },
+    
+    // Session storage methods
+    session: {
+        set: (key, value, options) => sessionStorage.set(key, value, options),
+        get: (key, defaultValue, options) => sessionStorage.get(key, defaultValue, options),
+        delete: (key, options) => sessionStorage.delete(key, options),
+        has: (key, options) => sessionStorage.has(key, options),
+        clear: (options) => sessionStorage.clear(options),
+        keys: (options) => sessionStorage.keys(options)
+    },
+    
+    // Memory storage methods
+    memory: {
+        set: (key, value, options) => memoryStorage.set(key, value, options),
+        get: (key, defaultValue, options) => memoryStorage.get(key, defaultValue, options),
+        delete: (key, options) => memoryStorage.delete(key, options),
+        has: (key, options) => memoryStorage.has(key, options),
+        clear: (options) => memoryStorage.clear(options),
+        keys: (options) => memoryStorage.keys(options)
+    },
+    
+    // Utility methods
+    getUsage: () => localStorage.getUsage(),
+    getStats: () => localStorage.getStats(),
+    cleanup: () => localStorage.cleanup(),
+    export: () => localStorage.export(),
+    import: (data) => localStorage.import(data)
+};
 
-    async isAvailable() {
-        try {
-            const test = 'ncs_storage_test';
-            localStorage.setItem(test, 'test');
-            localStorage.removeItem(test);
-            return true;
-        } catch {
-            return false;
-        }
-    }
-
-    async initialize() {
-        // No initialization needed for localStorage
-    }
-
-    async get(key) {
-        try {
-            return localStorage.getItem(key);
-        } catch {
-            return null;
-        }
-    }
-
-    async set(key, value) {
-        try {
-            localStorage.setItem(key, value);
-            return true;
-        } catch {
-            return false;
-        }
-    }
-
-    async remove(key) {
-        try {
-            localStorage.removeItem(key);
-            return true;
-        } catch {
-            return false;
-        }
-    }
-
-    async getStats() {
-        let totalSize = 0;
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            const value = localStorage.getItem(key);
-            totalSize += key.length + (value ? value.length : 0);
-        }
-        
-        return {
-            totalKeys: localStorage.length,
-            estimatedSize: totalSize
-        };
-    }
-}
-
-class SessionStorageBackend {
-    constructor() {
-        this.name = 'sessionStorage';
-    }
-
-    async isAvailable() {
-        try {
-            const test = 'ncs_storage_test';
-            sessionStorage.setItem(test, 'test');
-            sessionStorage.removeItem(test);
-            return true;
-        } catch {
-            return false;
-        }
-    }
-
-    async initialize() {
-        // No initialization needed for sessionStorage
-    }
-
-    async get(key) {
-        try {
-            return sessionStorage.getItem(key);
-        } catch {
-            return null;
-        }
-    }
-
-    async set(key, value) {
-        try {
-            sessionStorage.setItem(key, value);
-            return true;
-        } catch {
-            return false;
-        }
-    }
-
-    async remove(key) {
-        try {
-            sessionStorage.removeItem(key);
-            return true;
-        } catch {
-            return false;
-        }
-    }
-
-    async getStats() {
-        let totalSize = 0;
-        for (let i = 0; i < sessionStorage.length; i++) {
-            const key = sessionStorage.key(i);
-            const value = sessionStorage.getItem(key);
-            totalSize += key.length + (value ? value.length : 0);
-        }
-        
-        return {
-            totalKeys: sessionStorage.length,
-            estimatedSize: totalSize
-        };
-    }
-}
-
-class IndexedDBBackend {
-    constructor() {
-        this.name = 'indexedDB';
-        this.dbName = 'NCSStorageDB';
-        this.version = 1;
-        this.db = null;
-    }
-
-    async isAvailable() {
-        return 'indexedDB' in window;
-    }
-
-    async initialize() {
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open(this.dbName, this.version);
-            
-            request.onerror = () => reject(request.error);
-            request.onsuccess = () => {
-                this.db = request.result;
-                resolve();
-            };
-            
-            request.onupgradeneeded = (event) => {
-                const db = event.target.result;
-                if (!db.objectStoreNames.contains('storage')) {
-                    db.createObjectStore('storage', { keyPath: 'key' });
-                }
-            };
-        });
-    }
-
-    async get(key) {
-        if (!this.db) return null;
-        
-        return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction(['storage'], 'readonly');
-            const store = transaction.objectStore('storage');
-            const request = store.get(key);
-            
-            request.onerror = () => reject(request.error);
-            request.onsuccess = () => {
-                const result = request.result;
-                resolve(result ? result.value : null);
-            };
-        });
-    }
-
-    async set(key, value) {
-        if (!this.db) return false;
-        
-        return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction(['storage'], 'readwrite');
-            const store = transaction.objectStore('storage');
-            const request = store.put({ key, value });
-            
-            request.onerror = () => reject(request.error);
-            request.onsuccess = () => resolve(true);
-        });
-    }
-
-    async remove(key) {
-        if (!this.db) return false;
-        
-        return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction(['storage'], 'readwrite');
-            const store = transaction.objectStore('storage');
-            const request = store.delete(key);
-            
-            request.onerror = () => reject(request.error);
-            request.onsuccess = () => resolve(true);
-        });
-    }
-
-    async getStats() {
-        if (!this.db) return { totalKeys: 0, estimatedSize: 0 };
-        
-        return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction(['storage'], 'readonly');
-            const store = transaction.objectStore('storage');
-            const request = store.count();
-            
-            request.onerror = () => reject(request.error);
-            request.onsuccess = () => {
-                resolve({
-                    totalKeys: request.result,
-                    estimatedSize: 0 // IndexedDB doesn't provide easy size calculation
-                });
-            };
-        });
-    }
-}
-
-class MemoryBackend {
-    constructor() {
-        this.name = 'memory';
-        this.storage = new Map();
-    }
-
-    async isAvailable() {
-        return true; // Always available as fallback
-    }
-
-    async initialize() {
-        this.storage.clear();
-    }
-
-    async get(key) {
-        return this.storage.get(key) || null;
-    }
-
-    async set(key, value) {
-        this.storage.set(key, value);
-        return true;
-    }
-
-    async remove(key) {
-        return this.storage.delete(key);
-    }
-
-    async getStats() {
-        let estimatedSize = 0;
-        for (const [key, value] of this.storage.entries()) {
-            estimatedSize += key.length + (typeof value === 'string' ? value.length : JSON.stringify(value).length);
-        }
-        
-        return {
-            totalKeys: this.storage.size,
-            estimatedSize
-        };
-    }
-}
-
-// Create and export singleton instance
-export const storage = new StorageManager();
-
-// Export class for custom instances
-export default StorageManager;
+// Default export
+export default storage;

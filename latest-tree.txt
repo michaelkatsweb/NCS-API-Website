@@ -36,6 +36,12 @@
 │  │  └─ 📄 light.css
 │  └─ 📄 main.css
 ├─ 📁 docs/
+│  ├─ 📄 ACCESSIBILITY.md
+│  ├─ 📄 API_INTEGRATION.md
+│  ├─ 📄 CONTRIBUTING.md
+│  ├─ 📄 DEPLOYMENT.md
+│  ├─ 📄 DEVELOPMENT.md
+│  └─ 📄 PERFORMANCE.md
 ├─ 📁 js/
 │  ├─ 📁 api/
 │  │  ├─ 📄 auth.js
@@ -45,7 +51,9 @@
 │  ├─ 📁 clustering/
 │  │  ├─ 📄 DBSCAN.js
 │  │  ├─ 📄 Hierarchical.js
-│  │  └─ 📄 KMeans.js
+│  │  ├─ 📄 KMeans.js
+│  │  ├─ 📄 NCSAlgorithm.js
+│  │  └─ 📄 QualityMetrics.js
 │  ├─ 📁 components/
 │  │  ├─ 📄 ApiExplorer.js
 │  │  ├─ 📄 ClusterVisualizer.js
@@ -75,28 +83,44 @@
 │  │  ├─ 📄 preprocessor.js
 │  │  └─ 📄 validator.js
 │  ├─ 📁 utils/
+│  │  ├─ 📄 clipboard.js
 │  │  ├─ 📄 Colors.js
+│  │  ├─ 📄 debounce.js
+│  │  ├─ 📄 download.js
 │  │  ├─ 📄 math.js
-│  │  └─ 📄 performance.js
+│  │  ├─ 📄 performance.js
+│  │  └─ 📄 storage.js
 │  ├─ 📁 visualizations/
 │  │  ├─ 📁 animations/
+│  │  │  ├─ 📄 Interpolation.js
+│  │  │  ├─ 📄 Timeline.js
+│  │  │  └─ 📄 Transitions.js
 │  │  ├─ 📁 charts/
 │  │  │  ├─ 📄 Dendrogram.js
 │  │  │  ├─ 📄 Heatmap.js
 │  │  │  ├─ 📄 MetricsChart.js
-│  │  │  ├─ 📄 NCSAlgorithm.js
 │  │  │  ├─ 📄 RealTimeChart.js
 │  │  │  ├─ 📄 ScatterPlot.js
 │  │  │  └─ 📄 ScatterPlot3D.js
 │  │  ├─ 📁 interactions/
-│  │  │  └─ 📄 PanZoom.js
+│  │  │  ├─ 📄 Hover.js
+│  │  │  ├─ 📄 PanZoom.js
+│  │  │  └─ 📄 Selection.js
 │  │  └─ 📁 renderers/
 │  │     ├─ 📄 CanvasRenderer.js
 │  │     ├─ 📄 SVGRenderer.js
 │  │     └─ 📄 WebGLRenderer.js
 │  ├─ 📁 workers/
+│  │  ├─ 📄 clustering.worker.js
+│  │  ├─ 📄 data.worker.js
+│  │  └─ 📄 export.worker.js
 │  └─ 📄 main.js
 ├─ 📁 pages/
+│  ├─ 📄 benchmarks.js
+│  ├─ 📄 docs.js
+│  ├─ 📄 examples.js
+│  ├─ 📄 landing.js
+│  └─ 📄 playground.js
 ├─ 📁 public/
 │  └─ 📄 vite.svg
 ├─ 📁 tests/
@@ -116,5 +140,6 @@
 ├─ 📄 manifest.js
 ├─ 📄 package.json
 ├─ 📄 playground.html
+├─ 📄 Readme.md
 ├─ 📄 sw.js
 └─ 📄 Website-map.txt
