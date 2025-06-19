@@ -11,7 +11,7 @@
  */
 
 import { App } from './core/app.js';
-import { APIClient } from './api/client.js';
+import { ApiClient } from './api/client.js';
 import { WebSocketManager } from './api/websocket.js';
 import { PerformanceMonitor } from './utils/performance.js';
 import { CONFIG } from './config/constants.js';
@@ -126,7 +126,7 @@ class ApplicationBootstrap {
         this.updateLoadingStatus(this.initializationSteps[1]);
         
         // HTTP API Client
-        window.NCS.api = new APIClient({
+        window.NCS.api = new ApiClient({
             baseURL: CONFIG.API_BASE_URL,
             timeout: CONFIG.API_TIMEOUT,
             retries: 3,
@@ -283,27 +283,27 @@ class ApplicationBootstrap {
         try {
             switch (currentPage) {
                 case 'landing':
-                    const landingModule = await import('../pages/landing.js');
+                    const landingModule = await import('./pages/landing.js');
                     new landingModule.LandingPage();
                     break;
                     
                 case 'playground':
-                    const playgroundModule = await import('../pages/playground.js');
+                    const playgroundModule = await import('./pages/playground.js');
                     new playgroundModule.PlaygroundPage();
                     break;
                     
                 case 'docs':
-                    const docsModule = await import('../pages/docs.js');
+                    const docsModule = await import('./pages/docs.js');
                     new docsModule.DocsPage();
                     break;
                     
                 case 'benchmarks':
-                    const benchmarksModule = await import('../pages/benchmarks.js');
+                    const benchmarksModule = await import('./pages/benchmarks.js');
                     new benchmarksModule.BenchmarksPage();
                     break;
                     
                 case 'examples':
-                    const examplesModule = await import('../pages/examples.js');
+                    const examplesModule = await import('./pages/examples.js');
                     new examplesModule.ExamplesPage();
                     break;
                     

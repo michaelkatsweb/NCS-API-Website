@@ -5,7 +5,7 @@
 
 import { CONFIG } from '../config/constants.js';
 
-export class APIClient {
+export class ApiClient {
     constructor(options = {}) {
         this.options = {
             baseURL: CONFIG.API_BASE_URL,
@@ -842,6 +842,6 @@ export class APIError extends Error {
 /**
  * Create default API client instance
  */
-export const apiClient = new APIClient();
+export const apiClient = new ApiClient();
 
-export default APIClient;
+export default ApiClient;

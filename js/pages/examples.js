@@ -14,12 +14,12 @@
  * - Industry-specific use cases
  */
 
-import { CONFIG } from '../js/config/constants.js';
-import { EventBus } from '../js/core/eventBus.js';
-import { CodeGenerator } from '../js/components/CodeGenerator.js';
-import { ClusterVisualizer } from '../js/components/ClusterVisualizer.js';
-import { DataUploader } from '../js/components/DataUploader.js';
-import { ApiClient } from '../js/api/client.js';
+import { CONFIG } from '../config/constants.js';
+import { EventBus } from '../core/eventBus.js';
+import { CodeGenerator } from '../components/CodeGenerator.js';
+import { ClusterVisualizer } from '../components/ClusterVisualizer.js';
+import { DataUploader } from '../components/DataUploader.js';
+import { ApiClient } from '../api/client.js';
 
 export class ExamplesPage {
     constructor() {

@@ -4,7 +4,7 @@
 // Handles API documentation, interactive examples, code generation, and developer tools
 
 import { EventBus } from '../core/eventBus.js';
-import { APIClient } from '../api/client.js';
+import { ApiClient } from '../api/client.js';
 import { CodeGenerator } from '../components/CodeGenerator.js';
 import { Modal } from '../components/Modal.js';
 import { debounce } from '../utils/debounce.js';
@@ -137,7 +137,7 @@ curl -X {{method}} "{{url}}" \\
             this.cacheElements();
             
             // Initialize API client
-            this.initializeAPIClient();
+            this.initializeApiClient();
             
             // Initialize code generator
             this.initializeCodeGenerator();
@@ -198,8 +198,8 @@ curl -X {{method}} "{{url}}" \\
     /**
      * Initialize API client
      */
-    initializeAPIClient() {
-        this.apiClient = new APIClient({
+    initializeApiClient() {
+        this.apiClient = new ApiClient({
             baseURL: window.location.origin + '/api',
             timeout: 30000,
             retries: 2

@@ -725,9 +725,13 @@ export const {
     degToRad,
     radToDeg
 } = mathUtils;
-
 // Export constants
 export const MATH_CONSTANTS = mathUtils.constants;
+
+// Export helper function
+export function calculateDistance(p1, p2) {
+    return mathUtils.distance(p1.x, p1.y, p2.x, p2.y);
+}
 
 // Export as default
 export default MathUtils;

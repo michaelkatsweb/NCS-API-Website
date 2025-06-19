@@ -430,4 +430,85 @@ if (CONFIG.DEV_TOOLS.ENABLE_CONSOLE_LOGS) {
     });
 }
 
+// js/config/constants.js
+
+
+export const UI_STATES = {
+  IDLE: 'idle',
+  LOADING: 'loading',
+  ERROR: 'error',
+  SUCCESS: 'success'
+};
+
+export const PROCESSING_STATUS = {
+  PENDING: 'pending',
+  RUNNING: 'running',
+  COMPLETED: 'completed',
+  FAILED: 'failed'
+};
+
+export const STORAGE_KEYS = {
+  THEME: 'ncs_theme',
+  USER_PROFILE: 'ncs_user_profile',
+  AUTH_TOKEN: 'ncs_auth_token',
+  PREFERENCES: 'ncs_user_preferences',
+  LAST_DATASET: 'ncs_last_dataset',
+  CLUSTERING_HISTORY: 'ncs_clustering_history',
+  SAVED_VISUALIZATIONS: 'ncs_saved_visualizations'
+};
+
+export const DEFAULTS = {
+  theme: 'light',
+  language: 'en',
+  algorithm: 'kmeans',
+  chart_type: 'scatter',
+  color_scheme: 'default',
+  point_size: 5,
+  opacity: 0.8,
+  batch_size: 50
+};
+export const CONNECTION_STATUS = {
+  CONNECTED: 'connected',
+  DISCONNECTED: 'disconnected',
+  RECONNECTING: 'reconnecting',
+  ERROR: 'error'
+};
+
+export const ERROR_CODES = {
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  SERVER_ERROR: 500,
+  TIMEOUT: 'ECONNABORTED',
+  WS_CLOSED: 1000
+};
+
+
+export const EVENTS = {
+  APP_READY: 'app_ready',
+  APP_ERROR: 'app_error',
+  DATA_LOADED: 'data_loaded',
+  DATA_VALIDATED: 'data_validated',
+  DATA_PROCESSED: 'data_processed',
+  DATA_ERROR: 'data_error',
+  
+  CLUSTERING_START: 'clustering_start',
+  CLUSTERING_PROGRESS: 'clustering_progress',
+  CLUSTERING_COMPLETE: 'clustering_complete',
+  CLUSTERING_ERROR: 'clustering_error',
+
+  VIZ_RENDER: 'viz_render',
+  VIZ_UPDATE: 'viz_update',
+  VIZ_EXPORT: 'viz_export',
+  
+  THEME_CHANGE: 'theme_change',
+  THEME_TOGGLE: 'theme_toggle',
+
+  USER_LOGIN: 'user_login',
+  USER_LOGOUT: 'user_logout',
+  
+  NETWORK_ONLINE: 'network_online',
+  NETWORK_OFFLINE: 'network_offline'
+};
+
 export default CONFIG;

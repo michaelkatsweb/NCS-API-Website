@@ -3,7 +3,8 @@
 // Clustering quality assessment and evaluation metrics for NCS-API-Website
 // Provides comprehensive clustering validation and quality scoring
 
-import { calculateDistance, calculateMean, calculateStandardDeviation } from '../utils/math.js';
+import { calculateDistance, mean, standardDeviation } from '../utils/math.js';
+
 
 /**
  * Internal clustering quality metrics (no ground truth required)

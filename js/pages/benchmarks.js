@@ -14,11 +14,11 @@
  * - Load testing simulation
  */
 
-import { CONFIG } from '../js/config/constants.js';
-import { EventBus } from '../js/core/eventBus.js';
-import { PerformanceMonitor } from '../js/components/PerformanceMonitor.js';
-import { MetricsChart } from '../js/visualizations/charts/MetricsChart.js';
-import { ApiClient } from '../js/api/client.js';
+import { CONFIG } from '../config/constants.js';
+import { EventBus } from '../core/eventBus.js';
+import { PerformanceMonitor } from '../components/PerformanceMonitor.js';
+import { MetricsChart } from '../visualizations/charts/MetricsChart.js';
+import { ApiClient } from '../api/client.js';
 
 export class BenchmarksPage {
     constructor() {
