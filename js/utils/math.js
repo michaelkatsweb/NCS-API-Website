@@ -674,7 +674,7 @@ export class MathUtils {
     fastInvSqrt(number) {
         const threehalfs = 1.5;
         const x2 = number * 0.5;
-        const y = number;
+        let y = number;
         
         // Evil floating point bit level hacking (simplified for JS)
         let i = new DataView(new ArrayBuffer(4));
