@@ -1,208 +1,157 @@
 {
-  "name": "NCS-API - High-Performance Clustering & Data Processing",
+  "name": "NCS-API Clustering Platform",
   "short_name": "NCS-API",
-  "description": "Real-time clustering visualization and API testing platform. Process 6,300+ points per second with 91.8% clustering quality.",
+  "description": "High-performance clustering API with real-time streaming capabilities. Process thousands of data points per second with interactive visualizations.",
+  "version": "2.1.0",
   "start_url": "/",
-  "scope": "/",
   "display": "standalone",
-  "orientation": "any",
+  "orientation": "portrait-primary",
   "theme_color": "#6366f1",
-  "background_color": "#0f172a",
+  "background_color": "#111827",
+  "scope": "/",
   "lang": "en-US",
   "dir": "ltr",
   
-  "categories": [
-    "developer",
-    "productivity",
-    "business",
-    "utilities"
-  ],
-  
   "icons": [
     {
-      "src": "/assets/images/favicon.png",
-      "type": "image/png",
-      "sizes": "32x32",
-      "purpose": "any"
-    },
-    {
-      "src": "/assets/images/logo.svg",
-      "type": "image/svg+xml",
-      "sizes": "any",
-      "purpose": "any"
-    },
-    {
       "src": "/assets/images/icons/icon-72x72.png",
-      "type": "image/png",
       "sizes": "72x72",
+      "type": "image/png",
       "purpose": "any"
     },
     {
       "src": "/assets/images/icons/icon-96x96.png",
-      "type": "image/png",
       "sizes": "96x96",
+      "type": "image/png",
       "purpose": "any"
     },
     {
       "src": "/assets/images/icons/icon-128x128.png",
-      "type": "image/png",
       "sizes": "128x128",
+      "type": "image/png",
       "purpose": "any"
     },
     {
       "src": "/assets/images/icons/icon-144x144.png",
-      "type": "image/png",
       "sizes": "144x144",
+      "type": "image/png",
       "purpose": "any"
     },
     {
       "src": "/assets/images/icons/icon-152x152.png",
-      "type": "image/png",
       "sizes": "152x152",
+      "type": "image/png",
       "purpose": "any"
     },
     {
       "src": "/assets/images/icons/icon-192x192.png",
-      "type": "image/png",
       "sizes": "192x192",
-      "purpose": "any"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/assets/images/icons/icon-384x384.png",
-      "type": "image/png",
       "sizes": "384x384",
+      "type": "image/png",
       "purpose": "any"
     },
     {
       "src": "/assets/images/icons/icon-512x512.png",
-      "type": "image/png",
       "sizes": "512x512",
-      "purpose": "any"
-    },
-    {
-      "src": "/assets/images/icons/icon-192x192-maskable.png",
       "type": "image/png",
-      "sizes": "192x192",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/assets/images/icons/icon-512x512-maskable.png",
-      "type": "image/png",
-      "sizes": "512x512",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
   ],
   
   "screenshots": [
     {
-      "src": "/assets/images/screenshots/playground-demo.png",
-      "type": "image/png",
+      "src": "/assets/images/screenshots/playground-desktop.png",
       "sizes": "1280x720",
-      "form_factor": "wide",
-      "label": "Interactive Clustering Playground"
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Clustering Playground - Desktop View"
     },
     {
-      "src": "/assets/images/screenshots/api-explorer.png",
-      "type": "image/png",
-      "sizes": "1280x720",
-      "form_factor": "wide",
-      "label": "API Documentation Explorer"
-    },
-    {
-      "src": "/assets/images/screenshots/benchmarks.png",
-      "type": "image/png",
-      "sizes": "1280x720",
-      "form_factor": "wide",
-      "label": "Performance Benchmarks"
-    },
-    {
-      "src": "/assets/images/screenshots/mobile-playground.png",
-      "type": "image/png",
+      "src": "/assets/images/screenshots/playground-mobile.png",
       "sizes": "390x844",
-      "form_factor": "narrow",
-      "label": "Mobile Clustering Interface"
+      "type": "image/png",
+      "platform": "narrow",
+      "label": "Clustering Playground - Mobile View"
+    },
+    {
+      "src": "/assets/images/screenshots/docs-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "API Documentation - Desktop View"
     }
+  ],
+  
+  "categories": [
+    "productivity",
+    "developer",
+    "business",
+    "education",
+    "utilities"
   ],
   
   "shortcuts": [
     {
       "name": "Clustering Playground",
       "short_name": "Playground",
-      "description": "Interactive clustering visualization and testing",
+      "description": "Open the interactive clustering playground",
       "url": "/playground.html",
       "icons": [
         {
-          "src": "/assets/images/icons/cluster.svg",
-          "type": "image/svg+xml",
-          "sizes": "any"
+          "src": "/assets/images/icons/playground-shortcut.png",
+          "sizes": "96x96",
+          "type": "image/png"
         }
       ]
     },
     {
       "name": "API Documentation",
       "short_name": "Docs",
-      "description": "Comprehensive API reference and examples",
+      "description": "View API documentation and examples",
       "url": "/docs.html",
       "icons": [
         {
-          "src": "/assets/images/icons/docs.svg",
-          "type": "image/svg+xml",
-          "sizes": "any"
+          "src": "/assets/images/icons/docs-shortcut.png",
+          "sizes": "96x96",
+          "type": "image/png"
         }
       ]
     },
     {
-      "name": "Performance Benchmarks",
-      "short_name": "Benchmarks",
-      "description": "Real-time performance metrics and comparisons",
-      "url": "/benchmarks.html",
-      "icons": [
-        {
-          "src": "/assets/images/icons/performance.svg",
-          "type": "image/svg+xml",
-          "sizes": "any"
-        }
-      ]
-    },
-    {
-      "name": "Code Examples",
+      "name": "Examples",
       "short_name": "Examples",
-      "description": "Sample implementations and use cases",
+      "description": "Browse real-world clustering examples",
       "url": "/examples.html",
       "icons": [
         {
-          "src": "/assets/images/icons/api.svg",
-          "type": "image/svg+xml",
-          "sizes": "any"
+          "src": "/assets/images/icons/examples-shortcut.png",
+          "sizes": "96x96",
+          "type": "image/png"
         }
       ]
-    }
-  ],
-  
-  "prefer_related_applications": false,
-  "related_applications": [],
-  
-  "file_handlers": [
+    },
     {
-      "action": "/playground.html?file=%s",
-      "accept": {
-        "text/csv": [".csv"],
-        "application/json": [".json"],
-        "text/plain": [".txt"]
-      },
-      "launch_type": "single-client"
-    }
-  ],
-  
-  "protocol_handlers": [
-    {
-      "protocol": "ncs-api",
-      "url": "/playground.html?data=%s"
+      "name": "Benchmarks",
+      "short_name": "Benchmarks",
+      "description": "View performance benchmarks and comparisons",
+      "url": "/benchmarks.html",
+      "icons": [
+        {
+          "src": "/assets/images/icons/benchmarks-shortcut.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
     }
   ],
   
   "share_target": {
-    "action": "/playground.html",
+    "action": "/share-target/",
     "method": "POST",
     "enctype": "multipart/form-data",
     "params": {
@@ -211,15 +160,33 @@
       "url": "url",
       "files": [
         {
-          "name": "dataset",
-          "accept": ["text/csv", "application/json", "text/plain"]
+          "name": "files",
+          "accept": ["text/csv", "application/json", ".xlsx"]
         }
       ]
     }
   },
   
+  "protocol_handlers": [
+    {
+      "protocol": "web+ncsapi",
+      "url": "/api-handler?url=%s"
+    }
+  ],
+  
+  "file_handlers": [
+    {
+      "action": "/file-handler/",
+      "accept": {
+        "text/csv": [".csv"],
+        "application/json": [".json"],
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"]
+      }
+    }
+  ],
+  
   "launch_handler": {
-    "client_mode": "focus-existing"
+    "client_mode": "navigate-new"
   },
   
   "display_override": [
@@ -235,49 +202,27 @@
   
   "scope_extensions": [
     {
-      "origin": "https://api.ncs-cluster.com"
-    },
-    {
-      "origin": "https://docs.ncs-cluster.com"
+      "origin": "https://api.ncs-clustering.com"
     }
   ],
   
-  "handle_links": "preferred",
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://ncs-api.com/manifest.json"
+    }
+  ],
   
-  "version": "2.1.0",
+  "prefer_related_applications": false,
+  
+  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
   
   "permissions": [
-    "storage",
-    "background-sync",
-    "push"
+    "persistent-storage",
+    "notifications"
   ],
   
   "features": [
-    "real-time-clustering",
-    "interactive-visualization",
-    "api-testing",
-    "data-processing",
-    "performance-monitoring",
-    "offline-capable",
-    "export-functionality",
-    "multi-algorithm-support"
-  ],
-  
-  "custom": {
-    "ncs_api": {
-      "version": "2.1.0",
-      "build_date": "2025-06-17",
-      "supported_algorithms": [
-        "k-means",
-        "dbscan",
-        "hierarchical",
-        "ncs-custom"
-      ],
-      "max_data_points": 10000,
-      "real_time_enabled": true,
-      "offline_mode": true,
-      "cache_strategy": "cache-first",
-      "update_check_interval": 3600000
-    }
-  }
+    "cross-origin-isolated"
+  ]
 }

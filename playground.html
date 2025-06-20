@@ -3,25 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Interactive NCS-API Playground - Test clustering algorithms in real-time with your own data or sample datasets.">
-    <meta name="keywords" content="clustering, machine learning, playground, interactive, API, data visualization">
+    
+    <!-- Primary Meta Tags -->
+    <title>Clustering Playground - NCS-API</title>
+    <meta name="title" content="Clustering Playground - NCS-API">
+    <meta name="description" content="Interactive clustering playground for testing algorithms in real-time. Upload data, adjust parameters, and visualize results with K-Means, DBSCAN, and NCS algorithms.">
+    <meta name="keywords" content="clustering, machine learning, data analysis, playground, K-means, DBSCAN, interactive, visualization">
     <meta name="author" content="NCS-API Team">
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://ncs-api.com/playground.html">
-    <meta property="og:title" content="NCS-API Interactive Playground">
-    <meta property="og:description" content="Test high-performance clustering algorithms with real-time visualization. Upload your data or use sample datasets.">
+    <meta property="og:title" content="Interactive Clustering Playground - NCS-API">
+    <meta property="og:description" content="Test clustering algorithms in real-time with our interactive playground. Upload data, adjust parameters, and visualize results instantly.">
     <meta property="og:image" content="/assets/images/playground-preview.jpg">
     
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://ncs-api.com/playground.html">
-    <meta property="twitter:title" content="NCS-API Interactive Playground">
-    <meta property="twitter:description" content="Test high-performance clustering algorithms with real-time visualization. Upload your data or use sample datasets.">
+    <meta property="twitter:title" content="Interactive Clustering Playground - NCS-API">
+    <meta property="twitter:description" content="Test clustering algorithms in real-time with our interactive playground. Upload data, adjust parameters, and visualize results instantly.">
     <meta property="twitter:image" content="/assets/images/playground-preview.jpg">
-    
-    <title>Interactive Playground - NCS-API</title>
     
     <!-- Preconnect to external domains -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -38,15 +40,44 @@
     <!-- Stylesheets -->
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/css/components/header.css">
-    <link rel="stylesheet" href="/css/components/buttons.css">
     <link rel="stylesheet" href="/css/components/playground.css">
-    <link rel="stylesheet" href="/css/components/charts.css">
+    <link rel="stylesheet" href="/css/components/buttons.css">
+    <link rel="stylesheet" href="/css/components/forms.css">
     <link rel="stylesheet" href="/css/components/modal.css">
+    <link rel="stylesheet" href="/css/components/toast.css">
+    <link rel="stylesheet" href="/css/layout/grid.css">
+    <link rel="stylesheet" href="/css/layout/responsive.css">
     <link rel="stylesheet" href="/css/layout/animations.css">
+    <link rel="stylesheet" href="/css/themes/light.css">
+    <link rel="stylesheet" href="/css/themes/dark.css">
     
     <!-- Preload critical resources -->
     <link rel="preload" href="/assets/fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/assets/fonts/source-code-pro.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="/js/main.js" as="script">
+    
+    <!-- JSON-LD Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "NCS-API Clustering Playground",
+      "description": "Interactive clustering playground for testing machine learning algorithms",
+      "url": "https://ncs-api.com/playground.html",
+      "applicationCategory": "Data Analysis Tool",
+      "operatingSystem": "Any",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "NCS-API",
+        "url": "https://ncs-api.com"
+      }
+    }
+    </script>
 </head>
 <body class="theme-dark">
     <!-- Skip to main content for accessibility -->
@@ -62,7 +93,12 @@
                 <div class="cluster-point"></div>
                 <div class="cluster-point"></div>
             </div>
-            <p>Initializing Playground...</p>
+            <p class="loading-status">Loading clustering playground...</p>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%"></div>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -92,16 +128,11 @@
                 </div>
                 
                 <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
-                    <svg class="theme-icon theme-icon-light" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>
-                    </svg>
-                    <svg class="theme-icon theme-icon-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
+                    <span class="theme-icon theme-icon-light">☀️</span>
+                    <span class="theme-icon theme-icon-dark">🌙</span>
                 </button>
                 
-                <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
+                <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle mobile menu">
                     <span></span>
                     <span></span>
                     <span></span>
@@ -111,518 +142,335 @@
     </header>
     
     <!-- Main Content -->
-    <main id="main-content" class="playground-main">
+    <main id="main-content" class="playground">
         <!-- Playground Header -->
-        <section class="playground-header">
-            <div class="container">
-                <div class="playground-header-content">
-                    <div class="playground-title-section">
-                        <h1 class="playground-title animate-fade-in-up">
-                            Interactive Clustering Playground
-                        </h1>
-                        <p class="playground-description animate-fade-in-up animation-delay-200">
-                            Explore the power of NCS clustering with real-time visualization. 
-                            Upload your data, choose algorithms, and see results instantly.
-                        </p>
-                    </div>
-                    
-                    <div class="playground-quick-actions animate-fade-in-up animation-delay-300">
-                        <button class="btn btn-primary" id="quick-start-btn">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                            </svg>
-                            Quick Start
-                        </button>
-                        <button class="btn btn-secondary" id="load-sample-btn">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14,2 14,8 20,8"></polyline>
-                                <line x1="16" y1="13" x2="8" y2="13"></line>
-                                <line x1="16" y1="17" x2="8" y2="17"></line>
-                            </svg>
-                            Load Sample Data
-                        </button>
-                        <button class="btn btn-ghost" id="tutorial-btn">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                            </svg>
-                            Tutorial
-                        </button>
-                    </div>
+        <div class="playground-header">
+            <div class="playground-header-content">
+                <div class="playground-title">
+                    <div class="playground-title-icon">🧪</div>
+                    <h1>Clustering Playground</h1>
+                </div>
+                
+                <div class="playground-actions">
+                    <button class="action-button action-button-secondary" id="load-sample-data">
+                        Load Sample Data
+                    </button>
+                    <button class="action-button action-button-secondary" id="export-results">
+                        Export Results
+                    </button>
+                    <button class="action-button action-button-primary" id="start-clustering">
+                        Start Clustering
+                    </button>
                 </div>
             </div>
-        </section>
+        </div>
         
-        <!-- Playground Interface -->
-        <section class="playground-interface">
-            <div class="playground-container">
-                <!-- Control Panel -->
-                <aside class="playground-sidebar animate-fade-in-left">
-                    <!-- Data Input Section -->
-                    <div class="control-section" id="data-section">
-                        <div class="control-section-header">
-                            <h3 class="control-section-title">
-                                <svg class="control-section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                    <polyline points="14,2 14,8 20,8"></polyline>
-                                    <line x1="16" y1="13" x2="8" y2="13"></line>
-                                    <line x1="16" y1="17" x2="8" y2="17"></line>
-                                </svg>
-                                Data Input
-                            </h3>
-                            <button class="control-section-toggle" aria-label="Toggle data input section">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <polyline points="6 9 12 15 18 9"></polyline>
-                                </svg>
-                            </button>
-                        </div>
-                        
-                        <div class="control-section-content">
-                            <!-- Data Source Tabs -->
-                            <div class="data-tabs">
-                                <button class="data-tab data-tab-active" data-tab="upload">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                        <polyline points="7 10 12 15 17 10"></polyline>
-                                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                                    </svg>
-                                    Upload File
-                                </button>
-                                <button class="data-tab" data-tab="manual">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                        <path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"></path>
-                                        <polygon points="18,2 22,6 12,16 8,16 8,12 18,2"></polygon>
-                                    </svg>
-                                    Manual Input
-                                </button>
-                                <button class="data-tab" data-tab="samples">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                                        <rect x="7" y="7" width="3" height="9"></rect>
-                                        <rect x="14" y="7" width="3" height="5"></rect>
-                                    </svg>
-                                    Sample Data
-                                </button>
+        <!-- Main Playground Area -->
+        <div class="playground-main">
+            <!-- Left Panel - Controls -->
+            <div class="playground-controls">
+                <!-- Data Upload Panel -->
+                <div class="control-panel" id="data-panel">
+                    <div class="control-panel-header">
+                        <h3 class="control-panel-title">Data Input</h3>
+                        <span class="control-panel-icon">📊</span>
+                    </div>
+                    <div class="control-panel-content">
+                        <div class="control-section">
+                            <div class="control-section-title">Upload Dataset</div>
+                            
+                            <div class="data-upload" id="data-upload">
+                                <div class="data-upload-icon">📁</div>
+                                <div class="data-upload-text">
+                                    Click to upload or drag & drop
+                                </div>
+                                <div class="data-upload-hint">
+                                    CSV, JSON, Excel (max 10MB)
+                                </div>
+                                <input type="file" id="file-input" accept=".csv,.json,.xlsx,.txt" multiple>
                             </div>
                             
-                            <!-- Data Upload Panel -->
-                            <div class="data-panel data-panel-active" id="upload-panel">
-                                <div class="file-upload-area" id="file-upload">
-                                    <div class="file-upload-icon">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                            <polyline points="17 8 12 3 7 8"></polyline>
-                                            <line x1="12" y1="3" x2="12" y2="15"></line>
-                                        </svg>
-                                    </div>
-                                    <div class="file-upload-text">
-                                        <p class="file-upload-primary">Drop your CSV file here</p>
-                                        <p class="file-upload-secondary">or click to browse</p>
-                                    </div>
-                                    <input type="file" id="file-input" accept=".csv,.json,.xlsx" hidden>
-                                </div>
-                                
-                                <div class="file-info" id="file-info" style="display: none;">
-                                    <div class="file-details">
-                                        <span class="file-name"></span>
-                                        <span class="file-size"></span>
-                                    </div>
-                                    <button class="btn btn-sm btn-secondary" id="remove-file">Remove</button>
-                                </div>
-                                
-                                <div class="data-preprocessing">
-                                    <h4 class="preprocessing-title">Preprocessing Options</h4>
-                                    <div class="preprocessing-options">
-                                        <label class="checkbox-label">
-                                            <input type="checkbox" id="normalize-data" checked>
-                                            <span class="checkbox-text">Normalize data</span>
-                                        </label>
-                                        <label class="checkbox-label">
-                                            <input type="checkbox" id="remove-outliers">
-                                            <span class="checkbox-text">Remove outliers</span>
-                                        </label>
-                                        <label class="checkbox-label">
-                                            <input type="checkbox" id="handle-missing">
-                                            <span class="checkbox-text">Handle missing values</span>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Manual Input Panel -->
-                            <div class="data-panel" id="manual-panel">
-                                <div class="manual-input-tools">
-                                    <button class="btn btn-sm btn-secondary" id="generate-random">
-                                        Generate Random Points
-                                    </button>
-                                    <button class="btn btn-sm btn-secondary" id="clear-points">
-                                        Clear All Points
-                                    </button>
-                                </div>
-                                
-                                <div class="manual-input-area" id="manual-input-canvas">
-                                    <p class="manual-input-instructions">
-                                        Click on the visualization area to add data points manually, 
-                                        or use the generate button above.
-                                    </p>
-                                </div>
-                            </div>
-                            
-                            <!-- Sample Data Panel -->
-                            <div class="data-panel" id="samples-panel">
-                                <div class="sample-datasets">
-                                    <div class="sample-dataset" data-sample="iris">
-                                        <div class="sample-header">
-                                            <h4 class="sample-title">Iris Dataset</h4>
-                                            <span class="sample-badge">150 points</span>
-                                        </div>
-                                        <p class="sample-description">Classic flower classification dataset with 4 features</p>
-                                    </div>
-                                    
-                                    <div class="sample-dataset" data-sample="customers">
-                                        <div class="sample-header">
-                                            <h4 class="sample-title">Customer Segmentation</h4>
-                                            <span class="sample-badge">1000 points</span>
-                                        </div>
-                                        <p class="sample-description">E-commerce customer behavior data</p>
-                                    </div>
-                                    
-                                    <div class="sample-dataset" data-sample="blobs">
-                                        <div class="sample-header">
-                                            <h4 class="sample-title">Synthetic Blobs</h4>
-                                            <span class="sample-badge">500 points</span>
-                                        </div>
-                                        <p class="sample-description">Generated clusters for testing algorithms</p>
-                                    </div>
-                                    
-                                    <div class="sample-dataset" data-sample="financial">
-                                        <div class="sample-header">
-                                            <h4 class="sample-title">Financial Data</h4>
-                                            <span class="sample-badge">2500 points</span>
-                                        </div>
-                                        <p class="sample-description">Stock market clustering analysis</p>
-                                    </div>
-                                </div>
+                            <div class="form-group">
+                                <label class="form-label">Sample Datasets</label>
+                                <select class="form-select" id="sample-dataset">
+                                    <option value="">Choose a sample dataset</option>
+                                    <option value="iris">Iris Dataset (150 points)</option>
+                                    <option value="customers">Customer Segmentation (1000 points)</option>
+                                    <option value="social-media">Social Network Data (500 points)</option>
+                                    <option value="financial">Financial Data (2000 points)</option>
+                                    <option value="ecommerce">E-commerce Behavior (1500 points)</option>
+                                </select>
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Algorithm Selection -->
-                    <div class="control-section" id="algorithm-section">
-                        <div class="control-section-header">
-                            <h3 class="control-section-title">
-                                <svg class="control-section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <circle cx="12" cy="12" r="3"></circle>
-                                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                                </svg>
-                                Algorithm
-                            </h3>
-                        </div>
-                        
-                        <div class="control-section-content">
-                            <div class="algorithm-selector">
-                                <div class="algorithm-option algorithm-option-selected" data-algorithm="ncs">
-                                    <div class="algorithm-info">
-                                        <h4 class="algorithm-name">NCS Algorithm</h4>
-                                        <p class="algorithm-description">High-performance neural clustering</p>
-                                    </div>
-                                    <div class="algorithm-badge">Recommended</div>
-                                </div>
-                                
-                                <div class="algorithm-option" data-algorithm="kmeans">
-                                    <div class="algorithm-info">
-                                        <h4 class="algorithm-name">K-Means</h4>
-                                        <p class="algorithm-description">Classic centroid-based clustering</p>
-                                    </div>
-                                </div>
-                                
-                                <div class="algorithm-option" data-algorithm="dbscan">
-                                    <div class="algorithm-info">
-                                        <h4 class="algorithm-name">DBSCAN</h4>
-                                        <p class="algorithm-description">Density-based clustering</p>
-                                    </div>
-                                </div>
-                                
-                                <div class="algorithm-option" data-algorithm="hierarchical">
-                                    <div class="algorithm-info">
-                                        <h4 class="algorithm-name">Hierarchical</h4>
-                                        <p class="algorithm-description">Tree-based clustering</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                </div>
+                
+                <!-- Algorithm Selection Panel -->
+                <div class="control-panel" id="algorithm-panel">
+                    <div class="control-panel-header">
+                        <h3 class="control-panel-title">Algorithm</h3>
+                        <span class="control-panel-icon">⚙️</span>
                     </div>
-                    
-                    <!-- Parameters -->
-                    <div class="control-section" id="parameters-section">
-                        <div class="control-section-header">
-                            <h3 class="control-section-title">
-                                <svg class="control-section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <line x1="4" y1="21" x2="4" y2="14"></line>
-                                    <line x1="4" y1="10" x2="4" y2="3"></line>
-                                    <line x1="12" y1="21" x2="12" y2="12"></line>
-                                    <line x1="12" y1="8" x2="12" y2="3"></line>
-                                    <line x1="20" y1="21" x2="20" y2="16"></line>
-                                    <line x1="20" y1="12" x2="20" y2="3"></line>
-                                    <line x1="1" y1="14" x2="7" y2="14"></line>
-                                    <line x1="9" y1="8" x2="15" y2="8"></line>
-                                    <line x1="17" y1="16" x2="23" y2="16"></line>
-                                </svg>
-                                Parameters
-                            </h3>
-                        </div>
-                        
-                        <div class="control-section-content">
-                            <div class="parameter-controls" id="parameter-controls">
-                                <!-- Dynamic parameter controls will be inserted here -->
-                            </div>
+                    <div class="control-panel-content">
+                        <div class="control-section">
+                            <div class="control-section-title">Choose Algorithm</div>
                             
-                            <div class="parameter-presets">
-                                <button class="btn btn-sm btn-ghost" id="reset-params">Reset to Defaults</button>
-                                <button class="btn btn-sm btn-ghost" id="auto-params">Auto-tune Parameters</button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Execution Controls -->
-                    <div class="control-section" id="execution-section">
-                        <div class="control-section-header">
-                            <h3 class="control-section-title">
-                                <svg class="control-section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                                </svg>
-                                Execution
-                            </h3>
-                        </div>
-                        
-                        <div class="control-section-content">
-                            <div class="execution-controls">
-                                <button class="btn btn-primary btn-full" id="run-clustering">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                                    </svg>
-                                    Run Clustering
-                                </button>
-                                
-                                <div class="execution-options">
-                                    <label class="checkbox-label">
-                                        <input type="checkbox" id="real-time-mode">
-                                        <span class="checkbox-text">Real-time mode</span>
+                            <div class="algorithm-grid">
+                                <div class="algorithm-option">
+                                    <input type="radio" name="algorithm" value="kmeans" id="algo-kmeans" checked>
+                                    <label for="algo-kmeans" class="algorithm-option-label">
+                                        <div class="algorithm-option-title">K-Means</div>
+                                        <div class="algorithm-option-description">
+                                            Fast centroid-based clustering
+                                        </div>
                                     </label>
-                                    <label class="checkbox-label">
-                                        <input type="checkbox" id="show-iterations">
-                                        <span class="checkbox-text">Show iterations</span>
+                                </div>
+                                
+                                <div class="algorithm-option">
+                                    <input type="radio" name="algorithm" value="dbscan" id="algo-dbscan">
+                                    <label for="algo-dbscan" class="algorithm-option-label">
+                                        <div class="algorithm-option-title">DBSCAN</div>
+                                        <div class="algorithm-option-description">
+                                            Density-based with noise detection
+                                        </div>
+                                    </label>
+                                </div>
+                                
+                                <div class="algorithm-option">
+                                    <input type="radio" name="algorithm" value="hierarchical" id="algo-hierarchical">
+                                    <label for="algo-hierarchical" class="algorithm-option-label">
+                                        <div class="algorithm-option-title">Hierarchical</div>
+                                        <div class="algorithm-option-description">
+                                            Tree-based clustering
+                                        </div>
+                                    </label>
+                                </div>
+                                
+                                <div class="algorithm-option">
+                                    <input type="radio" name="algorithm" value="ncs" id="algo-ncs">
+                                    <label for="algo-ncs" class="algorithm-option-label">
+                                        <div class="algorithm-option-title">NCS Algorithm</div>
+                                        <div class="algorithm-option-description">
+                                            Neural clustering system
+                                        </div>
                                     </label>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </aside>
+                </div>
                 
-                <!-- Visualization Area -->
-                <main class="playground-main-area animate-fade-in-right">
-                    <!-- Visualization Toolbar -->
-                    <div class="viz-toolbar">
-                        <div class="viz-toolbar-left">
-                            <div class="viz-mode-selector">
-                                <button class="viz-mode-btn viz-mode-active" data-mode="2d">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                                    </svg>
-                                    2D View
-                                </button>
-                                <button class="viz-mode-btn" data-mode="3d">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                                    </svg>
-                                    3D View
-                                </button>
-                                <button class="viz-mode-btn" data-mode="heatmap">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                        <rect x="3" y="3" width="7" height="7"></rect>
-                                        <rect x="14" y="3" width="7" height="7"></rect>
-                                        <rect x="14" y="14" width="7" height="7"></rect>
-                                        <rect x="3" y="14" width="7" height="7"></rect>
-                                    </svg>
-                                    Heatmap
-                                </button>
+                <!-- Parameters Panel -->
+                <div class="control-panel" id="parameters-panel">
+                    <div class="control-panel-header">
+                        <h3 class="control-panel-title">Parameters</h3>
+                        <span class="control-panel-icon">🎛️</span>
+                    </div>
+                    <div class="control-panel-content">
+                        <div class="control-section" id="kmeans-params">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    Number of Clusters (k)
+                                    <span class="form-label-value" id="k-value">3</span>
+                                </label>
+                                <input type="range" class="form-range" id="k-clusters" min="2" max="20" value="3" data-param="k">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">
+                                    Max Iterations
+                                    <span class="form-label-value" id="iterations-value">100</span>
+                                </label>
+                                <input type="range" class="form-range" id="max-iterations" min="10" max="1000" value="100" data-param="maxIterations">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">
+                                    Tolerance
+                                    <span class="form-label-value" id="tolerance-value">0.01</span>
+                                </label>
+                                <input type="range" class="form-range" id="tolerance" min="0.0001" max="0.1" step="0.0001" value="0.01" data-param="tolerance">
                             </div>
                         </div>
                         
-                        <div class="viz-toolbar-right">
-                            <button class="btn btn-sm btn-secondary" id="fullscreen-btn">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
-                                </svg>
-                            </button>
-                            <button class="btn btn-sm btn-secondary" id="export-btn">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                    <polyline points="7 10 12 15 17 10"></polyline>
-                                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                                </svg>
-                            </button>
-                            <button class="btn btn-sm btn-secondary" id="settings-btn">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <circle cx="12" cy="12" r="3"></circle>
-                                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- Main Visualization -->
-                    <div class="visualization-container" id="visualization-container">
-                        <canvas id="main-visualization" width="800" height="600"></canvas>
-                        
-                        <!-- Visualization Overlay -->
-                        <div class="viz-overlay">
-                            <div class="viz-loading" id="viz-loading" style="display: none;">
-                                <div class="viz-loading-spinner"></div>
-                                <p>Processing clustering...</p>
+                        <div class="control-section" id="dbscan-params" style="display: none;">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    Epsilon (ε)
+                                    <span class="form-label-value" id="eps-value">0.5</span>
+                                </label>
+                                <input type="range" class="form-range" id="epsilon" min="0.1" max="2.0" step="0.1" value="0.5" data-param="eps">
                             </div>
                             
-                            <div class="viz-empty-state" id="viz-empty-state">
-                                <div class="empty-state-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                                        <circle cx="9" cy="9" r="2"></circle>
-                                        <path d="M21 15l-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path>
-                                    </svg>
-                                </div>
-                                <h3 class="empty-state-title">Ready for Data</h3>
-                                <p class="empty-state-description">
-                                    Upload a file, select sample data, or manually add points to get started
-                                </p>
+                            <div class="form-group">
+                                <label class="form-label">
+                                    Min Points
+                                    <span class="form-label-value" id="minpts-value">5</span>
+                                </label>
+                                <input type="range" class="form-range" id="min-points" min="2" max="20" value="5" data-param="minPts">
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Results Panel -->
-                    <div class="results-panel" id="results-panel" style="display: none;">
-                        <div class="results-header">
-                            <h3 class="results-title">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <rect x="3" y="3" width="7" height="9"></rect>
-                                    <rect x="13" y="3" width="7" height="5"></rect>
-                                    <rect x="13" y="12" width="7" height="8"></rect>
-                                    <rect x="3" y="16" width="7" height="5"></rect>
-                                </svg>
-                                Clustering Results
-                            </h3>
-                            <button class="results-close" id="results-close">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                                </svg>
-                            </button>
-                        </div>
-                        
-                        <div class="results-content">
-                            <!-- Performance Metrics -->
-                            <div class="metrics-grid">
-                                <div class="metric-card">
-                                    <div class="metric-label">Execution Time</div>
-                                    <div class="metric-value" id="metric-time">--</div>
-                                </div>
-                                <div class="metric-card">
-                                    <div class="metric-label">Quality Score</div>
-                                    <div class="metric-value" id="metric-quality">--</div>
-                                </div>
-                                <div class="metric-card">
-                                    <div class="metric-label">Clusters Found</div>
-                                    <div class="metric-value" id="metric-clusters">--</div>
-                                </div>
-                                <div class="metric-card">
-                                    <div class="metric-label">Data Points</div>
-                                    <div class="metric-value" id="metric-points">--</div>
-                                </div>
+                </div>
+                
+                <!-- Visualization Panel -->
+                <div class="control-panel" id="visualization-panel">
+                    <div class="control-panel-header">
+                        <h3 class="control-panel-title">Visualization</h3>
+                        <span class="control-panel-icon">👁️</span>
+                    </div>
+                    <div class="control-panel-content">
+                        <div class="control-section">
+                            <div class="form-group">
+                                <label class="form-checkbox">
+                                    <input type="checkbox" id="show-centroids" checked>
+                                    <span class="form-checkbox-mark"></span>
+                                    <span class="form-checkbox-label">Show Centroids</span>
+                                </label>
                             </div>
                             
-                            <!-- Cluster Details -->
-                            <div class="cluster-details" id="cluster-details">
-                                <!-- Dynamic cluster information will be inserted here -->
+                            <div class="form-group">
+                                <label class="form-checkbox">
+                                    <input type="checkbox" id="show-clusters" checked>
+                                    <span class="form-checkbox-mark"></span>
+                                    <span class="form-checkbox-label">Color by Cluster</span>
+                                </label>
                             </div>
                             
-                            <!-- Export Options -->
-                            <div class="export-options">
-                                <h4 class="export-title">Export Results</h4>
-                                <div class="export-buttons">
-                                    <button class="btn btn-sm btn-secondary" id="export-csv">
-                                        Export CSV
-                                    </button>
-                                    <button class="btn btn-sm btn-secondary" id="export-json">
-                                        Export JSON
-                                    </button>
-                                    <button class="btn btn-sm btn-secondary" id="export-image">
-                                        Export Image
-                                    </button>
-                                </div>
+                            <div class="form-group">
+                                <label class="form-checkbox">
+                                    <input type="checkbox" id="animate-clustering">
+                                    <span class="form-checkbox-mark"></span>
+                                    <span class="form-checkbox-label">Animate Process</span>
+                                </label>
                             </div>
                         </div>
                     </div>
-                </main>
-            </div>
-        </section>
-    </main>
-    
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <div class="footer-brand">
-                        <img src="/assets/images/logo.svg" alt="NCS-API" class="footer-logo">
-                        <span class="footer-title">NCS-API</span>
-                    </div>
-                    <p class="footer-description">
-                        High-performance clustering and data processing API for modern applications
-                    </p>
-                </div>
-                
-                <div class="footer-section">
-                    <h4 class="footer-heading">Product</h4>
-                    <ul class="footer-links">
-                        <li><a href="/playground.html">Playground</a></li>
-                        <li><a href="/docs.html">Documentation</a></li>
-                        <li><a href="/benchmarks.html">Benchmarks</a></li>
-                        <li><a href="/examples.html">Examples</a></li>
-                    </ul>
-                </div>
-                
-                <div class="footer-section">
-                    <h4 class="footer-heading">Resources</h4>
-                    <ul class="footer-links">
-                        <li><a href="/docs/api">API Reference</a></li>
-                        <li><a href="/docs/guides">Guides</a></li>
-                        <li><a href="/support">Support</a></li>
-                        <li><a href="/changelog">Changelog</a></li>
-                    </ul>
-                </div>
-                
-                <div class="footer-section">
-                    <h4 class="footer-heading">Company</h4>
-                    <ul class="footer-links">
-                        <li><a href="/about">About</a></li>
-                        <li><a href="/contact">Contact</a></li>
-                        <li><a href="/privacy">Privacy</a></li>
-                        <li><a href="/terms">Terms</a></li>
-                    </ul>
                 </div>
             </div>
             
-            <div class="footer-bottom">
-                <p class="footer-copyright">
-                    © 2025 NCS-API. All rights reserved.
-                </p>
+            <!-- Center Panel - Visualization -->
+            <div class="playground-visualization">
+                <div class="playground-visualization-header">
+                    <h3 class="playground-visualization-title">Data Visualization</h3>
+                    <div class="playground-visualization-controls">
+                        <div class="viz-controls">
+                            <button class="viz-control-button" id="zoom-in" title="Zoom In">🔍</button>
+                            <button class="viz-control-button" id="zoom-out" title="Zoom Out">🔍</button>
+                            <button class="viz-control-button" id="reset-view" title="Reset View">🏠</button>
+                            <button class="viz-control-button" id="fullscreen" title="Fullscreen">⛶</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="playground-visualization-canvas">
+                    <canvas id="cluster-canvas" class="cluster-canvas"></canvas>
+                    <div class="visualization-overlay" id="viz-overlay">
+                        <div class="visualization-placeholder">
+                            <div class="placeholder-icon">📊</div>
+                            <h3>Upload data to start clustering</h3>
+                            <p>Drag and drop a file or select a sample dataset</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Panel - Results -->
+            <div class="playground-results">
+                <!-- Status Section -->
+                <div class="results-section">
+                    <h3 class="results-section-title">Status</h3>
+                    <div class="status-indicator idle" id="clustering-status">
+                        <span class="status-dot"></span>
+                        <span>Ready</span>
+                    </div>
+                    
+                    <div class="progress-container" id="clustering-progress" style="display: none;">
+                        <div class="progress-label">
+                            <span>Processing...</span>
+                            <span id="progress-percent">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Metrics Section -->
+                <div class="results-section">
+                    <h3 class="results-section-title">Quality Metrics</h3>
+                    <div id="quality-metrics">
+                        <div class="metric-item">
+                            <span class="metric-label">Silhouette Score</span>
+                            <span class="metric-value" id="silhouette-score">-</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Inertia</span>
+                            <span class="metric-value" id="inertia">-</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Davies-Bouldin</span>
+                            <span class="metric-value" id="davies-bouldin">-</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Performance Section -->
+                <div class="results-section">
+                    <h3 class="results-section-title">Performance</h3>
+                    <div id="performance-metrics">
+                        <div class="metric-item">
+                            <span class="metric-label">Processing Time</span>
+                            <span class="metric-value" id="processing-time">-</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Data Points</span>
+                            <span class="metric-value" id="data-points">-</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Clusters Found</span>
+                            <span class="metric-value" id="clusters-found">-</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Export Section -->
+                <div class="results-section">
+                    <h3 class="results-section-title">Export Results</h3>
+                    <div class="action-button-group">
+                        <button class="action-button action-button-secondary" id="download-data">
+                            Download CSV
+                        </button>
+                        <button class="action-button action-button-secondary" id="download-image">
+                            Save Image
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
-    </footer>
+    </main>
     
-    <!-- Scripts -->
+    <!-- Toast Notifications Container -->
+    <div class="toast-container" id="toast-container"></div>
+    
+    <!-- Modals -->
+    <div class="modal" id="sample-data-modal" style="display: none;">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Sample Datasets</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Choose from our curated datasets to explore clustering algorithms:</p>
+                <!-- Modal content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main JavaScript -->
     <script type="module" src="/js/main.js"></script>
-    <script type="module" src="/pages/playground.js"></script>
+    
+    <!-- Page-specific JavaScript -->
+    <script type="module" src="/js/pages/playground.js"></script>
 </body>
 </html>
