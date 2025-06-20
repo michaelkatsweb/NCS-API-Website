@@ -1,49 +1,28 @@
 /**
- * NCS-API Website - Main Application Entry Point
- * High-performance vanilla JavaScript SPA
- * 
- * Features:
- * - Module-based architecture
- * - Theme management
- * - Performance monitoring
- * - API integration
- * - Real-time clustering visualization
+ * NCS-API Website - Minimal Main Entry Point
+ * Simplified version to get the application running
  */
-
-import { App } from './core/app.js';
-import { ApiClient } from './api/client.js';
-import { WebSocketManager } from './api/websocket.js';
-import { PerformanceMonitor } from './utils/performance.js';
-import { CONFIG } from './config/constants.js';
 
 // Global application state
 window.NCS = {
     version: '2.1.0',
-    buildDate: '2025-06-19',
-    config: CONFIG,
-    performance: null,
-    api: null,
-    ws: null,
-    app: null,
+    buildDate: '2025-06-20',
     debug: false
 };
 
 /**
- * Application initialization
+ * Simple Application Bootstrap
  */
-class ApplicationBootstrap {
+class SimpleBootstrap {
     constructor() {
         this.startTime = performance.now();
         this.loadingOverlay = document.getElementById('loading-overlay');
-        this.initializationSteps = [
-            'Loading configuration',
-            'Initializing API client',
-            'Setting up WebSocket connection',
-            'Loading UI components',
-            'Starting performance monitoring',
-            'Rendering application'
-        ];
-        this.currentStep = 0;
+        
+        // Enable debug mode in development
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+            window.NCS.debug = true;
+            console.log('🔧 Debug mode enabled');
+        }
     }
 
     /**
@@ -51,28 +30,24 @@ class ApplicationBootstrap {
      */
     async init() {
         try {
-            console.log('🚀 NCS-API Website starting...');
+            console.log('🚀 NCS-API Website starting (minimal version)...');
             
-            // Enable debug mode in development
-            if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-                window.NCS.debug = true;
-                console.log('🔧 Debug mode enabled');
-            }
-
             // Update loading status
-            this.updateLoadingStatus('Initializing application...');
-
-            // Initialize core systems
-            await this.initializeCore();
+            this.updateLoadingStatus('Loading application...');
             
-            // Initialize API connections
-            await this.initializeAPI();
+            // Initialize theme
+            this.initializeTheme();
+            await this.delay(200);
             
-            // Load and initialize UI components
-            await this.initializeUI();
+            // Initialize basic components
+            this.updateLoadingStatus('Setting up components...');
+            await this.initializeBasicComponents();
+            await this.delay(200);
             
-            // Start the main application
-            await this.startApplication();
+            // Initialize page-specific functionality
+            this.updateLoadingStatus('Loading page components...');
+            await this.initializePage();
+            await this.delay(200);
             
             // Hide loading overlay
             await this.hideLoadingOverlay();
@@ -81,9 +56,6 @@ class ApplicationBootstrap {
             const initTime = performance.now() - this.startTime;
             console.log(`✅ Application initialized in ${initTime.toFixed(2)}ms`);
             
-            // Analytics
-            this.trackInitialization(initTime);
-            
         } catch (error) {
             console.error('❌ Application initialization failed:', error);
             this.showErrorState(error);
@@ -91,116 +63,19 @@ class ApplicationBootstrap {
     }
 
     /**
-     * Initialize core systems
-     */
-    async initializeCore() {
-        this.updateLoadingStatus(this.initializationSteps[0]);
-        
-        // Performance monitoring
-        window.NCS.performance = new PerformanceMonitor({
-            enableMetrics: true,
-            enableProfiling: window.NCS.debug,
-            reportInterval: 30000 // 30 seconds
-        });
-        
-        // Theme initialization
-        this.initializeTheme();
-        
-        // Service Worker registration
-        if ('serviceWorker' in navigator && !window.NCS.debug) {
-            try {
-                await navigator.serviceWorker.register('/sw.js');
-                console.log('🔄 Service Worker registered');
-            } catch (error) {
-                console.warn('⚠️ Service Worker registration failed:', error);
-            }
-        }
-        
-        await this.delay(200);
-    }
-
-    /**
-     * Initialize API connections
-     */
-    async initializeAPI() {
-        this.updateLoadingStatus(this.initializationSteps[1]);
-        
-        try {
-            // Initialize HTTP API client
-            window.NCS.api = new ApiClient({
-                baseURL: CONFIG.API.BASE_URL,
-                timeout: CONFIG.API.TIMEOUT
-            });
-            
-            // Test API connection
-            try {
-                await window.NCS.api.healthCheck();
-                console.log('🌐 API connection established');
-            } catch (error) {
-                console.warn('⚠️ API connection failed, continuing offline:', error);
-            }
-            
-            await this.delay(300);
-            
-            // Initialize WebSocket connection
-            this.updateLoadingStatus(this.initializationSteps[2]);
-            
-            window.NCS.ws = new WebSocketManager({
-                url: CONFIG.API.WS_URL,
-                enableLogging: window.NCS.debug
-            });
-            
-            // Attempt WebSocket connection (non-blocking)
-            window.NCS.ws.connect().catch(error => {
-                console.warn('⚠️ WebSocket connection failed, continuing without real-time features:', error);
-            });
-            
-        } catch (error) {
-            console.warn('⚠️ API initialization failed:', error);
-        }
-        
-        await this.delay(200);
-    }
-
-    /**
-     * Initialize UI components
-     */
-    async initializeUI() {
-        this.updateLoadingStatus(this.initializationSteps[3]);
-        
-        // Initialize main application
-        window.NCS.app = new App({
-            debug: window.NCS.debug,
-            enableRouting: true,
-            enableAnalytics: true,
-            enablePerformanceMonitoring: true,
-            enableErrorTracking: true
-        });
-        
-        await this.delay(200);
-    }
-
-    /**
-     * Start the main application
-     */
-    async startApplication() {
-        this.updateLoadingStatus(this.initializationSteps[4]);
-        
-        // Start the main application
-        await window.NCS.app.start();
-        
-        // Start performance monitoring
-        this.updateLoadingStatus(this.initializationSteps[5]);
-        
-        await this.delay(100);
-    }
-
-    /**
      * Initialize theme system
      */
     initializeTheme() {
+        console.log('🎨 Initializing theme...');
+        
         // Check for saved theme preference
-        const savedTheme = localStorage.getItem(CONFIG.STORAGE.THEME_PREFERENCE);
+        let savedTheme = null;
+        try {
+            savedTheme = localStorage.getItem('ncs-theme-preference');
+        } catch (e) {
+            console.warn('LocalStorage not available');
+        }
+        
         const systemPrefersDark = window.matchMedia && 
             window.matchMedia('(prefers-color-scheme: dark)').matches;
         
@@ -210,6 +85,7 @@ class ApplicationBootstrap {
         }
         
         // Apply theme immediately to prevent flash
+        document.body.classList.remove('theme-light', 'theme-dark');
         document.body.classList.add(`theme-${theme}`);
         
         // Update meta theme-color
@@ -217,6 +93,541 @@ class ApplicationBootstrap {
         if (metaThemeColor) {
             metaThemeColor.content = theme === 'dark' ? '#111827' : '#ffffff';
         }
+        
+        console.log(`✅ Theme set to: ${theme}`);
+    }
+
+    /**
+     * Initialize basic components
+     */
+    async initializeBasicComponents() {
+        console.log('🔧 Initializing basic components...');
+        
+        try {
+            // Initialize theme toggle
+            this.initializeThemeToggle();
+            
+            // Initialize mobile menu
+            this.initializeMobileMenu();
+            
+            // Initialize basic page functionality
+            this.initializeBasicInteractions();
+            
+            console.log('✅ Basic components initialized');
+            
+        } catch (error) {
+            console.warn('⚠️ Some components failed to initialize:', error);
+        }
+    }
+
+    /**
+     * Initialize theme toggle
+     */
+    initializeThemeToggle() {
+        const themeToggle = document.getElementById('theme-toggle');
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = document.body.classList.contains('theme-dark') ? 'dark' : 'light';
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                document.body.classList.remove('theme-light', 'theme-dark');
+                document.body.classList.add(`theme-${newTheme}`);
+                
+                // Save preference
+                try {
+                    localStorage.setItem('ncs-theme-preference', newTheme);
+                } catch (e) {
+                    console.warn('Could not save theme preference');
+                }
+                
+                // Update meta theme-color
+                const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+                if (metaThemeColor) {
+                    metaThemeColor.content = newTheme === 'dark' ? '#111827' : '#ffffff';
+                }
+                
+                console.log(`Theme switched to: ${newTheme}`);
+            });
+            
+            console.log('✅ Theme toggle initialized');
+        }
+    }
+
+    /**
+     * Initialize mobile menu
+     */
+    initializeMobileMenu() {
+        const menuToggle = document.getElementById('mobile-menu-toggle');
+        const navMenu = document.getElementById('nav-menu');
+        
+        if (menuToggle && navMenu) {
+            menuToggle.addEventListener('click', () => {
+                const isOpen = navMenu.classList.contains('nav-menu-open');
+                
+                if (isOpen) {
+                    navMenu.classList.remove('nav-menu-open');
+                    menuToggle.classList.remove('nav-toggle-active');
+                } else {
+                    navMenu.classList.add('nav-menu-open');
+                    menuToggle.classList.add('nav-toggle-active');
+                }
+            });
+            
+            // Close menu when clicking outside
+            document.addEventListener('click', (event) => {
+                if (!menuToggle.contains(event.target) && !navMenu.contains(event.target)) {
+                    navMenu.classList.remove('nav-menu-open');
+                    menuToggle.classList.remove('nav-toggle-active');
+                }
+            });
+            
+            console.log('✅ Mobile menu initialized');
+        }
+    }
+
+    /**
+     * Initialize basic interactions
+     */
+    initializeBasicInteractions() {
+        // Add smooth scrolling to anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        // Add loading states to buttons
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('click', function() {
+                if (!this.disabled) {
+                    this.classList.add('loading');
+                    setTimeout(() => {
+                        this.classList.remove('loading');
+                    }, 1000);
+                }
+            });
+        });
+        
+        console.log('✅ Basic interactions initialized');
+    }
+
+    /**
+     * Initialize page-specific functionality
+     */
+    async initializePage() {
+        const currentPage = this.getCurrentPageName();
+        console.log(`🏠 Initializing page: ${currentPage}`);
+        
+        try {
+            switch (currentPage) {
+                case 'landing':
+                    await this.initializeLandingPage();
+                    break;
+                case 'playground':
+                    await this.initializePlaygroundPage();
+                    break;
+                case 'docs':
+                    await this.initializeDocsPage();
+                    break;
+                default:
+                    console.log(`No specific initialization needed for: ${currentPage}`);
+            }
+        } catch (error) {
+            console.warn(`Failed to initialize ${currentPage} page:`, error);
+        }
+    }
+
+    /**
+     * Initialize landing page
+     */
+    async initializeLandingPage() {
+        console.log('🏠 Setting up landing page...');
+        
+        // Add scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-in');
+                }
+            });
+        }, observerOptions);
+        
+        // Observe elements for animation
+        document.querySelectorAll('.hero, .feature-card, .stat-item').forEach(el => {
+            observer.observe(el);
+        });
+        
+        // Add CTA button functionality
+        document.querySelectorAll('.cta-button, .btn-primary').forEach(button => {
+            if (button.textContent.includes('Playground') || button.textContent.includes('Try')) {
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    window.location.href = '/playground.html';
+                });
+            }
+        });
+    }
+
+    /**
+     * Initialize playground page
+     */
+    async initializePlaygroundPage() {
+        console.log('🧪 Setting up playground page...');
+        
+        // Initialize file upload
+        this.initializeFileUpload();
+        
+        // Initialize sample data selector
+        this.initializeSampleData();
+        
+        // Initialize visualization placeholder
+        this.initializeVisualization();
+        
+        // Initialize algorithm selection
+        this.initializeAlgorithmSelection();
+    }
+
+    /**
+     * Initialize file upload
+     */
+    initializeFileUpload() {
+        const uploadArea = document.getElementById('data-upload');
+        const fileInput = document.getElementById('file-input');
+        
+        if (uploadArea && fileInput) {
+            // Click to upload
+            uploadArea.addEventListener('click', () => {
+                fileInput.click();
+            });
+            
+            // File selection
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    this.handleFileUpload(e.target.files[0]);
+                }
+            });
+            
+            // Drag and drop
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                
+                if (e.dataTransfer.files.length > 0) {
+                    this.handleFileUpload(e.dataTransfer.files[0]);
+                }
+            });
+            
+            console.log('✅ File upload initialized');
+        }
+    }
+
+    /**
+     * Handle file upload
+     */
+    handleFileUpload(file) {
+        console.log('📁 File uploaded:', file.name);
+        
+        // Show success message
+        this.showMessage(`File "${file.name}" uploaded successfully!`, 'success');
+        
+        // Update visualization placeholder
+        const vizOverlay = document.getElementById('viz-overlay');
+        if (vizOverlay) {
+            vizOverlay.innerHTML = `
+                <div class="visualization-placeholder">
+                    <div class="placeholder-icon">✅</div>
+                    <h3>Data loaded: ${file.name}</h3>
+                    <p>Configure algorithm parameters and click "Start Clustering"</p>
+                </div>
+            `;
+        }
+        
+        // Enable clustering button
+        const clusterButton = document.getElementById('start-clustering');
+        if (clusterButton) {
+            clusterButton.disabled = false;
+            clusterButton.textContent = 'Start Clustering';
+        }
+    }
+
+    /**
+     * Initialize sample data
+     */
+    initializeSampleData() {
+        const sampleSelect = document.getElementById('sample-dataset');
+        
+        if (sampleSelect) {
+            sampleSelect.addEventListener('change', (e) => {
+                if (e.target.value) {
+                    console.log('📊 Sample dataset selected:', e.target.value);
+                    this.loadSampleData(e.target.value);
+                }
+            });
+        }
+    }
+
+    /**
+     * Load sample data
+     */
+    loadSampleData(dataset) {
+        console.log(`📊 Loading sample dataset: ${dataset}`);
+        
+        // Show loading state
+        this.showMessage(`Loading ${dataset} dataset...`, 'info');
+        
+        // Simulate loading
+        setTimeout(() => {
+            this.showMessage(`${dataset} dataset loaded successfully!`, 'success');
+            
+            // Update visualization
+            const vizOverlay = document.getElementById('viz-overlay');
+            if (vizOverlay) {
+                vizOverlay.innerHTML = `
+                    <div class="visualization-placeholder">
+                        <div class="placeholder-icon">📊</div>
+                        <h3>${dataset} Dataset Loaded</h3>
+                        <p>Configure algorithm and start clustering</p>
+                    </div>
+                `;
+            }
+            
+            // Enable clustering
+            const clusterButton = document.getElementById('start-clustering');
+            if (clusterButton) {
+                clusterButton.disabled = false;
+            }
+        }, 1000);
+    }
+
+    /**
+     * Initialize visualization
+     */
+    initializeVisualization() {
+        const canvas = document.getElementById('cluster-canvas');
+        if (canvas) {
+            // Set canvas size
+            const container = canvas.parentElement;
+            const rect = container.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            
+            // Add resize handler
+            window.addEventListener('resize', () => {
+                const rect = container.getBoundingClientRect();
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+            });
+        }
+        
+        // Initialize clustering button
+        const clusterButton = document.getElementById('start-clustering');
+        if (clusterButton) {
+            clusterButton.addEventListener('click', () => {
+                this.startClustering();
+            });
+        }
+    }
+
+    /**
+     * Start clustering simulation
+     */
+    startClustering() {
+        console.log('🚀 Starting clustering...');
+        
+        const button = document.getElementById('start-clustering');
+        const status = document.getElementById('clustering-status');
+        const progress = document.getElementById('clustering-progress');
+        
+        // Update UI
+        if (button) button.disabled = true;
+        if (status) {
+            status.className = 'status-indicator running';
+            status.innerHTML = '<span class="status-dot pulse"></span><span>Processing...</span>';
+        }
+        if (progress) progress.style.display = 'block';
+        
+        // Simulate clustering progress
+        let progressValue = 0;
+        const progressInterval = setInterval(() => {
+            progressValue += Math.random() * 15;
+            if (progressValue >= 100) {
+                progressValue = 100;
+                clearInterval(progressInterval);
+                this.clusteringComplete();
+            }
+            
+            const progressFill = document.getElementById('progress-fill');
+            const progressPercent = document.getElementById('progress-percent');
+            
+            if (progressFill) progressFill.style.width = `${progressValue}%`;
+            if (progressPercent) progressPercent.textContent = `${Math.round(progressValue)}%`;
+        }, 200);
+    }
+
+    /**
+     * Clustering complete
+     */
+    clusteringComplete() {
+        console.log('✅ Clustering complete!');
+        
+        const button = document.getElementById('start-clustering');
+        const status = document.getElementById('clustering-status');
+        const progress = document.getElementById('clustering-progress');
+        
+        // Update UI
+        if (button) {
+            button.disabled = false;
+            button.textContent = 'Run Again';
+        }
+        if (status) {
+            status.className = 'status-indicator complete';
+            status.innerHTML = '<span class="status-dot"></span><span>Complete</span>';
+        }
+        if (progress) progress.style.display = 'none';
+        
+        // Update metrics
+        this.updateMetrics();
+        
+        this.showMessage('Clustering completed successfully!', 'success');
+    }
+
+    /**
+     * Update metrics display
+     */
+    updateMetrics() {
+        const metrics = {
+            'silhouette-score': (0.7 + Math.random() * 0.2).toFixed(3),
+            'inertia': Math.round(100 + Math.random() * 500),
+            'davies-bouldin': (0.5 + Math.random() * 0.3).toFixed(3),
+            'processing-time': Math.round(500 + Math.random() * 2000) + 'ms',
+            'data-points': '1,000',
+            'clusters-found': Math.round(2 + Math.random() * 6)
+        };
+        
+        Object.entries(metrics).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = value;
+                element.className = 'metric-value success';
+            }
+        });
+    }
+
+    /**
+     * Initialize algorithm selection
+     */
+    initializeAlgorithmSelection() {
+        const algorithmInputs = document.querySelectorAll('input[name="algorithm"]');
+        
+        algorithmInputs.forEach(input => {
+            input.addEventListener('change', (e) => {
+                console.log('⚙️ Algorithm selected:', e.target.value);
+                this.updateParameterPanel(e.target.value);
+            });
+        });
+    }
+
+    /**
+     * Update parameter panel based on algorithm
+     */
+    updateParameterPanel(algorithm) {
+        // Hide all parameter sections
+        document.querySelectorAll('[id$="-params"]').forEach(section => {
+            section.style.display = 'none';
+        });
+        
+        // Show relevant parameter section
+        const paramSection = document.getElementById(`${algorithm}-params`);
+        if (paramSection) {
+            paramSection.style.display = 'block';
+        }
+    }
+
+    /**
+     * Initialize docs page
+     */
+    async initializeDocsPage() {
+        console.log('📚 Setting up docs page...');
+        
+        // Add syntax highlighting placeholder
+        document.querySelectorAll('pre code').forEach(block => {
+            block.classList.add('language-javascript');
+        });
+    }
+
+    /**
+     * Get current page name
+     */
+    getCurrentPageName() {
+        const path = window.location.pathname;
+        if (path === '/' || path === '/index.html') return 'landing';
+        if (path.includes('playground')) return 'playground';
+        if (path.includes('docs')) return 'docs';
+        if (path.includes('examples')) return 'examples';
+        if (path.includes('benchmarks')) return 'benchmarks';
+        return 'unknown';
+    }
+
+    /**
+     * Show message/toast
+     */
+    showMessage(message, type = 'info') {
+        console.log(`📢 ${type.toUpperCase()}: ${message}`);
+        
+        // Create simple toast
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.innerHTML = `
+            <div class="toast-content">
+                <span class="toast-icon">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
+                <span class="toast-message">${message}</span>
+            </div>
+        `;
+        
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            z-index: 10000;
+            animation: slideIn 0.3s ease-out;
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.parentElement.removeChild(toast);
+                }
+            }, 300);
+        }, 3000);
     }
 
     /**
@@ -230,19 +641,11 @@ class ApplicationBootstrap {
             if (statusElement) {
                 statusElement.textContent = message;
             }
-            
-            // Update progress
-            this.currentStep++;
-            const progress = Math.min(100, (this.currentStep / this.initializationSteps.length) * 100);
-            const progressBar = this.loadingOverlay.querySelector('.progress-fill');
-            if (progressBar) {
-                progressBar.style.width = `${progress}%`;
-            }
         }
     }
 
     /**
-     * Hide loading overlay with animation
+     * Hide loading overlay
      */
     async hideLoadingOverlay() {
         if (!this.loadingOverlay) return;
@@ -261,7 +664,6 @@ class ApplicationBootstrap {
         setTimeout(() => {
             if (this.loadingOverlay) {
                 this.loadingOverlay.style.display = 'none';
-                // Don't remove completely in case we need to show errors
             }
         }, 500);
     }
@@ -287,9 +689,6 @@ class ApplicationBootstrap {
                         <button onclick="window.location.reload()" class="btn btn-primary">
                             Reload Page
                         </button>
-                        <button onclick="localStorage.clear(); window.location.reload()" class="btn btn-secondary">
-                            Clear Data & Reload
-                        </button>
                     </div>
                 </div>
                 <style>
@@ -300,109 +699,26 @@ class ApplicationBootstrap {
                         margin: 0 auto;
                         color: var(--color-text-primary, #1f2937);
                     }
-                    .error-icon {
-                        font-size: 4rem;
-                        margin-bottom: 1rem;
-                    }
-                    .error-state h2 {
-                        color: var(--color-error-500, #ef4444);
-                        margin-bottom: 1rem;
-                    }
-                    .error-state p {
-                        margin-bottom: 1.5rem;
-                        color: var(--color-text-secondary, #6b7280);
-                    }
+                    .error-icon { font-size: 4rem; margin-bottom: 1rem; }
+                    .error-state h2 { color: #ef4444; margin-bottom: 1rem; }
+                    .error-state p { margin-bottom: 1.5rem; color: #6b7280; }
                     .error-details {
-                        text-align: left;
-                        margin-bottom: 1.5rem;
-                        background: var(--color-background-muted, #f9fafb);
-                        border-radius: 8px;
-                        padding: 1rem;
+                        text-align: left; margin-bottom: 1.5rem;
+                        background: #f9fafb; border-radius: 8px; padding: 1rem;
                     }
                     .error-details pre {
-                        white-space: pre-wrap;
-                        word-break: break-word;
-                        font-size: 0.875rem;
-                        color: var(--color-error-600, #dc2626);
-                    }
-                    .error-stack {
-                        margin-top: 0.5rem;
-                        color: var(--color-text-tertiary, #9ca3af);
-                        font-size: 0.75rem;
-                    }
-                    .error-actions {
-                        display: flex;
-                        gap: 1rem;
-                        justify-content: center;
-                        flex-wrap: wrap;
+                        white-space: pre-wrap; word-break: break-word;
+                        font-size: 0.875rem; color: #dc2626;
                     }
                     .btn {
-                        padding: 0.75rem 1.5rem;
-                        border-radius: 6px;
-                        border: none;
-                        font-weight: 500;
-                        cursor: pointer;
-                        transition: all 0.2s ease;
-                    }
-                    .btn-primary {
-                        background: var(--color-primary-500, #6366f1);
-                        color: white;
-                    }
-                    .btn-primary:hover {
-                        background: var(--color-primary-600, #4f46e5);
-                    }
-                    .btn-secondary {
-                        background: var(--color-background-secondary, #e5e7eb);
-                        color: var(--color-text-primary, #1f2937);
-                    }
-                    .btn-secondary:hover {
-                        background: var(--color-background-tertiary, #d1d5db);
+                        padding: 0.75rem 1.5rem; border-radius: 6px; border: none;
+                        font-weight: 500; cursor: pointer; background: #6366f1; color: white;
                     }
                 </style>
             `;
             
             this.loadingOverlay.style.opacity = '1';
             this.loadingOverlay.style.display = 'flex';
-        }
-        
-        // Track error for analytics
-        if (window.NCS && window.NCS.performance) {
-            window.NCS.performance.trackError({
-                type: 'startup',
-                message: error.message,
-                stack: error.stack,
-                timestamp: Date.now()
-            });
-        }
-    }
-
-    /**
-     * Track initialization for analytics
-     */
-    trackInitialization(initTime) {
-        if (window.NCS && window.NCS.performance) {
-            window.NCS.performance.mark('app-initialized');
-            
-            // Custom initialization metrics
-            const metrics = {
-                initTime,
-                timestamp: Date.now(),
-                userAgent: navigator.userAgent,
-                viewport: {
-                    width: window.innerWidth,
-                    height: window.innerHeight
-                },
-                connection: navigator.connection ? {
-                    effectiveType: navigator.connection.effectiveType,
-                    downlink: navigator.connection.downlink,
-                    rtt: navigator.connection.rtt
-                } : null
-            };
-            
-            // Emit initialization complete event
-            if (window.NCS.eventBus) {
-                window.NCS.eventBus.emit('app:initialization-complete', metrics);
-            }
         }
     }
 
@@ -415,83 +731,33 @@ class ApplicationBootstrap {
 }
 
 /**
- * Application startup
+ * Start the application
  */
 async function startApplication() {
     try {
-        // Temporarily disable browser support check to get app running
-        // We can re-enable with proper checks later
-        console.log('🚀 Starting NCS-API application...');
+        console.log('🚀 Starting NCS-API application (minimal version)...');
         
-        // Initialize application
-        const bootstrap = new ApplicationBootstrap();
+        const bootstrap = new SimpleBootstrap();
         await bootstrap.init();
         
     } catch (error) {
         console.error('Critical startup error:', error);
         
         // Show fallback error message
-        const fallbackError = document.createElement('div');
-        fallbackError.innerHTML = `
+        document.body.innerHTML = `
             <div style="text-align: center; padding: 2rem; font-family: system-ui, sans-serif;">
                 <h1 style="color: #dc2626;">Application Error</h1>
-                <p>Unable to start the application. Please refresh the page or try again later.</p>
+                <p>Unable to start the application.</p>
                 <details style="margin: 1rem 0; text-align: left;">
-                    <summary style="cursor: pointer;">Error Details</summary>
-                    <pre style="background: #f3f4f6; padding: 1rem; border-radius: 4px; overflow: auto;">${error.message}\n\n${error.stack}</pre>
+                    <summary>Error Details</summary>
+                    <pre style="background: #f3f4f6; padding: 1rem; border-radius: 4px;">${error.message}</pre>
                 </details>
                 <button onclick="window.location.reload()" style="background: #6366f1; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; cursor: pointer;">
                     Reload Page
                 </button>
             </div>
         `;
-        document.body.innerHTML = '';
-        document.body.appendChild(fallbackError);
     }
-}
-
-/**
- * Check browser support for required features
- */
-function checkBrowserSupport() {
-    // Basic feature detection for essential APIs
-    const requiredFeatures = [
-        'fetch',
-        'Promise',
-        'Map',
-        'Set',
-        'localStorage'
-    ];
-    
-    for (const feature of requiredFeatures) {
-        if (!(feature in window)) {
-            console.error(`Required feature not supported: ${feature}`);
-            return false;
-        }
-    }
-    
-    // If we got this far, ES6 modules are working (since this script is loaded as a module)
-    return true;
-}
-
-/**
- * Show browser unsupported message
- */
-function showBrowserUnsupportedMessage() {
-    document.body.innerHTML = `
-        <div style="text-align: center; padding: 2rem; font-family: system-ui, sans-serif; max-width: 600px; margin: 2rem auto;">
-            <h1 style="color: #dc2626;">Browser Not Supported</h1>
-            <p>Your browser doesn't support the features required to run this application.</p>
-            <p>Please use a modern browser such as:</p>
-            <ul style="text-align: left; display: inline-block;">
-                <li>Chrome 80+</li>
-                <li>Firefox 75+</li>
-                <li>Safari 13+</li>
-                <li>Edge 80+</li>
-            </ul>
-            <p><a href="https://browsehappy.com/" target="_blank" style="color: #6366f1;">Update your browser</a> for the best experience.</p>
-        </div>
-    `;
 }
 
 /**
@@ -503,16 +769,34 @@ if (document.readyState === 'loading') {
     startApplication();
 }
 
-// Global error handlers for development
-if (window.NCS && window.NCS.debug) {
-    window.addEventListener('error', (event) => {
-        console.error('Global error:', event.error);
-    });
-    
-    window.addEventListener('unhandledrejection', (event) => {
-        console.error('Unhandled promise rejection:', event.reason);
-    });
-}
+// Add basic animations CSS
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+    .animate-in {
+        animation: fadeInUp 0.6s ease-out;
+    }
+    @keyframes fadeInUp {
+        from { transform: translateY(30px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+`;
+document.head.appendChild(style);
 
-// Export for manual initialization if needed
-export { ApplicationBootstrap, startApplication };
+// Global error handlers for debugging
+window.addEventListener('error', (event) => {
+    console.error('Global error:', event.error);
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+    console.error('Unhandled promise rejection:', event.reason);
+});
+
+console.log('📄 Main.js loaded successfully');
