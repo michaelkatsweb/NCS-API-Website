@@ -1,497 +1,369 @@
 /**
- * NCS API Client
- * High-performance HTTP client for the NCS clustering API
+ * HTTP API Client
+ * Handles all HTTP requests to the NCS-API backend
+ * 
+ * Features:
+ * - Request/response interceptors
+ * - Automatic retries
+ * - Request caching
+ * - Error handling
+ * - Authentication
+ * - Rate limiting
  */
 
 import { CONFIG } from '../config/constants.js';
+import { eventBus } from '../core/eventBus.js';
 
 export class ApiClient {
     constructor(options = {}) {
         this.options = {
-            baseURL: CONFIG.API_BASE_URL,
-            timeout: CONFIG.API_TIMEOUT,
-            retries: CONFIG.API_RETRY_ATTEMPTS,
-            retryDelay: CONFIG.API_RETRY_DELAY,
-            enableCaching: CONFIG.CACHE.ENABLE_HTTP_CACHE,
-            enableMetrics: true,
-            debug: CONFIG.IS_DEV,
+            baseURL: CONFIG.API.BASE_URL,
+            timeout: CONFIG.API.TIMEOUT,
+            retryAttempts: CONFIG.API.RETRY_ATTEMPTS,
+            retryDelay: CONFIG.API.RETRY_DELAY,
+            enableCaching: true,
+            enableRateLimit: true,
             ...options
         };
         
-        // Authentication state
-        this.auth = {
-            token: null,
-            refreshToken: null,
-            apiKey: null,
-            expiresAt: null
+        this.baseURL = this.options.baseURL;
+        this.defaultHeaders = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Client-Version': CONFIG.APP.VERSION
         };
         
-        // Request/Response interceptors
+        // Request/response interceptors
         this.requestInterceptors = [];
         this.responseInterceptors = [];
-        this.errorInterceptors = [];
         
-        // Cache management
+        // Cache for GET requests
         this.cache = new Map();
-        this.cacheConfig = {
-            maxSize: CONFIG.CACHE.MAX_CACHE_SIZE,
-            ttl: CONFIG.CACHE.CACHE_DURATION,
-            enabled: this.options.enableCaching
-        };
-        
-        // Performance tracking
-        this.metrics = {
-            requests: 0,
-            successfulRequests: 0,
-            failedRequests: 0,
-            averageResponseTime: 0,
-            totalResponseTime: 0,
-            cacheHits: 0,
-            cacheMisses: 0
-        };
-        
-        // Request queue for offline support
-        this.requestQueue = [];
-        this.isOnline = navigator.onLine;
+        this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
         
         // Rate limiting
         this.rateLimiter = {
             requests: [],
-            maxRequests: CONFIG.SECURITY.RATE_LIMIT.REQUESTS_PER_MINUTE,
-            windowMs: 60000 // 1 minute
+            limit: CONFIG.API.RATE_LIMIT.REQUESTS_PER_MINUTE,
+            window: 60 * 1000 // 1 minute
         };
         
-        this.init();
+        // Authentication
+        this.authToken = null;
+        this.refreshToken = null;
+        
+        // Request queue for offline handling
+        this.requestQueue = [];
+        this.isOnline = navigator.onLine;
+        
+        // Setup event listeners
+        this.setupEventListeners();
+        
+        console.log('🌐 API Client initialized:', this.baseURL);
     }
 
     /**
-     * Initialize the API client
+     * Setup event listeners
      */
-    init() {
-        // Load authentication from storage
-        this.loadAuth();
-        
-        // Setup default headers
-        this.setupDefaultHeaders();
-        
-        // Setup interceptors
-        this.setupDefaultInterceptors();
-        
-        // Setup offline/online listeners
-        this.setupNetworkListeners();
-        
-        // Setup cache cleanup
-        this.setupCacheCleanup();
-        
-        // Load API key from environment or storage
-        this.loadAPIKey();
-        
-        if (this.options.debug) {
-            console.log('🔌 API Client initialized:', {
-                baseURL: this.options.baseURL,
-                timeout: this.options.timeout,
-                caching: this.cacheConfig.enabled
-            });
-        }
-    }
-
-    /**
-     * Setup default headers
-     */
-    setupDefaultHeaders() {
-        this.defaultHeaders = {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-Client-Version': CONFIG.VERSION.APP,
-            'X-Client-Platform': 'web'
-        };
-        
-        // Add API key header if available
-        if (this.auth.apiKey) {
-            this.defaultHeaders[CONFIG.SECURITY.API_KEY_HEADER] = this.auth.apiKey;
-        }
-    }
-
-    /**
-     * Setup default interceptors
-     */
-    setupDefaultInterceptors() {
-        // Request interceptor for authentication
-        this.addRequestInterceptor((config) => {
-            // Add auth token if available
-            if (this.auth.token && !this.isTokenExpired()) {
-                config.headers['Authorization'] = `Bearer ${this.auth.token}`;
-            }
-            
-            // Add API key
-            if (this.auth.apiKey) {
-                config.headers[CONFIG.SECURITY.API_KEY_HEADER] = this.auth.apiKey;
-            }
-            
-            return config;
-        });
-        
-        // Response interceptor for token refresh
-        this.addResponseInterceptor(
-            (response) => response,
-            async (error) => {
-                if (error.status === 401 && this.auth.refreshToken) {
-                    try {
-                        await this.refreshAuthToken();
-                        // Retry the original request
-                        return this.request(error.config);
-                    } catch (refreshError) {
-                        this.handleAuthError(refreshError);
-                        throw refreshError;
-                    }
-                }
-                throw error;
-            }
-        );
-        
-        // Error interceptor for logging
-        this.addErrorInterceptor((error) => {
-            if (this.options.debug) {
-                console.error('🚨 API Error:', error);
-            }
-            
-            this.trackError(error);
-            return error;
-        });
-    }
-
-    /**
-     * Setup network listeners
-     */
-    setupNetworkListeners() {
+    setupEventListeners() {
+        // Online/offline status
         window.addEventListener('online', () => {
             this.isOnline = true;
             this.processRequestQueue();
+            eventBus.emit('api:online');
         });
         
         window.addEventListener('offline', () => {
             this.isOnline = false;
+            eventBus.emit('api:offline');
         });
     }
 
     /**
-     * Setup cache cleanup
+     * Make HTTP request
      */
-    setupCacheCleanup() {
-        // Clean expired cache entries every 5 minutes
-        setInterval(() => {
-            this.cleanExpiredCache();
-        }, 5 * 60 * 1000);
-    }
-
-    /**
-     * Load API key from environment or storage
-     */
-    loadAPIKey() {
-        // Try to load from storage first
-        const storedKey = localStorage.getItem('ncs-api-key');
-        if (storedKey) {
-            this.auth.apiKey = storedKey;
-            return;
-        }
-        
-        // For development, allow API key in URL params
-        if (CONFIG.IS_DEV) {
-            const urlParams = new URLSearchParams(window.location.search);
-            const apiKey = urlParams.get('api-key');
-            if (apiKey) {
-                this.setAPIKey(apiKey);
-            }
-        }
-    }
-
-    /**
-     * Core HTTP request method
-     */
-    async request(config) {
-        const startTime = performance.now();
-        
-        // Normalize config
-        const requestConfig = this.normalizeConfig(config);
-        
-        // Check rate limiting
-        if (!this.checkRateLimit()) {
-            throw new APIError('Rate limit exceeded', 429, requestConfig);
-        }
-        
-        // Check cache first (for GET requests)
-        if (requestConfig.method === 'GET' && this.cacheConfig.enabled) {
-            const cached = this.getFromCache(requestConfig);
-            if (cached) {
-                this.metrics.cacheHits++;
-                return cached;
-            }
-            this.metrics.cacheMisses++;
-        }
-        
-        // If offline, queue the request
-        if (!this.isOnline && requestConfig.method !== 'GET') {
-            return this.queueRequest(requestConfig);
-        }
+    async request(url, options = {}) {
+        const config = {
+            method: 'GET',
+            headers: { ...this.defaultHeaders },
+            ...options
+        };
         
         // Apply request interceptors
-        let finalConfig = requestConfig;
-        for (const interceptor of this.requestInterceptors) {
-            finalConfig = await interceptor(finalConfig);
+        await this.applyRequestInterceptors(config);
+        
+        // Build full URL
+        const fullUrl = this.buildUrl(url);
+        
+        // Check cache for GET requests
+        if (config.method === 'GET' && this.options.enableCaching) {
+            const cached = this.getFromCache(fullUrl);
+            if (cached) {
+                return cached;
+            }
+        }
+        
+        // Check rate limit
+        if (this.options.enableRateLimit && !this.checkRateLimit()) {
+            throw new Error('Rate limit exceeded');
+        }
+        
+        // Handle offline requests
+        if (!this.isOnline && config.method !== 'GET') {
+            return this.queueRequest(fullUrl, config);
         }
         
         try {
-            // Make the actual request
-            const response = await this.makeRequest(finalConfig);
+            const response = await this.executeRequest(fullUrl, config);
             
             // Apply response interceptors
-            let finalResponse = response;
-            for (const interceptor of this.responseInterceptors) {
-                finalResponse = await interceptor[0](finalResponse);
+            await this.applyResponseInterceptors(response);
+            
+            // Cache successful GET requests
+            if (config.method === 'GET' && response.ok && this.options.enableCaching) {
+                this.setCache(fullUrl, response.clone());
             }
             
-            // Cache successful GET responses
-            if (finalConfig.method === 'GET' && this.cacheConfig.enabled && response.ok) {
-                this.setCache(finalConfig, finalResponse);
-            }
-            
-            // Track metrics
-            const responseTime = performance.now() - startTime;
-            this.updateMetrics(true, responseTime);
-            
-            return finalResponse;
+            return response;
             
         } catch (error) {
-            // Apply error interceptors
-            for (const interceptor of this.responseInterceptors) {
-                if (interceptor[1]) {
-                    try {
-                        return await interceptor[1](error);
-                    } catch (interceptorError) {
-                        error = interceptorError;
-                    }
-                }
+            // Handle retries
+            if (this.shouldRetry(error, config)) {
+                return this.retryRequest(fullUrl, config);
             }
-            
-            // Apply error interceptors
-            for (const interceptor of this.errorInterceptors) {
-                error = interceptor(error);
-            }
-            
-            // Track metrics
-            const responseTime = performance.now() - startTime;
-            this.updateMetrics(false, responseTime);
             
             throw error;
         }
     }
 
     /**
-     * Make the actual HTTP request
+     * Execute HTTP request with timeout
      */
-    async makeRequest(config) {
+    async executeRequest(url, config) {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), config.timeout);
+        const timeoutId = setTimeout(() => controller.abort(), this.options.timeout);
         
         try {
-            const response = await fetch(config.url, {
-                method: config.method,
-                headers: config.headers,
-                body: config.body,
-                signal: controller.signal,
-                credentials: config.credentials || 'same-origin'
+            const response = await fetch(url, {
+                ...config,
+                signal: controller.signal
             });
             
             clearTimeout(timeoutId);
             
-            // Parse response
-            const parsedResponse = await this.parseResponse(response, config);
-            
-            if (!response.ok) {
-                throw new APIError(
-                    parsedResponse.message || `HTTP ${response.status}`,
-                    response.status,
-                    config,
-                    parsedResponse
-                );
+            // Track rate limit
+            if (this.options.enableRateLimit) {
+                this.trackRequest();
             }
             
-            return {
-                data: parsedResponse,
-                status: response.status,
-                statusText: response.statusText,
-                headers: Object.fromEntries(response.headers.entries()),
-                config
-            };
+            return response;
             
         } catch (error) {
             clearTimeout(timeoutId);
             
             if (error.name === 'AbortError') {
-                throw new APIError('Request timeout', 408, config);
+                throw new Error(`Request timeout: ${url}`);
             }
             
-            if (error instanceof APIError) {
-                throw error;
-            }
-            
-            // Network error
-            throw new APIError(
-                'Network error: ' + error.message,
-                0,
-                config,
-                null,
-                error
-            );
+            throw error;
         }
     }
 
     /**
-     * Parse response based on content type
+     * Retry failed request
      */
-    async parseResponse(response, config) {
-        const contentType = response.headers.get('content-type') || '';
+    async retryRequest(url, config, attempt = 1) {
+        if (attempt > this.options.retryAttempts) {
+            throw new Error(`Request failed after ${this.options.retryAttempts} attempts: ${url}`);
+        }
         
-        if (contentType.includes('application/json')) {
-            return await response.json();
-        } else if (contentType.includes('text/')) {
-            return await response.text();
-        } else if (contentType.includes('application/octet-stream')) {
-            return await response.arrayBuffer();
+        // Wait before retry
+        await this.delay(this.options.retryDelay * attempt);
+        
+        try {
+            return await this.executeRequest(url, config);
+        } catch (error) {
+            if (this.shouldRetry(error, config)) {
+                return this.retryRequest(url, config, attempt + 1);
+            }
+            throw error;
+        }
+    }
+
+    /**
+     * Check if request should be retried
+     */
+    shouldRetry(error, config) {
+        // Don't retry certain methods
+        if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(config.method)) {
+            return false;
+        }
+        
+        // Don't retry client errors (4xx)
+        if (error.status >= 400 && error.status < 500) {
+            return false;
+        }
+        
+        // Retry network errors and server errors (5xx)
+        return true;
+    }
+
+    /**
+     * Apply request interceptors
+     */
+    async applyRequestInterceptors(config) {
+        for (const interceptor of this.requestInterceptors) {
+            await interceptor(config);
+        }
+    }
+
+    /**
+     * Apply response interceptors
+     */
+    async applyResponseInterceptors(response) {
+        for (const interceptor of this.responseInterceptors) {
+            await interceptor(response);
+        }
+    }
+
+    /**
+     * Add request interceptor
+     */
+    addRequestInterceptor(interceptor) {
+        this.requestInterceptors.push(interceptor);
+    }
+
+    /**
+     * Add response interceptor
+     */
+    addResponseInterceptor(interceptor) {
+        this.responseInterceptors.push(interceptor);
+    }
+
+    /**
+     * Set authentication token
+     */
+    setAuthToken(token, refreshToken = null) {
+        this.authToken = token;
+        this.refreshToken = refreshToken;
+        
+        if (token) {
+            this.defaultHeaders['Authorization'] = `Bearer ${token}`;
         } else {
-            return await response.blob();
+            delete this.defaultHeaders['Authorization'];
         }
+        
+        eventBus.emit('api:auth-changed', { token: !!token });
     }
 
     /**
-     * Normalize request configuration
+     * HTTP Method Shortcuts
      */
-    normalizeConfig(config) {
-        if (typeof config === 'string') {
-            config = { url: config };
-        }
+    async get(url, params = {}, options = {}) {
+        const queryString = this.buildQueryString(params);
+        const fullUrl = queryString ? `${url}?${queryString}` : url;
         
-        return {
+        const response = await this.request(fullUrl, {
             method: 'GET',
-            timeout: this.options.timeout,
-            headers: { ...this.defaultHeaders },
-            retries: this.options.retries,
-            retryDelay: this.options.retryDelay,
-            ...config,
-            url: this.buildURL(config.url),
-            headers: { ...this.defaultHeaders, ...(config.headers || {}) }
-        };
-    }
-
-    /**
-     * Build full URL
-     */
-    buildURL(url) {
-        if (url.startsWith('http')) {
-            return url;
-        }
+            ...options
+        });
         
-        const baseURL = this.options.baseURL.replace(/\/$/, '');
-        const path = url.startsWith('/') ? url : '/' + url;
-        
-        return baseURL + path;
+        return this.parseResponse(response);
     }
 
-    /**
-     * HTTP method helpers
-     */
-    async get(url, config = {}) {
-        return this.request({ ...config, method: 'GET', url });
-    }
-
-    async post(url, data = null, config = {}) {
-        return this.request({
-            ...config,
+    async post(url, data = null, options = {}) {
+        const response = await this.request(url, {
             method: 'POST',
-            url,
-            body: this.serializeData(data, config.headers)
+            body: data ? JSON.stringify(data) : null,
+            ...options
         });
+        
+        return this.parseResponse(response);
     }
 
-    async put(url, data = null, config = {}) {
-        return this.request({
-            ...config,
+    async put(url, data = null, options = {}) {
+        const response = await this.request(url, {
             method: 'PUT',
-            url,
-            body: this.serializeData(data, config.headers)
+            body: data ? JSON.stringify(data) : null,
+            ...options
         });
+        
+        return this.parseResponse(response);
     }
 
-    async patch(url, data = null, config = {}) {
-        return this.request({
-            ...config,
+    async patch(url, data = null, options = {}) {
+        const response = await this.request(url, {
             method: 'PATCH',
-            url,
-            body: this.serializeData(data, config.headers)
+            body: data ? JSON.stringify(data) : null,
+            ...options
         });
+        
+        return this.parseResponse(response);
     }
 
-    async delete(url, config = {}) {
-        return this.request({ ...config, method: 'DELETE', url });
+    async delete(url, options = {}) {
+        const response = await this.request(url, {
+            method: 'DELETE',
+            ...options
+        });
+        
+        return this.parseResponse(response);
     }
 
     /**
-     * Serialize data based on content type
+     * Upload file
      */
-    serializeData(data, headers = {}) {
-        if (!data) return null;
+    async upload(url, file, options = {}) {
+        const formData = new FormData();
+        formData.append('file', file);
         
-        const contentType = headers['Content-Type'] || this.defaultHeaders['Content-Type'];
-        
-        if (contentType.includes('application/json')) {
-            return JSON.stringify(data);
-        } else if (contentType.includes('application/x-www-form-urlencoded')) {
-            return new URLSearchParams(data).toString();
-        } else if (data instanceof FormData || data instanceof Blob) {
-            return data;
-        } else {
-            return JSON.stringify(data);
+        // Add additional fields
+        if (options.fields) {
+            Object.entries(options.fields).forEach(([key, value]) => {
+                formData.append(key, value);
+            });
         }
+        
+        const response = await this.request(url, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                // Don't set Content-Type for FormData (browser will set it with boundary)
+                ...this.defaultHeaders,
+                'Content-Type': undefined
+            },
+            ...options
+        });
+        
+        return this.parseResponse(response);
     }
 
     /**
-     * Clustering API methods
+     * API-specific methods
      */
-    async cluster(data, algorithm = 'ncs', options = {}) {
+
+    // Clustering endpoints
+    async cluster(data, algorithm, parameters = {}) {
         return this.post('/cluster', {
             data,
             algorithm,
-            options: {
-                k: 4,
-                maxIterations: 100,
-                tolerance: 0.001,
-                ...options
-            }
+            parameters
         });
     }
 
-    async clusterAsync(data, algorithm = 'ncs', options = {}) {
-        const response = await this.post('/cluster/async', {
-            data,
-            algorithm,
-            options
-        });
-        
-        return response.data.jobId;
+    async getClusteringStatus(jobId) {
+        return this.get(`/cluster/status/${jobId}`);
     }
 
-    async getClusterJob(jobId) {
-        return this.get(`/cluster/jobs/${jobId}`);
+    async getClusteringResult(jobId) {
+        return this.get(`/cluster/result/${jobId}`);
     }
 
-    async getAlgorithms() {
-        return this.get('/algorithms');
+    async cancelClustering(jobId) {
+        return this.delete(`/cluster/${jobId}`);
     }
 
-    async getAlgorithmInfo(algorithm) {
-        return this.get(`/algorithms/${algorithm}`);
-    }
-
+    // Data endpoints
     async validateData(data) {
         return this.post('/data/validate', { data });
     }
@@ -500,174 +372,167 @@ export class ApiClient {
         return this.post('/data/preprocess', { data, options });
     }
 
-    async getBenchmarks() {
-        return this.get('/benchmarks');
+    async getSampleData(dataset) {
+        return this.get(`/data/samples/${dataset}`);
     }
 
-    async runBenchmark(algorithm, dataset) {
-        return this.post('/benchmarks/run', { algorithm, dataset });
+    // Algorithm endpoints
+    async getAlgorithms() {
+        return this.get('/algorithms');
     }
 
-    async getHealth() {
-        return this.get('/health');
+    async getAlgorithmInfo(algorithm) {
+        return this.get(`/algorithms/${algorithm}`);
     }
 
-    async getMetrics() {
-        return this.get('/metrics');
+    async getAlgorithmParameters(algorithm) {
+        return this.get(`/algorithms/${algorithm}/parameters`);
     }
 
-    /**
-     * Authentication methods
-     */
-    setAPIKey(apiKey) {
-        this.auth.apiKey = apiKey;
-        this.defaultHeaders[CONFIG.SECURITY.API_KEY_HEADER] = apiKey;
-        localStorage.setItem('ncs-api-key', apiKey);
+    // Quality metrics
+    async calculateQualityMetrics(data, clusters) {
+        return this.post('/metrics/quality', { data, clusters });
     }
 
+    // User endpoints (if authentication is implemented)
     async login(credentials) {
-        const response = await this.post('/auth/login', credentials);
-        
-        if (response.data.token) {
-            this.setAuthTokens(response.data);
-        }
-        
-        return response;
+        return this.post('/auth/login', credentials);
     }
 
     async logout() {
-        try {
-            await this.post('/auth/logout');
-        } catch (error) {
-            // Ignore logout errors
-        } finally {
-            this.clearAuth();
-        }
+        const response = await this.post('/auth/logout');
+        this.setAuthToken(null);
+        return response;
     }
 
-    setAuthTokens(tokens) {
-        this.auth.token = tokens.token;
-        this.auth.refreshToken = tokens.refreshToken;
-        this.auth.expiresAt = Date.now() + (tokens.expiresIn * 1000);
-        
-        this.saveAuth();
-    }
-
-    async refreshAuthToken() {
-        if (!this.auth.refreshToken) {
+    async refreshAuth() {
+        if (!this.refreshToken) {
             throw new Error('No refresh token available');
         }
         
         const response = await this.post('/auth/refresh', {
-            refreshToken: this.auth.refreshToken
+            refreshToken: this.refreshToken
         });
         
-        this.setAuthTokens(response.data);
+        if (response.token) {
+            this.setAuthToken(response.token, response.refreshToken);
+        }
+        
         return response;
     }
 
-    isTokenExpired() {
-        return this.auth.expiresAt && Date.now() >= this.auth.expiresAt;
+    async getUserProfile() {
+        return this.get('/user/profile');
     }
 
-    clearAuth() {
-        this.auth.token = null;
-        this.auth.refreshToken = null;
-        this.auth.expiresAt = null;
-        
-        delete this.defaultHeaders['Authorization'];
-        
-        localStorage.removeItem('ncs-auth');
+    async updateUserProfile(profile) {
+        return this.patch('/user/profile', profile);
     }
 
-    saveAuth() {
-        localStorage.setItem('ncs-auth', JSON.stringify({
-            token: this.auth.token,
-            refreshToken: this.auth.refreshToken,
-            expiresAt: this.auth.expiresAt
-        }));
+    async getUserUsage() {
+        return this.get('/user/usage');
     }
 
-    loadAuth() {
-        try {
-            const saved = localStorage.getItem('ncs-auth');
-            if (saved) {
-                const auth = JSON.parse(saved);
-                Object.assign(this.auth, auth);
-            }
-        } catch (error) {
-            console.warn('⚠️ Failed to load auth from storage:', error);
+    /**
+     * Utility methods
+     */
+    buildUrl(path) {
+        if (path.startsWith('http')) {
+            return path;
         }
+        
+        return `${this.baseURL}${path.startsWith('/') ? path : '/' + path}`;
+    }
+
+    buildQueryString(params) {
+        if (!params || Object.keys(params).length === 0) {
+            return '';
+        }
+        
+        return Object.entries(params)
+            .filter(([key, value]) => value !== null && value !== undefined)
+            .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+            .join('&');
+    }
+
+    async parseResponse(response) {
+        if (!response.ok) {
+            const error = await this.parseError(response);
+            throw error;
+        }
+        
+        const contentType = response.headers.get('Content-Type');
+        
+        if (contentType && contentType.includes('application/json')) {
+            return response.json();
+        }
+        
+        if (contentType && contentType.includes('text/')) {
+            return response.text();
+        }
+        
+        return response.blob();
+    }
+
+    async parseError(response) {
+        let message = `HTTP ${response.status}: ${response.statusText}`;
+        let details = null;
+        
+        try {
+            const contentType = response.headers.get('Content-Type');
+            if (contentType && contentType.includes('application/json')) {
+                const errorData = await response.json();
+                message = errorData.message || errorData.error || message;
+                details = errorData;
+            } else {
+                const errorText = await response.text();
+                if (errorText) {
+                    message = errorText;
+                }
+            }
+        } catch (e) {
+            // Ignore parse errors
+        }
+        
+        const error = new Error(message);
+        error.status = response.status;
+        error.statusText = response.statusText;
+        error.details = details;
+        error.response = response;
+        
+        return error;
     }
 
     /**
      * Cache management
      */
-    getCacheKey(config) {
-        return `${config.method}:${config.url}:${JSON.stringify(config.params || {})}`;
-    }
-
-    getFromCache(config) {
-        if (!this.cacheConfig.enabled) return null;
-        
-        const key = this.getCacheKey(config);
+    getFromCache(key) {
         const cached = this.cache.get(key);
+        if (!cached) return null;
         
-        if (cached && cached.expiresAt > Date.now()) {
-            return cached.data;
-        }
-        
-        // Remove expired entry
-        if (cached) {
+        if (Date.now() - cached.timestamp > this.cacheTimeout) {
             this.cache.delete(key);
+            return null;
         }
         
-        return null;
+        return cached.response;
     }
 
-    setCache(config, data) {
-        if (!this.cacheConfig.enabled) return;
-        
-        // Check cache size limit
-        if (this.cache.size >= this.cacheConfig.maxSize) {
-            // Remove oldest entry
-            const firstKey = this.cache.keys().next().value;
-            this.cache.delete(firstKey);
-        }
-        
-        const key = this.getCacheKey(config);
+    setCache(key, response) {
         this.cache.set(key, {
-            data,
-            expiresAt: Date.now() + this.cacheConfig.ttl
+            response,
+            timestamp: Date.now()
         });
+        
+        // Cleanup old cache entries
+        if (this.cache.size > 100) {
+            const oldestKey = this.cache.keys().next().value;
+            this.cache.delete(oldestKey);
+        }
     }
 
     clearCache() {
         this.cache.clear();
-    }
-
-    cleanExpiredCache() {
-        const now = Date.now();
-        for (const [key, entry] of this.cache.entries()) {
-            if (entry.expiresAt <= now) {
-                this.cache.delete(key);
-            }
-        }
-    }
-
-    /**
-     * Interceptor management
-     */
-    addRequestInterceptor(interceptor) {
-        this.requestInterceptors.push(interceptor);
-    }
-
-    addResponseInterceptor(successInterceptor, errorInterceptor) {
-        this.responseInterceptors.push([successInterceptor, errorInterceptor]);
-    }
-
-    addErrorInterceptor(interceptor) {
-        this.errorInterceptors.push(interceptor);
     }
 
     /**
@@ -675,173 +540,130 @@ export class ApiClient {
      */
     checkRateLimit() {
         const now = Date.now();
+        const windowStart = now - this.rateLimiter.window;
         
-        // Remove old requests outside the window
+        // Remove old requests
         this.rateLimiter.requests = this.rateLimiter.requests.filter(
-            timestamp => now - timestamp < this.rateLimiter.windowMs
+            timestamp => timestamp > windowStart
         );
         
-        // Check if under limit
-        if (this.rateLimiter.requests.length >= this.rateLimiter.maxRequests) {
-            return false;
-        }
-        
-        // Add current request
-        this.rateLimiter.requests.push(now);
-        return true;
+        return this.rateLimiter.requests.length < this.rateLimiter.limit;
+    }
+
+    trackRequest() {
+        this.rateLimiter.requests.push(Date.now());
     }
 
     /**
-     * Request queue for offline support
+     * Request queue for offline handling
      */
-    queueRequest(config) {
+    queueRequest(url, config) {
         return new Promise((resolve, reject) => {
             this.requestQueue.push({
+                url,
                 config,
                 resolve,
                 reject,
                 timestamp: Date.now()
             });
+            
+            eventBus.emit('api:request-queued', { 
+                queueSize: this.requestQueue.length 
+            });
         });
     }
 
     async processRequestQueue() {
+        if (!this.isOnline || this.requestQueue.length === 0) {
+            return;
+        }
+        
+        console.log(`🌐 Processing ${this.requestQueue.length} queued requests`);
+        
         const queue = [...this.requestQueue];
         this.requestQueue = [];
         
-        for (const item of queue) {
+        for (const queuedRequest of queue) {
             try {
-                const response = await this.request(item.config);
-                item.resolve(response);
+                const response = await this.executeRequest(
+                    queuedRequest.url, 
+                    queuedRequest.config
+                );
+                queuedRequest.resolve(response);
             } catch (error) {
-                item.reject(error);
+                queuedRequest.reject(error);
             }
         }
+        
+        eventBus.emit('api:queue-processed', { 
+            processedCount: queue.length 
+        });
     }
 
     /**
-     * Metrics and monitoring
+     * Health check
      */
-    updateMetrics(success, responseTime) {
-        this.metrics.requests++;
-        this.metrics.totalResponseTime += responseTime;
-        this.metrics.averageResponseTime = this.metrics.totalResponseTime / this.metrics.requests;
-        
-        if (success) {
-            this.metrics.successfulRequests++;
-        } else {
-            this.metrics.failedRequests++;
-        }
-        
-        // Report to performance monitoring
-        if (window.NCS?.performance) {
-            window.NCS.performance.trackMetric('api_request_time', responseTime);
-            window.NCS.performance.trackMetric('api_success_rate', 
-                this.metrics.successfulRequests / this.metrics.requests
-            );
-        }
-    }
-
-    trackError(error) {
-        if (window.NCS?.performance) {
-            window.NCS.performance.trackError(error, {
-                type: 'api_error',
-                status: error.status,
-                url: error.config?.url
+    async healthCheck() {
+        try {
+            const response = await this.get('/health', {}, { 
+                timeout: 5000 
             });
+            
+            eventBus.emit('api:health-check', { 
+                healthy: true, 
+                response 
+            });
+            
+            return response;
+        } catch (error) {
+            eventBus.emit('api:health-check', { 
+                healthy: false, 
+                error: error.message 
+            });
+            
+            throw error;
         }
     }
 
-    getMetrics() {
+    /**
+     * Utility functions
+     */
+    delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    /**
+     * Get connection status
+     */
+    getStatus() {
         return {
-            ...this.metrics,
-            cacheSize: this.cache.size,
+            online: this.isOnline,
+            authenticated: !!this.authToken,
             queueSize: this.requestQueue.length,
-            isOnline: this.isOnline
+            cacheSize: this.cache.size,
+            rateLimitRemaining: this.rateLimiter.limit - this.rateLimiter.requests.length
         };
-    }
-
-    /**
-     * Error handling
-     */
-    handleAuthError(error) {
-        this.clearAuth();
-        
-        // Emit auth error event
-        if (window.NCS?.app) {
-            window.NCS.app.emit('auth:error', error);
-        }
-    }
-
-    /**
-     * Utility methods
-     */
-    isNetworkError(error) {
-        return error.status === 0 || !this.isOnline;
-    }
-
-    shouldRetry(error, retryCount) {
-        if (retryCount >= this.options.retries) {
-            return false;
-        }
-        
-        // Retry on network errors and 5xx status codes
-        return this.isNetworkError(error) || 
-               (error.status >= 500 && error.status < 600);
     }
 
     /**
      * Cleanup and destroy
      */
     destroy() {
-        this.clearCache();
-        this.requestQueue = [];
-        this.requestInterceptors = [];
-        this.responseInterceptors = [];
-        this.errorInterceptors = [];
+        // Clear cache
+        this.cache.clear();
         
-        console.log('🗑️ API Client destroyed');
+        // Clear request queue
+        this.requestQueue.forEach(request => {
+            request.reject(new Error('API client destroyed'));
+        });
+        this.requestQueue = [];
+        
+        // Remove event listeners
+        window.removeEventListener('online', this.handleOnline);
+        window.removeEventListener('offline', this.handleOffline);
+        
+        console.log('🌐 API Client destroyed');
     }
 }
-
-/**
- * Custom API Error class
- */
-export class APIError extends Error {
-    constructor(message, status = 0, config = null, response = null, originalError = null) {
-        super(message);
-        this.name = 'APIError';
-        this.status = status;
-        this.config = config;
-        this.response = response;
-        this.originalError = originalError;
-        this.timestamp = Date.now();
-    }
-    
-    get isNetworkError() {
-        return this.status === 0;
-    }
-    
-    get isTimeout() {
-        return this.status === 408;
-    }
-    
-    get isServerError() {
-        return this.status >= 500 && this.status < 600;
-    }
-    
-    get isClientError() {
-        return this.status >= 400 && this.status < 500;
-    }
-    
-    toString() {
-        return `APIError: ${this.message} (${this.status})`;
-    }
-}
-
-/**
- * Create default API client instance
- */
-export const apiClient = new ApiClient();
 
 export default ApiClient;
