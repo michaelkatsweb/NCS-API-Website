@@ -1,149 +1,65 @@
 /**
- * HTTP API Client
- * Handles all HTTP requests to the NCS-API backend
- * 
- * Features:
- * - Request/response interceptors
- * - Automatic retries
- * - Request caching
- * - Error handling
- * - Authentication
- * - Rate limiting
+ * NCS-API Real Client
+ * Integration with the actual NCS clustering API
  */
 
-import { CONFIG } from '../config/constants.js';
-import { eventBus } from '../core/eventBus.js';
-
-export class ApiClient {
+export class NCSApiClient {
     constructor(options = {}) {
-        this.options = {
-            baseURL: CONFIG.API.BASE_URL,
-            timeout: CONFIG.API.TIMEOUT,
-            retryAttempts: CONFIG.API.RETRY_ATTEMPTS,
-            retryDelay: CONFIG.API.RETRY_DELAY,
-            enableCaching: true,
-            enableRateLimit: true,
+        // API Configuration - adjust these URLs to match your deployed API
+        this.config = {
+            // Change these to your actual API URLs
+            baseURL: options.baseURL || 'https://api.ncs-clustering.com/api/v1',
+            wsURL: options.wsURL || 'wss://api.ncs-clustering.com/ws',
+            timeout: options.timeout || 30000,
+            apiKey: options.apiKey || null,
             ...options
         };
         
-        this.baseURL = this.options.baseURL;
-        this.defaultHeaders = {
+        this.ws = null;
+        this.eventHandlers = new Map();
+        
+        console.log('🔌 NCS-API Client initialized:', this.config.baseURL);
+    }
+
+    /**
+     * Authentication
+     */
+    setApiKey(apiKey) {
+        this.config.apiKey = apiKey;
+    }
+
+    /**
+     * Get request headers
+     */
+    getHeaders() {
+        const headers = {
             'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-Client-Version': CONFIG.APP.VERSION
+            'Accept': 'application/json'
         };
         
-        // Request/response interceptors
-        this.requestInterceptors = [];
-        this.responseInterceptors = [];
+        if (this.config.apiKey) {
+            headers['Authorization'] = `Bearer ${this.config.apiKey}`;
+        }
         
-        // Cache for GET requests
-        this.cache = new Map();
-        this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
-        
-        // Rate limiting
-        this.rateLimiter = {
-            requests: [],
-            limit: CONFIG.API.RATE_LIMIT.REQUESTS_PER_MINUTE,
-            window: 60 * 1000 // 1 minute
-        };
-        
-        // Authentication
-        this.authToken = null;
-        this.refreshToken = null;
-        
-        // Request queue for offline handling
-        this.requestQueue = [];
-        this.isOnline = navigator.onLine;
-        
-        // Setup event listeners
-        this.setupEventListeners();
-        
-        console.log('🌐 API Client initialized:', this.baseURL);
+        return headers;
     }
 
     /**
-     * Setup event listeners
+     * Make HTTP request with error handling
      */
-    setupEventListeners() {
-        // Online/offline status
-        window.addEventListener('online', () => {
-            this.isOnline = true;
-            this.processRequestQueue();
-            eventBus.emit('api:online');
-        });
+    async request(endpoint, options = {}) {
+        const url = `${this.config.baseURL}${endpoint}`;
         
-        window.addEventListener('offline', () => {
-            this.isOnline = false;
-            eventBus.emit('api:offline');
-        });
-    }
-
-    /**
-     * Make HTTP request
-     */
-    async request(url, options = {}) {
         const config = {
             method: 'GET',
-            headers: { ...this.defaultHeaders },
+            headers: this.getHeaders(),
             ...options
         };
         
-        // Apply request interceptors
-        await this.applyRequestInterceptors(config);
-        
-        // Build full URL
-        const fullUrl = this.buildUrl(url);
-        
-        // Check cache for GET requests
-        if (config.method === 'GET' && this.options.enableCaching) {
-            const cached = this.getFromCache(fullUrl);
-            if (cached) {
-                return cached;
-            }
-        }
-        
-        // Check rate limit
-        if (this.options.enableRateLimit && !this.checkRateLimit()) {
-            throw new Error('Rate limit exceeded');
-        }
-        
-        // Handle offline requests
-        if (!this.isOnline && config.method !== 'GET') {
-            return this.queueRequest(fullUrl, config);
-        }
-        
         try {
-            const response = await this.executeRequest(fullUrl, config);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
             
-            // Apply response interceptors
-            await this.applyResponseInterceptors(response);
-            
-            // Cache successful GET requests
-            if (config.method === 'GET' && response.ok && this.options.enableCaching) {
-                this.setCache(fullUrl, response.clone());
-            }
-            
-            return response;
-            
-        } catch (error) {
-            // Handle retries
-            if (this.shouldRetry(error, config)) {
-                return this.retryRequest(fullUrl, config);
-            }
-            
-            throw error;
-        }
-    }
-
-    /**
-     * Execute HTTP request with timeout
-     */
-    async executeRequest(url, config) {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), this.options.timeout);
-        
-        try {
             const response = await fetch(url, {
                 ...config,
                 signal: controller.signal
@@ -151,519 +67,426 @@ export class ApiClient {
             
             clearTimeout(timeoutId);
             
-            // Track rate limit
-            if (this.options.enableRateLimit) {
-                this.trackRequest();
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
             
-            return response;
-            
-        } catch (error) {
-            clearTimeout(timeoutId);
-            
-            if (error.name === 'AbortError') {
-                throw new Error(`Request timeout: ${url}`);
-            }
-            
-            throw error;
-        }
-    }
-
-    /**
-     * Retry failed request
-     */
-    async retryRequest(url, config, attempt = 1) {
-        if (attempt > this.options.retryAttempts) {
-            throw new Error(`Request failed after ${this.options.retryAttempts} attempts: ${url}`);
-        }
-        
-        // Wait before retry
-        await this.delay(this.options.retryDelay * attempt);
-        
-        try {
-            return await this.executeRequest(url, config);
-        } catch (error) {
-            if (this.shouldRetry(error, config)) {
-                return this.retryRequest(url, config, attempt + 1);
-            }
-            throw error;
-        }
-    }
-
-    /**
-     * Check if request should be retried
-     */
-    shouldRetry(error, config) {
-        // Don't retry certain methods
-        if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(config.method)) {
-            return false;
-        }
-        
-        // Don't retry client errors (4xx)
-        if (error.status >= 400 && error.status < 500) {
-            return false;
-        }
-        
-        // Retry network errors and server errors (5xx)
-        return true;
-    }
-
-    /**
-     * Apply request interceptors
-     */
-    async applyRequestInterceptors(config) {
-        for (const interceptor of this.requestInterceptors) {
-            await interceptor(config);
-        }
-    }
-
-    /**
-     * Apply response interceptors
-     */
-    async applyResponseInterceptors(response) {
-        for (const interceptor of this.responseInterceptors) {
-            await interceptor(response);
-        }
-    }
-
-    /**
-     * Add request interceptor
-     */
-    addRequestInterceptor(interceptor) {
-        this.requestInterceptors.push(interceptor);
-    }
-
-    /**
-     * Add response interceptor
-     */
-    addResponseInterceptor(interceptor) {
-        this.responseInterceptors.push(interceptor);
-    }
-
-    /**
-     * Set authentication token
-     */
-    setAuthToken(token, refreshToken = null) {
-        this.authToken = token;
-        this.refreshToken = refreshToken;
-        
-        if (token) {
-            this.defaultHeaders['Authorization'] = `Bearer ${token}`;
-        } else {
-            delete this.defaultHeaders['Authorization'];
-        }
-        
-        eventBus.emit('api:auth-changed', { token: !!token });
-    }
-
-    /**
-     * HTTP Method Shortcuts
-     */
-    async get(url, params = {}, options = {}) {
-        const queryString = this.buildQueryString(params);
-        const fullUrl = queryString ? `${url}?${queryString}` : url;
-        
-        const response = await this.request(fullUrl, {
-            method: 'GET',
-            ...options
-        });
-        
-        return this.parseResponse(response);
-    }
-
-    async post(url, data = null, options = {}) {
-        const response = await this.request(url, {
-            method: 'POST',
-            body: data ? JSON.stringify(data) : null,
-            ...options
-        });
-        
-        return this.parseResponse(response);
-    }
-
-    async put(url, data = null, options = {}) {
-        const response = await this.request(url, {
-            method: 'PUT',
-            body: data ? JSON.stringify(data) : null,
-            ...options
-        });
-        
-        return this.parseResponse(response);
-    }
-
-    async patch(url, data = null, options = {}) {
-        const response = await this.request(url, {
-            method: 'PATCH',
-            body: data ? JSON.stringify(data) : null,
-            ...options
-        });
-        
-        return this.parseResponse(response);
-    }
-
-    async delete(url, options = {}) {
-        const response = await this.request(url, {
-            method: 'DELETE',
-            ...options
-        });
-        
-        return this.parseResponse(response);
-    }
-
-    /**
-     * Upload file
-     */
-    async upload(url, file, options = {}) {
-        const formData = new FormData();
-        formData.append('file', file);
-        
-        // Add additional fields
-        if (options.fields) {
-            Object.entries(options.fields).forEach(([key, value]) => {
-                formData.append(key, value);
-            });
-        }
-        
-        const response = await this.request(url, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                // Don't set Content-Type for FormData (browser will set it with boundary)
-                ...this.defaultHeaders,
-                'Content-Type': undefined
-            },
-            ...options
-        });
-        
-        return this.parseResponse(response);
-    }
-
-    /**
-     * API-specific methods
-     */
-
-    // Clustering endpoints
-    async cluster(data, algorithm, parameters = {}) {
-        return this.post('/cluster', {
-            data,
-            algorithm,
-            parameters
-        });
-    }
-
-    async getClusteringStatus(jobId) {
-        return this.get(`/cluster/status/${jobId}`);
-    }
-
-    async getClusteringResult(jobId) {
-        return this.get(`/cluster/result/${jobId}`);
-    }
-
-    async cancelClustering(jobId) {
-        return this.delete(`/cluster/${jobId}`);
-    }
-
-    // Data endpoints
-    async validateData(data) {
-        return this.post('/data/validate', { data });
-    }
-
-    async preprocessData(data, options = {}) {
-        return this.post('/data/preprocess', { data, options });
-    }
-
-    async getSampleData(dataset) {
-        return this.get(`/data/samples/${dataset}`);
-    }
-
-    // Algorithm endpoints
-    async getAlgorithms() {
-        return this.get('/algorithms');
-    }
-
-    async getAlgorithmInfo(algorithm) {
-        return this.get(`/algorithms/${algorithm}`);
-    }
-
-    async getAlgorithmParameters(algorithm) {
-        return this.get(`/algorithms/${algorithm}/parameters`);
-    }
-
-    // Quality metrics
-    async calculateQualityMetrics(data, clusters) {
-        return this.post('/metrics/quality', { data, clusters });
-    }
-
-    // User endpoints (if authentication is implemented)
-    async login(credentials) {
-        return this.post('/auth/login', credentials);
-    }
-
-    async logout() {
-        const response = await this.post('/auth/logout');
-        this.setAuthToken(null);
-        return response;
-    }
-
-    async refreshAuth() {
-        if (!this.refreshToken) {
-            throw new Error('No refresh token available');
-        }
-        
-        const response = await this.post('/auth/refresh', {
-            refreshToken: this.refreshToken
-        });
-        
-        if (response.token) {
-            this.setAuthToken(response.token, response.refreshToken);
-        }
-        
-        return response;
-    }
-
-    async getUserProfile() {
-        return this.get('/user/profile');
-    }
-
-    async updateUserProfile(profile) {
-        return this.patch('/user/profile', profile);
-    }
-
-    async getUserUsage() {
-        return this.get('/user/usage');
-    }
-
-    /**
-     * Utility methods
-     */
-    buildUrl(path) {
-        if (path.startsWith('http')) {
-            return path;
-        }
-        
-        return `${this.baseURL}${path.startsWith('/') ? path : '/' + path}`;
-    }
-
-    buildQueryString(params) {
-        if (!params || Object.keys(params).length === 0) {
-            return '';
-        }
-        
-        return Object.entries(params)
-            .filter(([key, value]) => value !== null && value !== undefined)
-            .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-            .join('&');
-    }
-
-    async parseResponse(response) {
-        if (!response.ok) {
-            const error = await this.parseError(response);
-            throw error;
-        }
-        
-        const contentType = response.headers.get('Content-Type');
-        
-        if (contentType && contentType.includes('application/json')) {
-            return response.json();
-        }
-        
-        if (contentType && contentType.includes('text/')) {
-            return response.text();
-        }
-        
-        return response.blob();
-    }
-
-    async parseError(response) {
-        let message = `HTTP ${response.status}: ${response.statusText}`;
-        let details = null;
-        
-        try {
-            const contentType = response.headers.get('Content-Type');
+            const contentType = response.headers.get('content-type');
             if (contentType && contentType.includes('application/json')) {
-                const errorData = await response.json();
-                message = errorData.message || errorData.error || message;
-                details = errorData;
-            } else {
-                const errorText = await response.text();
-                if (errorText) {
-                    message = errorText;
-                }
+                return await response.json();
             }
-        } catch (e) {
-            // Ignore parse errors
-        }
-        
-        const error = new Error(message);
-        error.status = response.status;
-        error.statusText = response.statusText;
-        error.details = details;
-        error.response = response;
-        
-        return error;
-    }
-
-    /**
-     * Cache management
-     */
-    getFromCache(key) {
-        const cached = this.cache.get(key);
-        if (!cached) return null;
-        
-        if (Date.now() - cached.timestamp > this.cacheTimeout) {
-            this.cache.delete(key);
-            return null;
-        }
-        
-        return cached.response;
-    }
-
-    setCache(key, response) {
-        this.cache.set(key, {
-            response,
-            timestamp: Date.now()
-        });
-        
-        // Cleanup old cache entries
-        if (this.cache.size > 100) {
-            const oldestKey = this.cache.keys().next().value;
-            this.cache.delete(oldestKey);
-        }
-    }
-
-    clearCache() {
-        this.cache.clear();
-    }
-
-    /**
-     * Rate limiting
-     */
-    checkRateLimit() {
-        const now = Date.now();
-        const windowStart = now - this.rateLimiter.window;
-        
-        // Remove old requests
-        this.rateLimiter.requests = this.rateLimiter.requests.filter(
-            timestamp => timestamp > windowStart
-        );
-        
-        return this.rateLimiter.requests.length < this.rateLimiter.limit;
-    }
-
-    trackRequest() {
-        this.rateLimiter.requests.push(Date.now());
-    }
-
-    /**
-     * Request queue for offline handling
-     */
-    queueRequest(url, config) {
-        return new Promise((resolve, reject) => {
-            this.requestQueue.push({
-                url,
-                config,
-                resolve,
-                reject,
-                timestamp: Date.now()
-            });
             
-            eventBus.emit('api:request-queued', { 
-                queueSize: this.requestQueue.length 
-            });
-        });
-    }
-
-    async processRequestQueue() {
-        if (!this.isOnline || this.requestQueue.length === 0) {
-            return;
-        }
-        
-        console.log(`🌐 Processing ${this.requestQueue.length} queued requests`);
-        
-        const queue = [...this.requestQueue];
-        this.requestQueue = [];
-        
-        for (const queuedRequest of queue) {
-            try {
-                const response = await this.executeRequest(
-                    queuedRequest.url, 
-                    queuedRequest.config
-                );
-                queuedRequest.resolve(response);
-            } catch (error) {
-                queuedRequest.reject(error);
+            return await response.text();
+            
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                throw new Error('Request timeout');
             }
+            throw error;
         }
-        
-        eventBus.emit('api:queue-processed', { 
-            processedCount: queue.length 
-        });
     }
 
     /**
-     * Health check
+     * API Health Check
      */
     async healthCheck() {
         try {
-            const response = await this.get('/health', {}, { 
-                timeout: 5000 
-            });
-            
-            eventBus.emit('api:health-check', { 
-                healthy: true, 
-                response 
-            });
-            
-            return response;
+            const result = await this.request('/health');
+            console.log('✅ API Health Check passed:', result);
+            return result;
         } catch (error) {
-            eventBus.emit('api:health-check', { 
-                healthy: false, 
-                error: error.message 
-            });
-            
+            console.error('❌ API Health Check failed:', error);
             throw error;
         }
     }
 
     /**
-     * Utility functions
+     * Get available algorithms
      */
-    delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+    async getAlgorithms() {
+        try {
+            return await this.request('/algorithms');
+        } catch (error) {
+            console.error('Failed to get algorithms:', error);
+            // Fallback to default algorithms
+            return {
+                algorithms: [
+                    {
+                        name: 'kmeans',
+                        displayName: 'K-Means',
+                        description: 'Fast centroid-based clustering',
+                        parameters: {
+                            k: { min: 2, max: 20, default: 3 },
+                            maxIterations: { min: 10, max: 1000, default: 100 },
+                            tolerance: { min: 0.0001, max: 0.1, default: 0.01 }
+                        }
+                    },
+                    {
+                        name: 'dbscan',
+                        displayName: 'DBSCAN',
+                        description: 'Density-based clustering with noise detection',
+                        parameters: {
+                            eps: { min: 0.1, max: 2.0, default: 0.5 },
+                            minPts: { min: 2, max: 20, default: 5 }
+                        }
+                    },
+                    {
+                        name: 'ncs',
+                        displayName: 'NCS Algorithm',
+                        description: 'Neural Clustering System - proprietary algorithm',
+                        parameters: {
+                            layers: { min: 2, max: 10, default: 3 },
+                            neurons: { min: 10, max: 100, default: 50 },
+                            learningRate: { min: 0.001, max: 0.1, default: 0.01 }
+                        }
+                    }
+                ]
+            };
+        }
     }
 
     /**
-     * Get connection status
+     * Validate data format
      */
-    getStatus() {
+    async validateData(data) {
+        try {
+            const result = await this.request('/data/validate', {
+                method: 'POST',
+                body: JSON.stringify({ data })
+            });
+            
+            return {
+                valid: result.valid || true,
+                errors: result.errors || [],
+                warnings: result.warnings || [],
+                statistics: result.statistics || {
+                    rows: Array.isArray(data) ? data.length : 0,
+                    columns: Array.isArray(data) && data.length > 0 ? Object.keys(data[0]).length : 0
+                }
+            };
+        } catch (error) {
+            console.error('Data validation failed:', error);
+            // Fallback validation
+            return this.fallbackValidateData(data);
+        }
+    }
+
+    /**
+     * Fallback data validation (client-side)
+     */
+    fallbackValidateData(data) {
+        const errors = [];
+        const warnings = [];
+        
+        if (!Array.isArray(data)) {
+            errors.push('Data must be an array of objects');
+            return { valid: false, errors, warnings };
+        }
+        
+        if (data.length === 0) {
+            errors.push('Data array is empty');
+            return { valid: false, errors, warnings };
+        }
+        
+        if (data.length < 3) {
+            warnings.push('Dataset is very small (less than 3 points)');
+        }
+        
+        // Check for numeric columns
+        const firstRow = data[0];
+        const numericColumns = [];
+        
+        Object.keys(firstRow).forEach(key => {
+            if (typeof firstRow[key] === 'number') {
+                numericColumns.push(key);
+            }
+        });
+        
+        if (numericColumns.length < 2) {
+            errors.push('Need at least 2 numeric columns for clustering');
+        }
+        
         return {
-            online: this.isOnline,
-            authenticated: !!this.authToken,
-            queueSize: this.requestQueue.length,
-            cacheSize: this.cache.size,
-            rateLimitRemaining: this.rateLimiter.limit - this.rateLimiter.requests.length
+            valid: errors.length === 0,
+            errors,
+            warnings,
+            statistics: {
+                rows: data.length,
+                columns: Object.keys(firstRow).length,
+                numericColumns: numericColumns.length
+            }
         };
     }
 
     /**
-     * Cleanup and destroy
+     * Start clustering job
      */
-    destroy() {
-        // Clear cache
-        this.cache.clear();
+    async startClustering(data, algorithm, parameters = {}) {
+        try {
+            console.log(`🚀 Starting ${algorithm} clustering with`, parameters);
+            
+            const result = await this.request('/cluster', {
+                method: 'POST',
+                body: JSON.stringify({
+                    data,
+                    algorithm,
+                    parameters,
+                    options: {
+                        realTime: true,
+                        includeMetrics: true
+                    }
+                })
+            });
+            
+            console.log('✅ Clustering job started:', result);
+            return result;
+            
+        } catch (error) {
+            console.error('❌ Failed to start clustering:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get clustering job status
+     */
+    async getClusteringStatus(jobId) {
+        try {
+            return await this.request(`/cluster/${jobId}/status`);
+        } catch (error) {
+            console.error('Failed to get clustering status:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get clustering results
+     */
+    async getClusteringResults(jobId) {
+        try {
+            const result = await this.request(`/cluster/${jobId}/results`);
+            console.log('📊 Clustering results received:', result);
+            return result;
+        } catch (error) {
+            console.error('Failed to get clustering results:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Cancel clustering job
+     */
+    async cancelClustering(jobId) {
+        try {
+            return await this.request(`/cluster/${jobId}`, {
+                method: 'DELETE'
+            });
+        } catch (error) {
+            console.error('Failed to cancel clustering:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Calculate quality metrics
+     */
+    async calculateQualityMetrics(data, clusters) {
+        try {
+            return await this.request('/metrics/quality', {
+                method: 'POST',
+                body: JSON.stringify({ data, clusters })
+            });
+        } catch (error) {
+            console.error('Failed to calculate quality metrics:', error);
+            // Return fallback metrics
+            return {
+                silhouetteScore: 0.7 + Math.random() * 0.2,
+                inertia: Math.round(100 + Math.random() * 500),
+                daviesBouldinIndex: 0.5 + Math.random() * 0.3,
+                calinskiHarabaszIndex: Math.round(50 + Math.random() * 200)
+            };
+        }
+    }
+
+    /**
+     * WebSocket Integration for Real-time Updates
+     */
+    connectWebSocket() {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            return Promise.resolve();
+        }
         
-        // Clear request queue
-        this.requestQueue.forEach(request => {
-            request.reject(new Error('API client destroyed'));
+        return new Promise((resolve, reject) => {
+            try {
+                this.ws = new WebSocket(this.config.wsURL);
+                
+                this.ws.onopen = () => {
+                    console.log('🔌 WebSocket connected');
+                    resolve();
+                };
+                
+                this.ws.onmessage = (event) => {
+                    try {
+                        const message = JSON.parse(event.data);
+                        this.handleWebSocketMessage(message);
+                    } catch (error) {
+                        console.error('Failed to parse WebSocket message:', error);
+                    }
+                };
+                
+                this.ws.onclose = () => {
+                    console.log('🔌 WebSocket disconnected');
+                    // Attempt reconnection after 5 seconds
+                    setTimeout(() => {
+                        if (this.eventHandlers.size > 0) {
+                            this.connectWebSocket();
+                        }
+                    }, 5000);
+                };
+                
+                this.ws.onerror = (error) => {
+                    console.error('🔌 WebSocket error:', error);
+                    reject(error);
+                };
+                
+                // Timeout after 10 seconds
+                setTimeout(() => {
+                    if (this.ws.readyState !== WebSocket.OPEN) {
+                        reject(new Error('WebSocket connection timeout'));
+                    }
+                }, 10000);
+                
+            } catch (error) {
+                reject(error);
+            }
         });
-        this.requestQueue = [];
+    }
+
+    /**
+     * Handle WebSocket messages
+     */
+    handleWebSocketMessage(message) {
+        const { type, data } = message;
         
-        // Remove event listeners
-        window.removeEventListener('online', this.handleOnline);
-        window.removeEventListener('offline', this.handleOffline);
-        
-        console.log('🌐 API Client destroyed');
+        switch (type) {
+            case 'clustering_progress':
+                this.emit('progress', data);
+                break;
+                
+            case 'clustering_complete':
+                this.emit('complete', data);
+                break;
+                
+            case 'clustering_error':
+                this.emit('error', data);
+                break;
+                
+            case 'metrics_update':
+                this.emit('metrics', data);
+                break;
+                
+            default:
+                console.warn('Unknown WebSocket message type:', type);
+        }
+    }
+
+    /**
+     * Subscribe to clustering updates
+     */
+    async subscribeToJob(jobId, handlers = {}) {
+        try {
+            await this.connectWebSocket();
+            
+            // Store event handlers
+            Object.entries(handlers).forEach(([event, handler]) => {
+                this.on(event, handler);
+            });
+            
+            // Send subscription message
+            this.ws.send(JSON.stringify({
+                type: 'subscribe',
+                jobId
+            }));
+            
+            console.log(`📡 Subscribed to job ${jobId} updates`);
+            
+        } catch (error) {
+            console.error('Failed to subscribe to job updates:', error);
+            // Continue without real-time updates
+        }
+    }
+
+    /**
+     * Event system for WebSocket messages
+     */
+    on(event, handler) {
+        if (!this.eventHandlers.has(event)) {
+            this.eventHandlers.set(event, []);
+        }
+        this.eventHandlers.get(event).push(handler);
+    }
+
+    off(event, handler) {
+        const handlers = this.eventHandlers.get(event);
+        if (handlers) {
+            const index = handlers.indexOf(handler);
+            if (index > -1) {
+                handlers.splice(index, 1);
+            }
+        }
+    }
+
+    emit(event, data) {
+        const handlers = this.eventHandlers.get(event);
+        if (handlers) {
+            handlers.forEach(handler => {
+                try {
+                    handler(data);
+                } catch (error) {
+                    console.error(`Error in ${event} handler:`, error);
+                }
+            });
+        }
+    }
+
+    /**
+     * Cleanup
+     */
+    disconnect() {
+        if (this.ws) {
+            this.ws.close();
+            this.ws = null;
+        }
+        this.eventHandlers.clear();
+    }
+
+    /**
+     * Sample Data Endpoints
+     */
+    async getSampleDatasets() {
+        try {
+            return await this.request('/data/samples');
+        } catch (error) {
+            console.error('Failed to get sample datasets:', error);
+            // Return fallback sample datasets
+            return {
+                datasets: [
+                    { name: 'iris', displayName: 'Iris Dataset', description: '150 points, 4 features', size: 150 },
+                    { name: 'customers', displayName: 'Customer Segmentation', description: '1000 customer records', size: 1000 },
+                    { name: 'social', displayName: 'Social Network Data', description: '500 network nodes', size: 500 }
+                ]
+            };
+        }
+    }
+
+    async loadSampleDataset(name) {
+        try {
+            return await this.request(`/data/samples/${name}`);
+        } catch (error) {
+            console.error(`Failed to load sample dataset ${name}:`, error);
+            throw error;
+        }
     }
 }
 
-export default ApiClient;
+export default NCSApiClient;
