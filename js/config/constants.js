@@ -1,12 +1,19 @@
 /**
  * NCS-API Website Configuration Constants
  * Central configuration for API endpoints, features, and application settings
+ * 
+ * This file provides both a comprehensive CONFIG object and individual exports
+ * for commonly used constants throughout the application.
  */
 
-// Environment detection
+/* ===================================
+   Environment Detection
+   =================================== */
+
 const ENV = (() => {
+    if (typeof window === 'undefined') return 'development';
+    
     const hostname = window.location.hostname;
-    const protocol = window.location.protocol;
     
     if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.includes('192.168.')) {
         return 'development';
@@ -17,7 +24,176 @@ const ENV = (() => {
     }
 })();
 
-// API Configuration
+/* ===================================
+   Event Constants
+   =================================== */
+
+export const EVENTS = {
+    // Application events
+    APP_READY: 'app:ready',
+    APP_ERROR: 'app:error',
+    APP_INIT: 'app:init',
+    
+    // Data events
+    DATA_LOADED: 'data:loaded',
+    DATA_VALIDATED: 'data:validated',
+    DATA_PROCESSED: 'data:processed',
+    DATA_ERROR: 'data:error',
+    
+    // Clustering events
+    CLUSTERING_START: 'clustering:start',
+    CLUSTERING_PROGRESS: 'clustering:progress',
+    CLUSTERING_COMPLETE: 'clustering:complete',
+    CLUSTERING_ERROR: 'clustering:error',
+    
+    // Visualization events
+    VIZ_RENDER: 'viz:render',
+    VIZ_UPDATE: 'viz:update',
+    VIZ_EXPORT: 'viz:export',
+    VIZ_ERROR: 'viz:error',
+    
+    // Theme events
+    THEME_CHANGE: 'theme:change',
+    THEME_TOGGLE: 'theme:toggle',
+    
+    // User events
+    USER_LOGIN: 'user:login',
+    USER_LOGOUT: 'user:logout',
+    USER_PROFILE_UPDATE: 'user:profile_update',
+    
+    // Network events
+    NETWORK_ONLINE: 'network:online',
+    NETWORK_OFFLINE: 'network:offline',
+    
+    // WebSocket events
+    WS_CONNECTED: 'ws:connected',
+    WS_DISCONNECTED: 'ws:disconnected',
+    WS_ERROR: 'ws:error',
+    WS_MESSAGE: 'ws:message',
+    WS_RECONNECTING: 'ws:reconnecting'
+};
+
+/* ===================================
+   Storage Keys
+   =================================== */
+
+export const STORAGE_KEYS = {
+    THEME: 'ncs_theme',
+    USER_PROFILE: 'ncs_user_profile',
+    AUTH_TOKEN: 'ncs_auth_token',
+    REFRESH_TOKEN: 'ncs_refresh_token',
+    PREFERENCES: 'ncs_preferences',
+    LAST_DATASET: 'ncs_last_dataset',
+    CLUSTERING_HISTORY: 'ncs_clustering_history',
+    SAVED_VISUALIZATIONS: 'ncs_saved_visualizations',
+    API_CACHE: 'ncs_api_cache',
+    USER_SETTINGS: 'ncs_user_settings'
+};
+
+/* ===================================
+   Error Codes
+   =================================== */
+
+export const ERROR_CODES = {
+    // Network errors
+    NETWORK: 'NETWORK_ERROR',
+    TIMEOUT: 'TIMEOUT_ERROR',
+    CONNECTION: 'CONNECTION_ERROR',
+    
+    // Authentication errors
+    AUTH: 'AUTH_ERROR',
+    UNAUTHORIZED: 'UNAUTHORIZED',
+    FORBIDDEN: 'FORBIDDEN',
+    TOKEN_EXPIRED: 'TOKEN_EXPIRED',
+    
+    // Validation errors
+    VALIDATION: 'VALIDATION_ERROR',
+    INVALID_DATA: 'INVALID_DATA',
+    MISSING_REQUIRED: 'MISSING_REQUIRED',
+    
+    // Processing errors
+    PROCESSING: 'PROCESSING_ERROR',
+    ALGORITHM_ERROR: 'ALGORITHM_ERROR',
+    COMPUTATION_ERROR: 'COMPUTATION_ERROR',
+    
+    // File errors
+    FILE_UPLOAD: 'FILE_UPLOAD_ERROR',
+    FILE_SIZE: 'FILE_SIZE_ERROR',
+    FILE_FORMAT: 'FILE_FORMAT_ERROR',
+    
+    // API errors
+    API_LIMIT: 'API_LIMIT_ERROR',
+    RATE_LIMIT: 'RATE_LIMIT_ERROR',
+    QUOTA_EXCEEDED: 'QUOTA_EXCEEDED',
+    
+    // Generic
+    UNKNOWN: 'UNKNOWN_ERROR',
+    SERVER_ERROR: 'SERVER_ERROR'
+};
+
+/* ===================================
+   Connection Status
+   =================================== */
+
+export const CONNECTION_STATUS = {
+    CONNECTING: 'connecting',
+    CONNECTED: 'connected',
+    DISCONNECTED: 'disconnected',
+    RECONNECTING: 'reconnecting',
+    ERROR: 'error',
+    TIMEOUT: 'timeout'
+};
+
+/* ===================================
+   UI States
+   =================================== */
+
+export const UI_STATES = {
+    IDLE: 'idle',
+    LOADING: 'loading',
+    PROCESSING: 'processing',
+    SUCCESS: 'success',
+    ERROR: 'error',
+    WARNING: 'warning',
+    CANCELLED: 'cancelled'
+};
+
+/* ===================================
+   Processing Status
+   =================================== */
+
+export const PROCESSING_STATUS = {
+    PENDING: 'pending',
+    INITIALIZING: 'initializing',
+    RUNNING: 'running',
+    COMPLETED: 'completed',
+    FAILED: 'failed',
+    CANCELLED: 'cancelled',
+    TIMEOUT: 'timeout'
+};
+
+/* ===================================
+   Default Values
+   =================================== */
+
+export const DEFAULTS = {
+    theme: 'dark',
+    language: 'en-US',
+    algorithm: 'ncs',
+    chart_type: 'scatter',
+    color_scheme: 'default',
+    point_size: 4,
+    opacity: 0.8,
+    batch_size: 100,
+    max_clusters: 10,
+    tolerance: 0.001,
+    max_iterations: 100
+};
+
+/* ===================================
+   API Configuration
+   =================================== */
+
 const API_CONFIG = {
     development: {
         HTTP_BASE_URL: 'http://localhost:8000/api/v1',
@@ -36,7 +212,10 @@ const API_CONFIG = {
     }
 };
 
-// Main Configuration Object
+/* ===================================
+   Main Configuration Object
+   =================================== */
+
 export const CONFIG = {
     // Environment
     ENV,
@@ -44,27 +223,25 @@ export const CONFIG = {
     IS_STAGING: ENV === 'staging',
     IS_PROD: ENV === 'production',
     
-    // API Endpoints
+    // API Configuration
     API_BASE_URL: API_CONFIG[ENV].HTTP_BASE_URL,
     WEBSOCKET_URL: API_CONFIG[ENV].WEBSOCKET_URL,
     DOCS_URL: API_CONFIG[ENV].DOCS_URL,
-    
-    // API Configuration
-    API_TIMEOUT: 30000, // 30 seconds
+    API_TIMEOUT: 30000,
     API_RETRY_ATTEMPTS: 3,
-    API_RETRY_DELAY: 1000, // 1 second
+    API_RETRY_DELAY: 1000,
     
     // WebSocket Configuration
     ENABLE_WEBSOCKET: true,
     WS_RECONNECT_ATTEMPTS: 5,
-    WS_RECONNECT_DELAY: 2000, // 2 seconds
-    WS_HEARTBEAT_INTERVAL: 30000, // 30 seconds
-    WS_TIMEOUT: 10000, // 10 seconds
+    WS_RECONNECT_DELAY: 2000,
+    WS_HEARTBEAT_INTERVAL: 30000,
+    WS_TIMEOUT: 10000,
     
     // Performance Monitoring
     ENABLE_PERFORMANCE_MONITORING: true,
-    PERFORMANCE_SAMPLE_RATE: ENV === 'production' ? 0.1 : 1.0, // 10% in prod, 100% in dev
-    PERFORMANCE_REPORT_INTERVAL: 30000, // 30 seconds
+    PERFORMANCE_SAMPLE_RATE: ENV === 'production' ? 0.1 : 1.0,
+    PERFORMANCE_REPORT_INTERVAL: 30000,
     
     // Analytics
     ENABLE_ANALYTICS: ENV === 'production',
@@ -81,11 +258,11 @@ export const CONFIG = {
         CODE_GENERATOR: true,
         PERFORMANCE_BENCHMARKS: true,
         EXPORT_FUNCTIONALITY: true,
-        COLLABORATIVE_FEATURES: false, // Coming soon
-        AI_SUGGESTIONS: false, // Coming soon
+        COLLABORATIVE_FEATURES: false,
+        AI_SUGGESTIONS: false,
         CUSTOM_ALGORITHMS: true,
-        VOICE_COMMANDS: false, // Experimental
-        AR_VISUALIZATION: false // Experimental
+        VOICE_COMMANDS: false,
+        AR_VISUALIZATION: false
     },
     
     // UI Configuration
@@ -118,7 +295,7 @@ export const CONFIG = {
     
     // Visualization Configuration
     VISUALIZATION: {
-        DEFAULT_RENDERER: 'canvas', // 'canvas', 'webgl', 'svg'
+        DEFAULT_RENDERER: 'canvas',
         MAX_FPS: 60,
         POINT_SIZE_RANGE: [2, 8],
         DEFAULT_POINT_SIZE: 4,
@@ -179,8 +356,8 @@ export const CONFIG = {
             }
         ],
         AUTO_PREPROCESSING: true,
-        NORMALIZATION_METHOD: 'standard', // 'standard', 'minmax', 'robust'
-        MISSING_VALUE_STRATEGY: 'drop' // 'drop', 'mean', 'median', 'mode'
+        NORMALIZATION_METHOD: 'standard',
+        MISSING_VALUE_STRATEGY: 'drop'
     },
     
     // Export Configuration
@@ -196,7 +373,7 @@ export const CONFIG = {
     SECURITY: {
         API_KEY_HEADER: 'X-API-Key',
         CSRF_HEADER: 'X-CSRF-Token',
-        MAX_REQUEST_SIZE: 100 * 1024 * 1024, // 100MB
+        MAX_REQUEST_SIZE: 100 * 1024 * 1024,
         RATE_LIMIT: {
             REQUESTS_PER_MINUTE: 120,
             BURST_LIMIT: 20
@@ -206,85 +383,17 @@ export const CONFIG = {
     // Cache Configuration
     CACHE: {
         ENABLE_HTTP_CACHE: true,
-        CACHE_DURATION: 5 * 60 * 1000, // 5 minutes
-        MAX_CACHE_SIZE: 100, // Number of entries
-        STORAGE_TYPE: 'memory' // 'memory', 'localStorage', 'sessionStorage'
+        CACHE_DURATION: 5 * 60 * 1000,
+        MAX_CACHE_SIZE: 100,
+        STORAGE_TYPE: 'memory'
     },
     
     // Progressive Web App
     PWA: {
         ENABLE_SERVICE_WORKER: ENV === 'production',
-        CACHE_STRATEGY: 'cache-first', // 'cache-first', 'network-first', 'stale-while-revalidate'
+        CACHE_STRATEGY: 'cache-first',
         OFFLINE_FALLBACK: true,
-        UPDATE_CHECK_INTERVAL: 60 * 60 * 1000 // 1 hour
-    },
-    
-    // Playground Configuration
-    PLAYGROUND: {
-        AUTO_RUN: false,
-        SAVE_STATE: true,
-        SHARE_FUNCTIONALITY: true,
-        REAL_TIME_COLLABORATION: false, // Coming soon
-        MAX_HISTORY_STATES: 50,
-        AUTO_SAVE_INTERVAL: 30000, // 30 seconds
-        CODE_TEMPLATES: {
-            python: 'python-template.py',
-            javascript: 'javascript-template.js',
-            curl: 'curl-template.sh'
-        }
-    },
-    
-    // Documentation
-    DOCS: {
-        SEARCH_ENABLED: true,
-        SYNTAX_HIGHLIGHTING: true,
-        LIVE_EXAMPLES: true,
-        API_EXPLORER: true,
-        FEEDBACK_ENABLED: true
-    },
-    
-    // Benchmarks
-    BENCHMARKS: {
-        AUTO_REFRESH: true,
-        REFRESH_INTERVAL: 30000, // 30 seconds
-        HISTORICAL_DATA_POINTS: 100,
-        COMPARISON_ALGORITHMS: [
-            'kmeans', 'dbscan', 'hierarchical', 'gaussian-mixture'
-        ],
-        PERFORMANCE_METRICS: [
-            'execution_time',
-            'throughput',
-            'quality_score',
-            'memory_usage',
-            'cpu_usage'
-        ]
-    },
-    
-    // Notifications
-    NOTIFICATIONS: {
-        ENABLE_PUSH: false, // Coming soon
-        ENABLE_EMAIL: false, // Coming soon
-        TOAST_POSITION: 'top-right', // 'top-left', 'top-right', 'bottom-left', 'bottom-right'
-        MAX_TOASTS: 5,
-        AUTO_DISMISS: true
-    },
-    
-    // Accessibility
-    A11Y: {
-        HIGH_CONTRAST_MODE: false,
-        REDUCE_MOTION: false, // Will be overridden by user preference
-        SCREEN_READER_ANNOUNCEMENTS: true,
-        KEYBOARD_NAVIGATION: true,
-        FOCUS_INDICATORS: true
-    },
-    
-    // Internationalization
-    I18N: {
-        DEFAULT_LOCALE: 'en-US',
-        SUPPORTED_LOCALES: ['en-US'], // Future: ['en-US', 'es-ES', 'fr-FR', 'de-DE', 'zh-CN', 'ja-JP']
-        ENABLE_RTL: false,
-        DATE_FORMAT: 'MM/DD/YYYY',
-        NUMBER_FORMAT: 'en-US'
+        UPDATE_CHECK_INTERVAL: 60 * 60 * 1000
     },
     
     // Development Tools
@@ -296,41 +405,31 @@ export const CONFIG = {
         BYPASS_AUTH: ENV === 'development'
     },
     
-    // External Services
-    EXTERNAL_SERVICES: {
-        CDN_BASE_URL: 'https://cdn.ncs-cluster.com',
-        MAPS_API_KEY: null, // For geographic clustering demos
-        UPLOAD_SERVICE: 'https://upload.ncs-cluster.com',
-        FEEDBACK_SERVICE: 'https://feedback.ncs-cluster.com'
-    },
-    
     // Version Information
     VERSION: {
         APP: '2.1.0',
         API: '1.4.2',
         BUILD: ENV === 'development' ? 'dev' : '20250617',
-        COMMIT_HASH: 'abc123def456' // Will be replaced during build
-    },
-    
-    // Legal & Compliance
-    LEGAL: {
-        PRIVACY_POLICY_URL: '/privacy',
-        TERMS_OF_SERVICE_URL: '/terms',
-        COOKIE_POLICY_URL: '/cookies',
-        GDPR_COMPLIANCE: true,
-        CCPA_COMPLIANCE: true,
-        DATA_RETENTION_DAYS: 365
+        COMMIT_HASH: 'abc123def456'
     }
 };
 
-// Computed Configuration Values
+/* ===================================
+   Computed Configuration Values
+   =================================== */
+
 CONFIG.COMPUTED = {
-    IS_MOBILE: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
-    IS_TOUCH_DEVICE: 'ontouchstart' in window || navigator.maxTouchPoints > 0,
-    IS_HIGH_DPI: window.devicePixelRatio > 1,
-    IS_DARK_MODE_PREFERRED: window.matchMedia('(prefers-color-scheme: dark)').matches,
-    IS_REDUCED_MOTION_PREFERRED: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    IS_MOBILE: typeof window !== 'undefined' ? 
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) : false,
+    IS_TOUCH_DEVICE: typeof window !== 'undefined' ? 
+        'ontouchstart' in window || navigator.maxTouchPoints > 0 : false,
+    IS_HIGH_DPI: typeof window !== 'undefined' ? window.devicePixelRatio > 1 : false,
+    IS_DARK_MODE_PREFERRED: typeof window !== 'undefined' ? 
+        window.matchMedia('(prefers-color-scheme: dark)').matches : false,
+    IS_REDUCED_MOTION_PREFERRED: typeof window !== 'undefined' ? 
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches : false,
     SUPPORTS_WEBGL: (() => {
+        if (typeof window === 'undefined') return false;
         try {
             const canvas = document.createElement('canvas');
             return !!(canvas.getContext('webgl') || canvas.getContext('experimental-webgl'));
@@ -340,26 +439,28 @@ CONFIG.COMPUTED = {
     })(),
     SUPPORTS_WEBWORKERS: typeof Worker !== 'undefined',
     SUPPORTS_WEBSOCKETS: typeof WebSocket !== 'undefined',
-    SUPPORTS_OFFLINE: 'serviceWorker' in navigator && 'caches' in window,
-    AVAILABLE_MEMORY: navigator.deviceMemory || 4, // GB
-    CONNECTION_TYPE: navigator.connection?.effectiveType || 'unknown'
+    SUPPORTS_OFFLINE: typeof window !== 'undefined' ? 
+        'serviceWorker' in navigator && 'caches' in window : false,
+    AVAILABLE_MEMORY: typeof navigator !== 'undefined' ? navigator.deviceMemory || 4 : 4,
+    CONNECTION_TYPE: typeof navigator !== 'undefined' ? 
+        navigator.connection?.effectiveType || 'unknown' : 'unknown'
 };
 
-// Update A11Y settings based on user preferences
+/* ===================================
+   Environment-specific overrides
+   =================================== */
+
+if (CONFIG.IS_DEV) {
+    CONFIG.API_TIMEOUT = 60000;
+    CONFIG.WS_RECONNECT_ATTEMPTS = 1;
+    CONFIG.CACHE.ENABLE_HTTP_CACHE = false;
+}
+
 if (CONFIG.COMPUTED.IS_REDUCED_MOTION_PREFERRED) {
-    CONFIG.A11Y.REDUCE_MOTION = true;
     CONFIG.UI.ANIMATION_DURATION = 0;
     CONFIG.VISUALIZATION.MAX_FPS = 30;
 }
 
-// Environment-specific overrides
-if (CONFIG.IS_DEV) {
-    CONFIG.API_TIMEOUT = 60000; // Longer timeout for development
-    CONFIG.WS_RECONNECT_ATTEMPTS = 1; // Fewer reconnects in dev
-    CONFIG.CACHE.ENABLE_HTTP_CACHE = false; // Disable cache in dev
-}
-
-// Feature detection and fallbacks
 if (!CONFIG.COMPUTED.SUPPORTS_WEBGL) {
     CONFIG.VISUALIZATION.DEFAULT_RENDERER = 'canvas';
 }
@@ -370,41 +471,15 @@ if (!CONFIG.COMPUTED.SUPPORTS_WEBSOCKETS) {
 }
 
 if (CONFIG.COMPUTED.IS_MOBILE) {
-    CONFIG.VISUALIZATION.MAX_FPS = 30; // Lower FPS on mobile
-    CONFIG.CLUSTERING.MAX_POINTS = 5000; // Fewer points on mobile
-    CONFIG.UI.ANIMATION_DURATION = 200; // Faster animations on mobile
+    CONFIG.VISUALIZATION.MAX_FPS = 30;
+    CONFIG.CLUSTERING.MAX_POINTS = 5000;
+    CONFIG.UI.ANIMATION_DURATION = 200;
 }
 
-// Validation
-const validateConfig = () => {
-    const errors = [];
-    
-    if (!CONFIG.API_BASE_URL) {
-        errors.push('API_BASE_URL is required');
-    }
-    
-    if (CONFIG.CLUSTERING.MAX_CLUSTERS > 50) {
-        errors.push('MAX_CLUSTERS should not exceed 50 for performance reasons');
-    }
-    
-    if (CONFIG.DATA.MAX_FILE_SIZE > 100 * 1024 * 1024) {
-        errors.push('MAX_FILE_SIZE should not exceed 100MB');
-    }
-    
-    if (errors.length > 0) {
-        console.error('Configuration validation errors:', errors);
-        if (CONFIG.IS_DEV) {
-            throw new Error(`Configuration validation failed: ${errors.join(', ')}`);
-        }
-    }
-};
+/* ===================================
+   Freeze configuration to prevent modifications
+   =================================== */
 
-// Validate configuration in development
-if (CONFIG.IS_DEV) {
-    validateConfig();
-}
-
-// Freeze configuration to prevent accidental modifications
 Object.freeze(CONFIG.CLUSTERING);
 Object.freeze(CONFIG.VISUALIZATION);
 Object.freeze(CONFIG.DATA);
@@ -413,14 +488,10 @@ Object.freeze(CONFIG.VERSION);
 Object.freeze(CONFIG.COMPUTED);
 Object.freeze(CONFIG);
 
-// Export individual sections for convenience
-export const API_CONFIG_EXPORT = CONFIG.API_BASE_URL;
-export const CLUSTERING_CONFIG = CONFIG.CLUSTERING;
-export const VISUALIZATION_CONFIG = CONFIG.VISUALIZATION;
-export const UI_CONFIG = CONFIG.UI;
-export const FEATURES = CONFIG.FEATURES;
+/* ===================================
+   Development logging
+   =================================== */
 
-// Console logging for development
 if (CONFIG.DEV_TOOLS.ENABLE_CONSOLE_LOGS) {
     console.log('🔧 NCS-API Configuration loaded:', {
         environment: CONFIG.ENV,
@@ -430,85 +501,15 @@ if (CONFIG.DEV_TOOLS.ENABLE_CONSOLE_LOGS) {
     });
 }
 
-// js/config/constants.js
+/* ===================================
+   Export everything
+   =================================== */
 
-
-export const UI_STATES = {
-  IDLE: 'idle',
-  LOADING: 'loading',
-  ERROR: 'error',
-  SUCCESS: 'success'
-};
-
-export const PROCESSING_STATUS = {
-  PENDING: 'pending',
-  RUNNING: 'running',
-  COMPLETED: 'completed',
-  FAILED: 'failed'
-};
-
-export const STORAGE_KEYS = {
-  THEME: 'ncs_theme',
-  USER_PROFILE: 'ncs_user_profile',
-  AUTH_TOKEN: 'ncs_auth_token',
-  PREFERENCES: 'ncs_user_preferences',
-  LAST_DATASET: 'ncs_last_dataset',
-  CLUSTERING_HISTORY: 'ncs_clustering_history',
-  SAVED_VISUALIZATIONS: 'ncs_saved_visualizations'
-};
-
-export const DEFAULTS = {
-  theme: 'light',
-  language: 'en',
-  algorithm: 'kmeans',
-  chart_type: 'scatter',
-  color_scheme: 'default',
-  point_size: 5,
-  opacity: 0.8,
-  batch_size: 50
-};
-export const CONNECTION_STATUS = {
-  CONNECTED: 'connected',
-  DISCONNECTED: 'disconnected',
-  RECONNECTING: 'reconnecting',
-  ERROR: 'error'
-};
-
-export const ERROR_CODES = {
-  UNAUTHORIZED: 401,
-  FORBIDDEN: 403,
-  NOT_FOUND: 404,
-  SERVER_ERROR: 500,
-  TIMEOUT: 'ECONNABORTED',
-  WS_CLOSED: 1000
-};
-
-
-export const EVENTS = {
-  APP_READY: 'app_ready',
-  APP_ERROR: 'app_error',
-  DATA_LOADED: 'data_loaded',
-  DATA_VALIDATED: 'data_validated',
-  DATA_PROCESSED: 'data_processed',
-  DATA_ERROR: 'data_error',
-  
-  CLUSTERING_START: 'clustering_start',
-  CLUSTERING_PROGRESS: 'clustering_progress',
-  CLUSTERING_COMPLETE: 'clustering_complete',
-  CLUSTERING_ERROR: 'clustering_error',
-
-  VIZ_RENDER: 'viz_render',
-  VIZ_UPDATE: 'viz_update',
-  VIZ_EXPORT: 'viz_export',
-  
-  THEME_CHANGE: 'theme_change',
-  THEME_TOGGLE: 'theme_toggle',
-
-  USER_LOGIN: 'user_login',
-  USER_LOGOUT: 'user_logout',
-  
-  NETWORK_ONLINE: 'network_online',
-  NETWORK_OFFLINE: 'network_offline'
-};
-
+// Export CONFIG as default
 export default CONFIG;
+
+// Export commonly used individual constants
+export {
+    ENV,
+    CONFIG
+};

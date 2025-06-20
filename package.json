@@ -88,5 +88,9 @@
   "config": {
     "port": 3000,
     "host": "localhost"
+  },
+  "relatedProjects": {
+    "backend": "https://github.com/michaelkatsweb/NCS-API-Project",
+    "documentation": "https://ncs-api.com/docs"
   }
 }
