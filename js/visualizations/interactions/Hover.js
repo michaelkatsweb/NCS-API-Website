@@ -3,7 +3,7 @@
 // Hover effects system for NCS-API-Website interactive visualizations
 // Handles hover detection, tooltips, visual feedback, and hover states
 
-import { EventBus } from '../../core/eventBus.js';
+import { EventBus } from '../../core/eventBusNew.js';
 import { calculateDistance } from '../../utils/math.js';
 import { debounce } from '../../utils/debounce.js';
 

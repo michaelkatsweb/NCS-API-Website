@@ -4,7 +4,7 @@
  * Includes multiple linkage criteria and dendrogram generation for visualization
  */
 
-import { EventBus } from '../core/eventBus.js';
+import { EventBus } from '../core/eventBusNew.js';
 import { calculateDistance } from '../utils/math.js';
 
 export class HierarchicalClustering {

@@ -12,7 +12,7 @@
  */
 
 import { CONFIG, EVENTS } from '../config/constants.js';
-import { eventBus } from '../core/eventBus.js';
+import { eventBus } from '../core/eventBusNew.js';
 
 export class WebSocketManager {
     constructor(options = {}) {

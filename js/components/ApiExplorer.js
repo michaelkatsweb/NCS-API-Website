@@ -10,7 +10,7 @@
  * - Response caching
  */
 
-import { EventBus } from '../core/eventBus.js';
+import { EventBus } from '../core/eventBusNew.js';
 import { APIClient } from '../api/client.js';
 import { CodeGenerator } from './CodeGenerator.js';
 import { Modal } from './Modal.js';

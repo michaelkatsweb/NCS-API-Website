@@ -4,7 +4,7 @@
  * Supports multiple streaming data sources and real-time clustering visualization
  */
 
-import { EventBus } from '../../core/eventBus.js';
+import { EventBus } from '../core/eventBusNew.js';
 import { CanvasRenderer } from '../renderers/CanvasRenderer.js';
 
 export class RealTimeChart {

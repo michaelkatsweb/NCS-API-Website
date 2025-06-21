@@ -3,7 +3,7 @@
 // Animation timeline management for NCS-API-Website complex animations
 // Coordinates multiple animations, keyframes, and animation sequences
 
-import { EventBus } from '../../core/eventBus.js';
+import { EventBus } from '../core/eventBusNew.js';
 import { EasingFunctions } from './Transitions.js';
 import { interpolator } from './Interpolation.js';
 

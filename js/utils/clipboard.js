@@ -14,7 +14,7 @@
  * - Batch operations and clipboard monitoring
  */
 
-import { EventBus } from '../core/eventBus.js';
+import { EventBus } from '../core/eventBusNew.js';
 
 export class ClipboardManager {
     constructor(options = {}) {

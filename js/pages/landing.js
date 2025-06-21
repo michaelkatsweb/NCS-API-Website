@@ -3,7 +3,8 @@
 // Landing page logic for NCS-API-Website
 // Handles hero interactions, animations, feature demos, and user engagement
 
-import eventBus from "../core/eventBus.js";
+// ✅ FIXED: Changed from default to named import to match usage pattern
+import { EventBus } from "../core/eventBusNew.js";
 import { transitionManager, EasingFunctions } from '../visualizations/animations/Transitions.js';
 import { debounce } from '../utils/debounce.js';
 
@@ -17,6 +18,9 @@ class LandingPage {
         this.isScrolling = false;
         this.featuresInView = new Set();
         this.animations = new Map();
+        
+        // ✅ FIXED: Create EventBus instance
+        this.eventBus = new EventBus();
         
         // DOM elements
         this.elements = {
@@ -78,12 +82,14 @@ class LandingPage {
             
             this.initialized = true;
             
-            EventBus.emit('landing:initialized');
+            // ✅ FIXED: Use this.eventBus instead of EventBus
+            this.eventBus.emit('landing:initialized');
             console.log('✅ Landing page initialized');
             
         } catch (error) {
             console.error('❌ Landing page initialization failed:', error);
-            EventBus.emit('landing:error', { error });
+            // ✅ FIXED: Use this.eventBus instead of EventBus
+            this.eventBus.emit('landing:error', { error });
         }
     }
     
@@ -91,7 +97,7 @@ class LandingPage {
      * Cache DOM elements
      */
     cacheElements() {
-        this.elements.hero = document.querySelector('.hero-section');
+        this.elements.hero = document.querySelector('.hero');
         this.elements.nav = document.querySelector('.main-nav');
         this.elements.ctaButtons = [...document.querySelectorAll('.cta-button')];
         this.elements.featureSections = [...document.querySelectorAll('.feature-section')];
@@ -109,14 +115,11 @@ class LandingPage {
      * Setup event listeners
      */
     setupEventListeners() {
-        // Scroll events
+        // Scroll handling
         window.addEventListener('scroll', this.handleScroll, { passive: true });
-        window.addEventListener('resize', this.handleResize);
+        window.addEventListener('resize', this.handleResize, { passive: true });
         
-        // Navigation events
-        document.addEventListener('click', this.handleNavigationClick.bind(this));
-        
-        // CTA button events
+        // CTA button clicks
         this.elements.ctaButtons.forEach(button => {
             button.addEventListener('click', this.handleCTAClick.bind(this));
         });
@@ -126,44 +129,57 @@ class LandingPage {
             this.elements.backToTop.addEventListener('click', this.scrollToTop.bind(this));
         }
         
-        // Keyboard navigation
-        document.addEventListener('keydown', this.handleKeyboard.bind(this));
+        // Mobile menu handling
+        const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+        if (mobileMenuToggle) {
+            mobileMenuToggle.addEventListener('click', this.toggleMobileMenu.bind(this));
+        }
         
-        // Hero video/animation controls
-        const heroPlayButton = document.querySelector('.hero-play-button');
+        // Hero demo interaction
+        const heroPlayButton = document.querySelector('.hero-play-demo');
         if (heroPlayButton) {
             heroPlayButton.addEventListener('click', this.playHeroDemo.bind(this));
         }
     }
     
     /**
-     * Setup intersection observers
+     * Setup intersection observers for animations
      */
     setupIntersectionObservers() {
         // Feature sections observer
-        this.intersectionObserver = new IntersectionObserver(
-            this.handleIntersection.bind(this),
-            {
-                root: null,
-                rootMargin: '-10% 0px -10% 0px',
-                threshold: [0, 0.25, 0.5, 0.75, 1]
-            }
-        );
+        const featureObserverOptions = {
+            threshold: 0.2,
+            rootMargin: '-50px 0px'
+        };
+        
+        this.intersectionObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    this.featuresInView.add(entry.target);
+                    this.animateFeatureIn(entry.target);
+                } else {
+                    this.featuresInView.delete(entry.target);
+                }
+            });
+        }, featureObserverOptions);
         
         // Observe feature sections
         this.elements.featureSections.forEach(section => {
             this.intersectionObserver.observe(section);
         });
         
-        // Hero observer for navbar effects
-        this.heroObserver = new IntersectionObserver(
-            this.handleHeroIntersection.bind(this),
-            {
-                root: null,
-                rootMargin: '0px',
-                threshold: [0, 0.1, 0.5, 0.9]
-            }
-        );
+        // Hero observer for sticky nav
+        const heroObserverOptions = {
+            threshold: 0.1
+        };
+        
+        this.heroObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (this.elements.nav) {
+                    this.elements.nav.classList.toggle('sticky', !entry.isIntersecting);
+                }
+            });
+        }, heroObserverOptions);
         
         if (this.elements.hero) {
             this.heroObserver.observe(this.elements.hero);
@@ -171,112 +187,36 @@ class LandingPage {
     }
     
     /**
-     * Handle intersection changes
+     * Animate feature section into view
      */
-    handleIntersection(entries) {
-        entries.forEach(entry => {
-            const sectionId = entry.target.id;
-            const isVisible = entry.isIntersecting && entry.intersectionRatio > 0.25;
-            
-            if (isVisible && !this.featuresInView.has(sectionId)) {
-                this.featuresInView.add(sectionId);
-                this.animateFeatureIn(entry.target);
-                this.startFeatureDemo(entry.target);
-            } else if (!isVisible && this.featuresInView.has(sectionId)) {
-                this.featuresInView.delete(sectionId);
-                this.pauseFeatureDemo(entry.target);
-            }
-            
-            // Update navigation active states
-            this.updateNavigationState();
-        });
+    animateFeatureIn(element) {
+        element.classList.add('animate-in');
+        
+        // Start demo if it exists
+        const demoContainer = element.querySelector('.demo-container');
+        if (demoContainer) {
+            this.playDemo(demoContainer);
+        }
+        
+        // ✅ FIXED: Use this.eventBus instead of EventBus
+        this.eventBus.emit('landing:feature:visible', { element });
     }
     
     /**
-     * Handle hero intersection
-     */
-    handleHeroIntersection(entries) {
-        entries.forEach(entry => {
-            const isHeroVisible = entry.isIntersecting && entry.intersectionRatio > 0.1;
-            
-            if (this.elements.nav) {
-                this.elements.nav.classList.toggle('nav-scrolled', !isHeroVisible);
-            }
-            
-            if (this.elements.scrollIndicator) {
-                this.elements.scrollIndicator.style.opacity = isHeroVisible ? '1' : '0';
-            }
-        });
-    }
-    
-    /**
-     * Setup navigation
+     * Setup navigation functionality
      */
     setupNavigation() {
         // Smooth scroll for anchor links
         const navLinks = document.querySelectorAll('a[href^="#"]');
         navLinks.forEach(link => {
-            link.addEventListener('click', this.handleSmoothScroll.bind(this));
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = document.querySelector(link.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
         });
-        
-        // Mobile menu toggle
-        const mobileToggle = document.querySelector('.mobile-menu-toggle');
-        if (mobileToggle) {
-            mobileToggle.addEventListener('click', this.toggleMobileMenu.bind(this));
-        }
-    }
-    
-    /**
-     * Handle navigation clicks
-     */
-    handleNavigationClick(event) {
-        const link = event.target.closest('a[href^="#"]');
-        if (!link) return;
-        
-        event.preventDefault();
-        const targetId = link.getAttribute('href').substring(1);
-        this.scrollToSection(targetId);
-    }
-    
-    /**
-     * Handle smooth scrolling
-     */
-    handleSmoothScroll(event) {
-        event.preventDefault();
-        const targetId = event.target.getAttribute('href').substring(1);
-        this.scrollToSection(targetId);
-    }
-    
-    /**
-     * Scroll to section
-     */
-    scrollToSection(sectionId) {
-        const target = document.getElementById(sectionId);
-        if (!target) return;
-        
-        const targetPosition = target.getBoundingClientRect().top + window.pageYOffset;
-        const navHeight = this.elements.nav ? this.elements.nav.offsetHeight : 0;
-        const finalPosition = targetPosition - navHeight - 20;
-        
-        this.animatedScrollTo(finalPosition);
-    }
-    
-    /**
-     * Animated scroll to position
-     */
-    animatedScrollTo(targetPosition) {
-        const startPosition = window.pageYOffset;
-        const distance = targetPosition - startPosition;
-        const duration = Math.min(Math.abs(distance) * 0.5, 1000); // Max 1 second
-        
-        transitionManager.create({
-            duration: duration,
-            easing: EasingFunctions.easeInOutCubic,
-            onUpdate: (transition) => {
-                const currentPosition = startPosition + (distance * transition.progress);
-                window.scrollTo(0, currentPosition);
-            }
-        }).start();
     }
     
     /**
@@ -284,109 +224,61 @@ class LandingPage {
      */
     initializeFeatureDemos() {
         this.elements.demoContainers.forEach(container => {
-            const demoType = container.dataset.demo;
-            if (this.demoData[demoType]) {
-                this.setupDemo(container, demoType);
-            }
+            this.setupDemo(container);
         });
     }
     
     /**
-     * Setup individual demo
+     * Setup demo container
      */
-    setupDemo(container, demoType) {
-        const canvas = container.querySelector('canvas') || this.createDemoCanvas(container);
+    setupDemo(container) {
+        const demoType = container.dataset.demo;
+        const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         
-        // Store demo context
-        container.demoContext = {
+        // Set canvas size
+        const rect = container.getBoundingClientRect();
+        canvas.width = Math.min(rect.width, 400);
+        canvas.height = canvas.width * 0.75;
+        
+        container.appendChild(canvas);
+        
+        // Store demo data
+        const demoConfig = {
             canvas,
             ctx,
             type: demoType,
-            data: this.demoData[demoType],
+            data: this.demoData[demoType] || [],
             animationId: null,
             isPlaying: false
         };
         
-        // Setup demo controls
-        this.setupDemoControls(container);
-    }
-    
-    /**
-     * Create demo canvas
-     */
-    createDemoCanvas(container) {
-        const canvas = document.createElement('canvas');
-        canvas.width = 400;
-        canvas.height = 300;
-        canvas.style.cssText = `
-            width: 100%;
-            height: auto;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        `;
-        container.appendChild(canvas);
-        return canvas;
-    }
-    
-    /**
-     * Setup demo controls
-     */
-    setupDemoControls(container) {
-        const controlsHtml = `
-            <div class="demo-controls">
-                <button class="demo-play" aria-label="Play demo">▶️</button>
-                <button class="demo-pause" aria-label="Pause demo">⏸️</button>
-                <button class="demo-reset" aria-label="Reset demo">🔄</button>
-                <div class="demo-progress">
-                    <div class="demo-progress-bar"></div>
-                </div>
-            </div>
-        `;
-        
-        container.insertAdjacentHTML('beforeend', controlsHtml);
-        
-        // Bind control events
-        const playBtn = container.querySelector('.demo-play');
-        const pauseBtn = container.querySelector('.demo-pause');
-        const resetBtn = container.querySelector('.demo-reset');
-        
-        playBtn?.addEventListener('click', () => this.playDemo(container));
-        pauseBtn?.addEventListener('click', () => this.pauseDemo(container));
-        resetBtn?.addEventListener('click', () => this.resetDemo(container));
+        container.demoConfig = demoConfig;
     }
     
     /**
      * Generate clustering demo data
      */
     generateClusteringDemo() {
-        const data = [];
-        const numPoints = 100;
-        
-        // Generate three clusters
+        const points = [];
         const clusters = [
-            { center: { x: 100, y: 100 }, spread: 30, color: '#1f77b4' },
-            { center: { x: 300, y: 150 }, spread: 25, color: '#ff7f0e' },
-            { center: { x: 200, y: 250 }, spread: 35, color: '#2ca02c' }
+            { center: [100, 100], color: '#3b82f6', count: 15 },
+            { center: [300, 150], color: '#ef4444', count: 12 },
+            { center: [200, 250], color: '#10b981', count: 18 }
         ];
         
-        clusters.forEach((cluster, clusterIndex) => {
-            const pointsPerCluster = Math.floor(numPoints / clusters.length);
-            
-            for (let i = 0; i < pointsPerCluster; i++) {
-                const angle = Math.random() * 2 * Math.PI;
-                const distance = Math.random() * cluster.spread;
-                
-                data.push({
-                    x: cluster.center.x + Math.cos(angle) * distance,
-                    y: cluster.center.y + Math.sin(angle) * distance,
-                    cluster: clusterIndex,
-                    color: cluster.color
+        clusters.forEach(cluster => {
+            for (let i = 0; i < cluster.count; i++) {
+                points.push({
+                    x: cluster.center[0] + (Math.random() - 0.5) * 80,
+                    y: cluster.center[1] + (Math.random() - 0.5) * 80,
+                    color: cluster.color,
+                    cluster: cluster
                 });
             }
         });
         
-        return data;
+        return points;
     }
     
     /**
@@ -394,67 +286,39 @@ class LandingPage {
      */
     generatePerformanceDemo() {
         const algorithms = ['K-Means', 'DBSCAN', 'Hierarchical', 'NCS'];
-        const datasets = ['Small (100)', 'Medium (1K)', 'Large (10K)', 'XLarge (100K)'];
-        
-        return {
-            algorithms,
-            datasets,
-            times: algorithms.map(alg => 
-                datasets.map((_, i) => Math.random() * (i + 1) * 100 + 10)
-            ),
-            quality: algorithms.map(() => 
-                datasets.map(() => Math.random() * 0.3 + 0.7)
-            )
-        };
+        return algorithms.map((name, i) => ({
+            name,
+            performance: 70 + Math.random() * 30,
+            color: `hsl(${i * 90}, 70%, 50%)`
+        }));
     }
     
     /**
      * Generate quality demo data
      */
     generateQualityDemo() {
-        return {
-            silhouette: Math.random() * 0.4 + 0.6,
-            daviesBouldin: Math.random() * 0.5 + 0.3,
-            calinskiHarabasz: Math.random() * 50 + 100,
-            overallScore: Math.random() * 0.2 + 0.8
-        };
-    }
-    
-    /**
-     * Start feature demo
-     */
-    startFeatureDemo(section) {
-        const container = section.querySelector('.demo-container');
-        if (container && !container.demoContext?.isPlaying) {
-            this.playDemo(container);
-        }
-    }
-    
-    /**
-     * Pause feature demo
-     */
-    pauseFeatureDemo(section) {
-        const container = section.querySelector('.demo-container');
-        if (container && container.demoContext?.isPlaying) {
-            this.pauseDemo(container);
-        }
+        const metrics = ['Silhouette', 'Davies-Bouldin', 'Calinski-Harabasz'];
+        return metrics.map((name, i) => ({
+            name,
+            score: 0.6 + Math.random() * 0.4,
+            color: `hsl(${120 + i * 30}, 70%, 50%)`
+        }));
     }
     
     /**
      * Play demo animation
      */
     playDemo(container) {
-        const context = container.demoContext;
-        if (!context) return;
+        const config = container.demoConfig;
+        if (!config || config.isPlaying) return;
         
-        context.isPlaying = true;
-        context.startTime = Date.now();
+        config.isPlaying = true;
         
         const animate = () => {
-            if (!context.isPlaying) return;
+            if (!config.isPlaying) return;
             
-            this.renderDemo(container);
-            context.animationId = requestAnimationFrame(animate);
+            this.renderDemo(config);
+            config.animationId = requestAnimationFrame(animate);
         };
         
         animate();
@@ -464,49 +328,34 @@ class LandingPage {
      * Pause demo animation
      */
     pauseDemo(container) {
-        const context = container.demoContext;
-        if (!context) return;
+        const config = container.demoConfig;
+        if (!config) return;
         
-        context.isPlaying = false;
-        if (context.animationId) {
-            cancelAnimationFrame(context.animationId);
+        config.isPlaying = false;
+        if (config.animationId) {
+            cancelAnimationFrame(config.animationId);
+            config.animationId = null;
         }
     }
     
     /**
-     * Reset demo animation
+     * Render demo based on type
      */
-    resetDemo(container) {
-        this.pauseDemo(container);
-        const context = container.demoContext;
-        if (context) {
-            context.startTime = Date.now();
-            this.renderDemo(container);
-        }
-    }
-    
-    /**
-     * Render demo animation
-     */
-    renderDemo(container) {
-        const context = container.demoContext;
-        if (!context) return;
-        
-        const { canvas, ctx, type, data } = context;
-        const elapsed = Date.now() - context.startTime;
+    renderDemo(config) {
+        const { ctx, canvas, type, data } = config;
         
         // Clear canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
         switch (type) {
             case 'clustering':
-                this.renderClusteringDemo(ctx, data, elapsed);
+                this.renderClusteringDemo(ctx, data);
                 break;
             case 'performance':
-                this.renderPerformanceDemo(ctx, data, elapsed);
+                this.renderPerformanceDemo(ctx, data, canvas);
                 break;
             case 'quality':
-                this.renderQualityDemo(ctx, data, elapsed);
+                this.renderQualityDemo(ctx, data, canvas);
                 break;
         }
     }
@@ -514,177 +363,159 @@ class LandingPage {
     /**
      * Render clustering demo
      */
-    renderClusteringDemo(ctx, data, elapsed) {
-        const progress = (elapsed % 5000) / 5000; // 5 second cycle
-        
-        data.forEach(point => {
-            const alpha = 0.5 + 0.5 * Math.sin(elapsed * 0.001 + point.x * 0.01);
-            ctx.fillStyle = point.color + Math.floor(alpha * 255).toString(16).padStart(2, '0');
+    renderClusteringDemo(ctx, points) {
+        points.forEach(point => {
             ctx.beginPath();
-            ctx.arc(point.x, point.y, 3, 0, 2 * Math.PI);
+            ctx.arc(point.x, point.y, 4, 0, Math.PI * 2);
+            ctx.fillStyle = point.color;
             ctx.fill();
         });
-        
-        // Animate cluster formation
-        if (progress < 0.5) {
-            // Show scattered points
-            data.forEach(point => {
-                const noise = (Math.random() - 0.5) * 20 * (0.5 - progress) * 2;
-                ctx.fillStyle = '#333';
-                ctx.beginPath();
-                ctx.arc(point.x + noise, point.y + noise, 2, 0, 2 * Math.PI);
-                ctx.fill();
-            });
-        }
     }
     
     /**
      * Render performance demo
      */
-    renderPerformanceDemo(ctx, data, elapsed) {
-        const progress = (elapsed % 3000) / 3000;
-        const { algorithms, datasets, times } = data;
+    renderPerformanceDemo(ctx, data, canvas) {
+        const barWidth = canvas.width / data.length;
+        const maxHeight = canvas.height * 0.8;
         
-        ctx.fillStyle = '#333';
-        ctx.font = '12px Arial';
-        
-        // Draw animated bar chart
-        algorithms.forEach((alg, i) => {
-            const y = 50 + i * 50;
-            const maxWidth = 300;
-            const currentWidth = maxWidth * Math.min(progress * 2, 1);
+        data.forEach((item, i) => {
+            const height = (item.performance / 100) * maxHeight;
+            const x = i * barWidth + barWidth * 0.1;
+            const y = canvas.height - height;
             
-            // Algorithm label
-            ctx.fillText(alg, 10, y + 15);
+            ctx.fillStyle = item.color;
+            ctx.fillRect(x, y, barWidth * 0.8, height);
             
-            // Bar background
-            ctx.fillStyle = '#e0e0e0';
-            ctx.fillRect(100, y, maxWidth, 20);
-            
-            // Animated bar
-            ctx.fillStyle = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728'][i];
-            ctx.fillRect(100, y, currentWidth * (times[i][1] / 100), 20);
+            // Label
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '12px Inter';
+            ctx.textAlign = 'center';
+            ctx.fillText(item.name, x + barWidth * 0.4, canvas.height - 5);
         });
     }
     
     /**
      * Render quality demo
      */
-    renderQualityDemo(ctx, data, elapsed) {
-        const progress = (elapsed % 4000) / 4000;
-        const centerX = 200;
-        const centerY = 150;
-        const radius = 80;
+    renderQualityDemo(ctx, data, canvas) {
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = Math.min(centerX, centerY) * 0.8;
         
-        // Draw quality score as animated arc
-        const targetAngle = data.overallScore * 2 * Math.PI;
-        const currentAngle = targetAngle * Math.min(progress * 2, 1);
+        data.forEach((item, i) => {
+            const angle = (i / data.length) * Math.PI * 2 - Math.PI / 2;
+            const scoreRadius = radius * item.score;
+            
+            const x = centerX + Math.cos(angle) * scoreRadius;
+            const y = centerY + Math.sin(angle) * scoreRadius;
+            
+            ctx.beginPath();
+            ctx.arc(x, y, 6, 0, Math.PI * 2);
+            ctx.fillStyle = item.color;
+            ctx.fill();
+        });
         
-        // Background circle
-        ctx.strokeStyle = '#e0e0e0';
-        ctx.lineWidth = 10;
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-        ctx.stroke();
-        
-        // Quality arc
-        ctx.strokeStyle = '#2ca02c';
-        ctx.lineWidth = 10;
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, -Math.PI / 2, -Math.PI / 2 + currentAngle);
-        ctx.stroke();
-        
-        // Score text
-        ctx.fillStyle = '#333';
-        ctx.font = 'bold 24px Arial';
-        ctx.textAlign = 'center';
-        const score = Math.floor(data.overallScore * 100 * Math.min(progress * 2, 1));
-        ctx.fillText(`${score}%`, centerX, centerY + 8);
+        // Draw radar grid
+        ctx.strokeStyle = '#333';
+        ctx.lineWidth = 1;
+        for (let i = 1; i <= 3; i++) {
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius * (i / 3), 0, Math.PI * 2);
+            ctx.stroke();
+        }
     }
     
     /**
      * Setup hero animations
      */
     setupHeroAnimations() {
-        if (!this.elements.hero) return;
-        
-        // Animate hero elements on load
-        const heroTitle = this.elements.hero.querySelector('.hero-title');
-        const heroSubtitle = this.elements.hero.querySelector('.hero-subtitle');
-        const heroButtons = this.elements.hero.querySelectorAll('.hero-button');
-        
-        if (heroTitle) {
-            transitionManager.create({
-                duration: 1000,
-                delay: 300,
-                easing: EasingFunctions.easeOutCubic,
-                onUpdate: (transition) => {
-                    heroTitle.style.opacity = transition.progress;
-                    heroTitle.style.transform = `translateY(${30 * (1 - transition.progress)}px)`;
-                }
-            }).start();
+        // Parallax effect for hero background
+        const heroBackground = document.querySelector('.hero-background');
+        if (heroBackground) {
+            this.setupParallax(heroBackground);
         }
         
-        if (heroSubtitle) {
-            transitionManager.create({
-                duration: 1000,
-                delay: 600,
-                easing: EasingFunctions.easeOutCubic,
-                onUpdate: (transition) => {
-                    heroSubtitle.style.opacity = transition.progress;
-                    heroSubtitle.style.transform = `translateY(${30 * (1 - transition.progress)}px)`;
-                }
-            }).start();
+        // Typing animation for hero title
+        const heroTitle = document.querySelector('.hero-title');
+        if (heroTitle && heroTitle.dataset.typewrite) {
+            this.setupTypewriter(heroTitle);
         }
-        
-        heroButtons.forEach((button, index) => {
-            transitionManager.create({
-                duration: 600,
-                delay: 900 + (index * 150),
-                easing: EasingFunctions.easeOutBack,
-                onUpdate: (transition) => {
-                    button.style.opacity = transition.progress;
-                    button.style.transform = `translateY(${20 * (1 - transition.progress)}px) scale(${0.9 + 0.1 * transition.progress})`;
-                }
-            }).start();
-        });
     }
     
     /**
-     * Animate feature in
+     * Setup parallax effect
      */
-    animateFeatureIn(element) {
-        const items = element.querySelectorAll('.animate-in');
+    setupParallax(element) {
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const rate = scrolled * -0.5;
+            element.style.transform = `translateY(${rate}px)`;
+        }, { passive: true });
+    }
+    
+    /**
+     * Setup typewriter effect
+     */
+    setupTypewriter(element) {
+        const text = element.textContent;
+        const speed = parseInt(element.dataset.speed) || 100;
         
-        items.forEach((item, index) => {
-            transitionManager.create({
-                duration: 800,
-                delay: index * 100,
-                easing: EasingFunctions.easeOutCubic,
-                onUpdate: (transition) => {
-                    item.style.opacity = transition.progress;
-                    item.style.transform = `translateY(${40 * (1 - transition.progress)}px)`;
-                }
-            }).start();
-        });
+        element.textContent = '';
+        
+        let i = 0;
+        const typeWriter = () => {
+            if (i < text.length) {
+                element.textContent += text.charAt(i);
+                i++;
+                setTimeout(typeWriter, speed);
+            }
+        };
+        
+        // Start typing after a delay
+        setTimeout(typeWriter, 1000);
     }
     
     /**
      * Initialize scroll effects
      */
     initializeScrollEffects() {
-        // Parallax elements
-        const parallaxElements = document.querySelectorAll('.parallax');
-        
-        window.addEventListener('scroll', () => {
-            const scrolled = window.pageYOffset;
-            
-            parallaxElements.forEach(element => {
-                const speed = element.dataset.speed || 0.5;
-                const translateY = scrolled * speed;
-                element.style.transform = `translateY(${translateY}px)`;
-            });
-        }, { passive: true });
+        // Create scroll indicator if it doesn't exist
+        if (!this.elements.scrollIndicator) {
+            this.createScrollIndicator();
+        }
+    }
+    
+    /**
+     * Create scroll indicator
+     */
+    createScrollIndicator() {
+        const indicator = document.createElement('div');
+        indicator.className = 'scroll-indicator';
+        indicator.innerHTML = '<div class="scroll-progress"></div>';
+        document.body.appendChild(indicator);
+        this.elements.scrollIndicator = indicator;
+    }
+    
+    /**
+     * Create back to top button
+     */
+    createBackToTopButton() {
+        const button = document.createElement('button');
+        button.className = 'back-to-top';
+        button.innerHTML = '↑';
+        button.setAttribute('aria-label', 'Back to top');
+        document.body.appendChild(button);
+        this.elements.backToTop = button;
+    }
+    
+    /**
+     * Scroll to top smoothly
+     */
+    scrollToTop() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // ✅ FIXED: Use this.eventBus instead of EventBus
+        this.eventBus.emit('landing:scroll:top');
     }
     
     /**
@@ -692,8 +523,17 @@ class LandingPage {
      */
     onScroll() {
         this.scrollPosition = window.pageYOffset;
+        this.isScrolling = true;
         
-        // Update back to top button
+        // Update scroll indicator
+        if (this.elements.scrollIndicator) {
+            const progress = this.elements.scrollIndicator.querySelector('.scroll-progress');
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const scrollPercent = (this.scrollPosition / docHeight) * 100;
+            progress.style.width = `${Math.min(scrollPercent, 100)}%`;
+        }
+        
+        // Show/hide back to top button
         if (this.elements.backToTop) {
             const showButton = this.scrollPosition > 500;
             this.elements.backToTop.style.opacity = showButton ? '1' : '0';
@@ -711,7 +551,8 @@ class LandingPage {
         const docHeight = document.documentElement.scrollHeight - window.innerHeight;
         const progress = Math.min(this.scrollPosition / docHeight, 1);
         
-        EventBus.emit('landing:scroll:progress', { progress, position: this.scrollPosition });
+        // ✅ FIXED: Use this.eventBus instead of EventBus
+        this.eventBus.emit('landing:scroll:progress', { progress, position: this.scrollPosition });
     }
     
     /**
@@ -737,7 +578,8 @@ class LandingPage {
         const action = button.dataset.action;
         const target = button.dataset.target;
         
-        EventBus.emit('landing:cta:click', { action, target, button });
+        // ✅ FIXED: Use this.eventBus instead of EventBus
+        this.eventBus.emit('landing:cta:click', { action, target, button });
         
         // Add click animation
         button.style.transform = 'scale(0.95)';
@@ -751,19 +593,17 @@ class LandingPage {
      */
     setupCTATracking() {
         // Track CTA visibility and interactions
-        const ctaObserver = new IntersectionObserver(
-            (entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        EventBus.emit('landing:cta:visible', { 
-                            cta: entry.target,
-                            action: entry.target.dataset.action
-                        });
-                    }
-                });
-            },
-            { threshold: 0.5 }
-        );
+        const ctaObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    // ✅ FIXED: Use this.eventBus instead of EventBus
+                    this.eventBus.emit('landing:cta:visible', { 
+                        element: entry.target,
+                        action: entry.target.dataset.action 
+                    });
+                }
+            });
+        }, { threshold: 0.5 });
         
         this.elements.ctaButtons.forEach(button => {
             ctaObserver.observe(button);
@@ -771,97 +611,19 @@ class LandingPage {
     }
     
     /**
-     * Update navigation state
-     */
-    updateNavigationState() {
-        const navLinks = document.querySelectorAll('.nav-link');
-        
-        navLinks.forEach(link => {
-            const targetId = link.getAttribute('href')?.substring(1);
-            const isActive = this.featuresInView.has(targetId);
-            link.classList.toggle('active', isActive);
-        });
-    }
-    
-    /**
-     * Create back to top button
-     */
-    createBackToTopButton() {
-        const button = document.createElement('button');
-        button.className = 'back-to-top';
-        button.innerHTML = '↑';
-        button.style.cssText = `
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 50px;
-            height: 50px;
-            border: none;
-            border-radius: 50%;
-            background: #6366f1;
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-            opacity: 0;
-            pointer-events: none;
-            transition: all 0.3s ease;
-            z-index: 1000;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-        `;
-        
-        button.addEventListener('mouseenter', () => {
-            button.style.transform = 'scale(1.1)';
-        });
-        
-        button.addEventListener('mouseleave', () => {
-            button.style.transform = 'scale(1)';
-        });
-        
-        document.body.appendChild(button);
-        this.elements.backToTop = button;
-    }
-    
-    /**
-     * Scroll to top
-     */
-    scrollToTop() {
-        this.animatedScrollTo(0);
-    }
-    
-    /**
-     * Handle keyboard navigation
-     */
-    handleKeyboard(event) {
-        // Escape key closes mobile menu
-        if (event.key === 'Escape') {
-            this.closeMobileMenu();
-        }
-        
-        // Space or Enter on CTA buttons
-        if ((event.key === ' ' || event.key === 'Enter') && 
-            event.target.classList.contains('cta-button')) {
-            event.preventDefault();
-            event.target.click();
-        }
-    }
-    
-    /**
      * Toggle mobile menu
      */
     toggleMobileMenu() {
-        const nav = this.elements.nav;
+        const nav = document.querySelector('.main-nav');
         if (nav) {
             nav.classList.toggle('mobile-menu-open');
         }
-    }
-    
-    /**
-     * Close mobile menu
-     */
-    closeMobileMenu() {
-        const nav = this.elements.nav;
-        if (nav) {
-            nav.classList.remove('mobile-menu-open');
+        
+        const body = document.body;
+        if (body.classList.contains('mobile-menu-open')) {
+            body.classList.remove('mobile-menu-open');
+        } else {
+            body.classList.add('mobile-menu-open');
         }
     }
     
@@ -869,7 +631,8 @@ class LandingPage {
      * Play hero demo
      */
     playHeroDemo() {
-        EventBus.emit('landing:hero:demo:play');
+        // ✅ FIXED: Use this.eventBus instead of EventBus
+        this.eventBus.emit('landing:hero:demo:play');
         
         // Trigger main demo if available
         const heroDemo = document.querySelector('.hero-demo-container');
@@ -903,7 +666,8 @@ class LandingPage {
         transitionManager.stopAll();
         
         this.initialized = false;
-        EventBus.emit('landing:destroyed');
+        // ✅ FIXED: Use this.eventBus instead of EventBus
+        this.eventBus.emit('landing:destroyed');
     }
 }
 

@@ -500,6 +500,7 @@ export class EventBus {
             errorCount: 0
         };
     }
+    
 
     /**
      * Create a scoped event bus for a specific namespace
@@ -538,6 +539,8 @@ export class EventBus {
         };
     }
 }
+
+
 
 // Create global event bus instance
 export const eventBus = new EventBus();

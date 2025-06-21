@@ -89,7 +89,7 @@ export class Router {
         this.addRoute('/', {
             name: 'home',
             title: 'NCS-API - Advanced Clustering Solutions',
-            component: () => import('../../pages/landing.js'),
+            component: () => import('../pages/landing.js'),
             meta: {
                 description: 'Advanced clustering algorithms API for real-time data analysis',
                 keywords: 'clustering, API, machine learning, data analysis',
@@ -101,7 +101,7 @@ export class Router {
         this.addRoute('/playground', {
             name: 'playground',
             title: 'Interactive Clustering Playground',
-            component: () => import('../../pages/playground.js'),
+            component: () => import('../pages/playground.js'),
             meta: {
                 description: 'Try our clustering algorithms with your own data',
                 keywords: 'clustering playground, interactive, demo',
@@ -113,7 +113,7 @@ export class Router {
         this.addRoute('/docs', {
             name: 'docs',
             title: 'API Documentation',
-            component: () => import('../../pages/docs.js'),
+            component: () => import('../pages/docs.js'),
             meta: {
                 description: 'Complete API documentation and examples',
                 keywords: 'API docs, documentation, examples',
@@ -125,7 +125,7 @@ export class Router {
         this.addRoute('/benchmarks', {
             name: 'benchmarks',
             title: 'Performance Benchmarks',
-            component: () => import('../../pages/benchmarks.js'),
+            component: () => import('../pages/benchmarks.js'),
             meta: {
                 description: 'Performance metrics and algorithm comparisons',
                 keywords: 'performance, benchmarks, clustering algorithms',
@@ -137,7 +137,7 @@ export class Router {
         this.addRoute('/examples', {
             name: 'examples',
             title: 'Examples & Use Cases',
-            component: () => import('../../pages/examples.js'),
+            component: () => import('../pages/examples.js'),
             meta: {
                 description: 'Real-world clustering examples and implementations',
                 keywords: 'examples, use cases, implementations',
@@ -149,7 +149,7 @@ export class Router {
         this.addRoute('/api/:endpoint?', {
             name: 'api-explorer',
             title: 'API Explorer',
-            component: () => import('../../components/ApiExplorer.js'),
+            component: () => import('../components/ApiExplorer.js'),
             meta: {
                 description: 'Interactive API endpoint explorer',
                 canonical: '/api'
@@ -168,7 +168,7 @@ export class Router {
         this.addRoute('*', {
             name: '404',
             title: 'Page Not Found',
-            component: () => import('../../components/NotFound.js'),
+            component: () => import('../components/NotFound.js'),
             meta: {
                 description: 'Page not found',
                 noindex: true

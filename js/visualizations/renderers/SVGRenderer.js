@@ -4,7 +4,7 @@
  * Optimized for print quality, animations, and interactive elements
  */
 
-import { EventBus } from '../../core/eventBus.js';
+import { EventBus } from '../core/eventBusNew.js';
 
 export class SVGRenderer {
     constructor(container, options = {}) {

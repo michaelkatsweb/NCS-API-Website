@@ -12,7 +12,7 @@
 
 export class CodeGenerator {
     constructor() {
-        this.baseUrl = 'https://api.ncs-cluster.com';
+        this.baseUrl = 'https://api.ncs.com';
         this.generators = {
             javascript: this.generateJavaScript.bind(this),
             python: this.generatePython.bind(this),

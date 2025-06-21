@@ -14,7 +14,7 @@
  * - Memory-efficient streaming
  */
 
-import { EventBus } from '../core/eventBus.js';
+import { EventBus } from '../core/eventBusNew.js';
 
 export class DownloadManager {
     constructor(options = {}) {

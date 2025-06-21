@@ -4,7 +4,7 @@
  * Supports mouse, touch, and keyboard interactions with smooth animations
  */
 
-import { EventBus } from '../../core/eventBus.js';
+import { EventBus } from '../core/eventBusNew.js';
 
 export class PanZoom {
     constructor(target, options = {}) {

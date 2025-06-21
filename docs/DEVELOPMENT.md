@@ -296,7 +296,7 @@ export class BaseComponent {
 ```javascript
 // js/components/MyComponent.js
 import { BaseComponent } from './BaseComponent.js';
-import { EventBus } from '../core/eventBus.js';
+import { EventBus } from '../core/eventBusNew.js';
 
 export class MyComponent extends BaseComponent {
     constructor(container, options = {}) {
@@ -769,7 +769,7 @@ window.inspectState = () => {
 #### Event Issues
 ```javascript
 // Debug event flow
-import { EventBus } from '../core/eventBus.js';
+import { EventBus } from '../core/eventBusNew.js';
 
 EventBus.prototype.emit = function(event, data) {
     console.log(`[EVENT] ${event}`, data);

@@ -5,7 +5,7 @@
  */
 
 import { STORAGE_KEYS, LIMITS } from '../config/constants.js';
-import eventBus from '../core/eventBus.js';
+import eventBus from '../core/eventBusNew.js';
 
 /* ===================================
    Cache Entry Class

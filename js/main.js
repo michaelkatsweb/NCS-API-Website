@@ -1,802 +1,827 @@
 /**
- * NCS-API Website - Minimal Main Entry Point
- * Simplified version to get the application running
+ * FILE: js/main.js
+ * NCS-API Website - Main Application Entry Point
+ * Modern ES6 module-based application bootstrap
  */
 
-// Global application state
+import landing from './pages/landing.js';
+import playground from './pages/playground.js';
+import docs from './pages/docs.js';
+import benchmarks from './pages/benchmarks.js';
+import examples from './pages/examples.js';
+
+// Create a page module map
+const pageModules = {
+    landing,
+    playground,
+    docs,
+    benchmarks,
+    examples
+};
+
+// Replace the dynamic import section with:
+try {
+    const pageModule = pageModules[page];
+    
+    if (pageModule && typeof pageModule.init === 'function') {
+        await pageModule.init();
+        console.log(`📄 Page module initialized: ${page}`);
+    } else {
+        console.log(`📄 Page module not found or no init function: ${page}`);  
+    }
+} catch (importError) {
+    console.log(`📄 Error initializing page module: ${page}`, importError);
+}
+
+// Import components (lazy loaded as needed - with graceful fallbacks)
+const componentModules = {
+    'Header': () => import('./components/Header.js').catch(() => null),
+    'Hero': () => import('./components/Hero.js').catch(() => null),
+    'Playground': () => import('./components/Playground.js').catch(() => null),
+    'DataUploader': () => import('./components/DataUploader.js').catch(() => null),
+    'ClusterVisualizer': () => import('./components/ClusterVisualizer.js').catch(() => null),
+    'ThemeToggle': () => import('./components/ThemeToggle.js').catch(() => null),
+    'PerformanceMonitor': () => import('./components/PerformanceMonitor.js').catch(() => null)
+};
+
+// Global application namespace
 window.NCS = {
-    version: '2.1.0',
-    buildDate: '2025-06-20',
-    debug: false
+    version: '1.0.0',
+    debug: false,
+    startTime: performance.now(),
+    components: new Map(),
+    state: null,
+    router: null,
+    eventBus: null,
+    apiClient: null
 };
 
 /**
- * Simple Application Bootstrap
+ * Main Application Class
+ * Manages the entire application lifecycle
  */
-class SimpleBootstrap {
+class NCSApplication {
     constructor() {
-        this.startTime = performance.now();
-        this.loadingOverlay = document.getElementById('loading-overlay');
+        this.initialized = false;
+        this.loadingStates = new Map();
+        this.currentPage = null;
+        this.components = new Map();
         
         // Enable debug mode in development
-        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+        this.enableDebugMode();
+        
+        // Core initialization will happen in start() method
+        console.log('🏗️ NCS Application created');
+    }
+
+    /**
+     * Enable debug mode for development
+     */
+    enableDebugMode() {
+        const isDevelopment = location.hostname === 'localhost' || 
+                             location.hostname === '127.0.0.1' ||
+                             location.search.includes('debug=true');
+                             
+        if (isDevelopment) {
             window.NCS.debug = true;
             console.log('🔧 Debug mode enabled');
+            
+            // Add development helpers to window
+            window.NCS.app = this;
+            window.NCS.components = this.components;
         }
     }
 
     /**
-     * Main initialization method
+     * Initialize core application systems
      */
-    async init() {
+    async initializeCore() {
         try {
-            console.log('🚀 NCS-API Website starting (minimal version)...');
+            // Load core modules with fallbacks
+            const coreModules = await this.loadCoreModules();
             
-            // Update loading status
-            this.updateLoadingStatus('Loading application...');
+            // Initialize event bus
+            window.NCS.eventBus = new coreModules.EventBus();
             
-            // Initialize theme
-            this.initializeTheme();
-            await this.delay(200);
-            
-            // Initialize basic components
-            this.updateLoadingStatus('Setting up components...');
-            await this.initializeBasicComponents();
-            await this.delay(200);
-            
-            // Initialize page-specific functionality
-            this.updateLoadingStatus('Loading page components...');
-            await this.initializePage();
-            await this.delay(200);
-            
-            // Hide loading overlay
-            await this.hideLoadingOverlay();
-            
-            // Performance metrics
-            const initTime = performance.now() - this.startTime;
-            console.log(`✅ Application initialized in ${initTime.toFixed(2)}ms`);
+            // Initialize state management
+            window.NCS.state = new coreModules.StateManager({
+                theme: 'auto',
+                page: this.getCurrentPage(),
+                loading: true,
+                apiConnected: false,
+                performance: {
+                    startTime: window.NCS.startTime,
+                    loadTime: null,
+                    componentsLoaded: 0
+                }
+            });
+
+            // Initialize router
+            window.NCS.router = new coreModules.Router({
+                routes: {
+                    '/': 'landing',
+                    '/playground': 'playground', 
+                    '/playground.html': 'playground',
+                    '/docs': 'docs',
+                    '/docs.html': 'docs',
+                    '/benchmarks': 'benchmarks',
+                    '/benchmarks.html': 'benchmarks',
+                    '/examples': 'examples',
+                    '/examples.html': 'examples'
+                },
+                onRouteChange: this.handleRouteChange.bind(this)
+            });
+
+            // Initialize API client
+            window.NCS.apiClient = new coreModules.NCSApiClient({
+                baseURL: this.getApiBaseUrl(),
+                timeout: 30000,
+                onStatusChange: this.handleApiStatusChange.bind(this)
+            });
+
+            console.log('🏗️ Core systems initialized');
             
         } catch (error) {
-            console.error('❌ Application initialization failed:', error);
-            this.showErrorState(error);
+            console.error('❌ Failed to initialize core systems:', error);
+            this.handleInitializationError(error);
+        }
+    }
+
+    /**
+     * Load core modules with fallback implementations
+     */
+    async loadCoreModules() {
+        // Fallback EventBus
+        const FallbackEventBus = class {
+            constructor() { this.events = new Map(); }
+            on(event, handler) { 
+                if (!this.events.has(event)) this.events.set(event, []);
+                this.events.get(event).push(handler);
+            }
+            off(event, handler) {
+                const handlers = this.events.get(event);
+                if (handlers) {
+                    const index = handlers.indexOf(handler);
+                    if (index > -1) handlers.splice(index, 1);
+                }
+            }
+            emit(event, data) {
+                const handlers = this.events.get(event);
+                if (handlers) handlers.forEach(handler => {
+                    try { handler(data); } catch (e) { console.error('Event handler error:', e); }
+                });
+            }
+        };
+
+        // Fallback Router
+        const FallbackRouter = class {
+            constructor(options = {}) {
+                this.routes = options.routes || {};
+                this.onRouteChange = options.onRouteChange || (() => {});
+            }
+            navigate(path) { window.location.href = path; }
+        };
+
+        // Fallback StateManager
+        const FallbackStateManager = class {
+            constructor(initialState = {}) { this.state = initialState; }
+            get(key) { 
+                return key.includes('.') ? this.getNestedValue(key) : this.state[key]; 
+            }
+            set(key, value) { 
+                if (key.includes('.')) this.setNestedValue(key, value);
+                else this.state[key] = value;
+            }
+            getNestedValue(path) {
+                return path.split('.').reduce((obj, key) => obj?.[key], this.state);
+            }
+            setNestedValue(path, value) {
+                const keys = path.split('.');
+                const lastKey = keys.pop();
+                const target = keys.reduce((obj, key) => {
+                    if (!obj[key]) obj[key] = {};
+                    return obj[key];
+                }, this.state);
+                target[lastKey] = value;
+            }
+        };
+
+        // Fallback API Client
+        const FallbackApiClient = class {
+            constructor(options = {}) { 
+                this.baseURL = options.baseURL || '';
+                console.log('🔌 Using fallback API client');
+            }
+            async healthCheck() { 
+                console.log('⚠️ API client not implemented yet');
+                throw new Error('API not available - using fallback');
+            }
+        };
+
+        // Try to load real modules, fall back to implementations
+        const modules = {};
+
+        try {
+            const eventBusModule = await import('./core/eventBusNew.js');
+            modules.EventBus = eventBusModule.EventBus;
+            console.log('✅ EventBus module loaded');
+        } catch (error) {
+            console.log('📦 Using fallback EventBus');
+            modules.EventBus = FallbackEventBus;
+        }
+
+        try {
+            const routerModule = await import('./core/router.js');
+            modules.Router = routerModule.Router;
+            console.log('✅ Router module loaded');
+        } catch (error) {
+            console.log('📦 Using fallback Router');
+            modules.Router = FallbackRouter;
+        }
+
+        try {
+            const stateModule = await import('./core/state.js');
+            modules.StateManager = stateModule.StateManager;
+            console.log('✅ StateManager module loaded');
+        } catch (error) {
+            console.log('📦 Using fallback StateManager');
+            modules.StateManager = FallbackStateManager;
+        }
+
+        try {
+            const apiModule = await import('./api/client.js');
+            modules.NCSApiClient = apiModule.NCSApiClient || apiModule.default;
+            console.log('✅ NCSApiClient module loaded');
+        } catch (error) {
+            console.log('📦 Using fallback API client');
+            modules.NCSApiClient = FallbackApiClient;
+        }
+
+        return modules;
+    }
+
+    /**
+     * Main application startup
+     */
+    async start() {
+        try {
+            console.log('🚀 Starting NCS-API Website...');
+            
+            // Show loading state
+            this.showLoadingState('Initializing application...');
+
+            // Initialize core systems first
+            await this.initializeCore();
+
+            // Initialize theme system (prevent flash)
+            await this.initializeTheme();
+            
+            // Load critical components
+            await this.loadCriticalComponents();
+            
+            // Initialize current page
+            await this.initializePage();
+            
+            // Setup global event listeners
+            this.setupGlobalEvents();
+            
+            // Connect to API
+            await this.connectToApi();
+            
+            // Mark as initialized
+            this.initialized = true;
+            window.NCS.state.set('loading', false);
+            
+            // Calculate load time
+            const loadTime = performance.now() - window.NCS.startTime;
+            window.NCS.state.set('performance.loadTime', loadTime);
+            
+            // Hide loading state
+            this.hideLoadingState();
+            
+            // Emit ready event
+            window.NCS.eventBus.emit('app:ready', {
+                loadTime,
+                page: this.currentPage,
+                apiConnected: window.NCS.state.get('apiConnected')
+            });
+            
+            console.log(`✅ Application started successfully in ${loadTime.toFixed(2)}ms`);
+            
+        } catch (error) {
+            console.error('❌ Application startup failed:', error);
+            this.handleStartupError(error);
         }
     }
 
     /**
      * Initialize theme system
      */
-    initializeTheme() {
-        console.log('🎨 Initializing theme...');
-        
-        // Check for saved theme preference
-        let savedTheme = null;
+    async initializeTheme() {
         try {
-            savedTheme = localStorage.getItem('ncs-theme-preference');
-        } catch (e) {
-            console.warn('LocalStorage not available');
-        }
-        
-        const systemPrefersDark = window.matchMedia && 
-            window.matchMedia('(prefers-color-scheme: dark)').matches;
-        
-        let theme = savedTheme || 'auto';
-        if (theme === 'auto') {
-            theme = systemPrefersDark ? 'dark' : 'light';
-        }
-        
-        // Apply theme immediately to prevent flash
-        document.body.classList.remove('theme-light', 'theme-dark');
-        document.body.classList.add(`theme-${theme}`);
-        
-        // Update meta theme-color
-        const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-        if (metaThemeColor) {
-            metaThemeColor.content = theme === 'dark' ? '#111827' : '#ffffff';
-        }
-        
-        console.log(`✅ Theme set to: ${theme}`);
-    }
+            // Get saved theme preference or detect system preference
+            let theme = 'auto';
+            try {
+                theme = localStorage.getItem('ncs-theme') || 'auto';
+            } catch (e) {
+                console.warn('localStorage not available, using auto theme');
+            }
 
-    /**
-     * Initialize basic components
-     */
-    async initializeBasicComponents() {
-        console.log('🔧 Initializing basic components...');
-        
-        try {
-            // Initialize theme toggle
-            this.initializeThemeToggle();
+            // Auto-detect if needed
+            if (theme === 'auto') {
+                const prefersDark = window.matchMedia && 
+                    window.matchMedia('(prefers-color-scheme: dark)').matches;
+                theme = prefersDark ? 'dark' : 'light';
+            }
+
+            // Apply theme immediately to prevent flash
+            document.documentElement.classList.remove('theme-light', 'theme-dark');
+            document.documentElement.classList.add(`theme-${theme}`);
             
-            // Initialize mobile menu
-            this.initializeMobileMenu();
+            // Update state
+            window.NCS.state.set('theme', theme);
             
-            // Initialize basic page functionality
-            this.initializeBasicInteractions();
+            // Update meta theme-color
+            this.updateMetaThemeColor(theme);
             
-            console.log('✅ Basic components initialized');
+            console.log(`🎨 Theme initialized: ${theme}`);
             
         } catch (error) {
-            console.warn('⚠️ Some components failed to initialize:', error);
+            console.error('❌ Theme initialization failed:', error);
+            // Fallback to light theme
+            document.documentElement.classList.add('theme-light');
         }
     }
 
     /**
-     * Initialize theme toggle
+     * Load critical components that should be available immediately
      */
-    initializeThemeToggle() {
-        const themeToggle = document.getElementById('theme-toggle');
-        if (themeToggle) {
-            themeToggle.addEventListener('click', () => {
-                const currentTheme = document.body.classList.contains('theme-dark') ? 'dark' : 'light';
-                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                
-                document.body.classList.remove('theme-light', 'theme-dark');
-                document.body.classList.add(`theme-${newTheme}`);
-                
-                // Save preference
-                try {
-                    localStorage.setItem('ncs-theme-preference', newTheme);
-                } catch (e) {
-                    console.warn('Could not save theme preference');
-                }
-                
-                // Update meta theme-color
-                const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-                if (metaThemeColor) {
-                    metaThemeColor.content = newTheme === 'dark' ? '#111827' : '#ffffff';
-                }
-                
-                console.log(`Theme switched to: ${newTheme}`);
-            });
-            
-            console.log('✅ Theme toggle initialized');
-        }
-    }
-
-    /**
-     * Initialize mobile menu
-     */
-    initializeMobileMenu() {
-        const menuToggle = document.getElementById('mobile-menu-toggle');
-        const navMenu = document.getElementById('nav-menu');
+    async loadCriticalComponents() {
+        const criticalComponents = ['Header', 'ThemeToggle'];
         
-        if (menuToggle && navMenu) {
-            menuToggle.addEventListener('click', () => {
-                const isOpen = navMenu.classList.contains('nav-menu-open');
-                
-                if (isOpen) {
-                    navMenu.classList.remove('nav-menu-open');
-                    menuToggle.classList.remove('nav-toggle-active');
+        for (const componentName of criticalComponents) {
+            try {
+                const component = await this.loadComponent(componentName);
+                if (component) {
+                    console.log(`✅ Critical component loaded: ${componentName}`);
                 } else {
-                    navMenu.classList.add('nav-menu-open');
-                    menuToggle.classList.add('nav-toggle-active');
+                    console.log(`📦 Critical component not yet implemented: ${componentName}`);
                 }
-            });
-            
-            // Close menu when clicking outside
-            document.addEventListener('click', (event) => {
-                if (!menuToggle.contains(event.target) && !navMenu.contains(event.target)) {
-                    navMenu.classList.remove('nav-menu-open');
-                    menuToggle.classList.remove('nav-toggle-active');
-                }
-            });
-            
-            console.log('✅ Mobile menu initialized');
+            } catch (error) {
+                console.warn(`⚠️ Failed to load critical component ${componentName}:`, error);
+                // Continue with other components - critical components are optional during development
+            }
         }
     }
 
     /**
-     * Initialize basic interactions
+     * Initialize the current page
      */
-    initializeBasicInteractions() {
-        // Add smooth scrolling to anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth'
-                    });
-                }
-            });
-        });
+    async initializePage() {
+        const page = this.getCurrentPage();
+        this.currentPage = page;
         
-        // Add loading states to buttons
-        document.querySelectorAll('button').forEach(button => {
-            button.addEventListener('click', function() {
-                if (!this.disabled) {
-                    this.classList.add('loading');
-                    setTimeout(() => {
-                        this.classList.remove('loading');
-                    }, 1000);
-                }
-            });
-        });
+        console.log(`📄 Initializing page: ${page}`);
         
-        console.log('✅ Basic interactions initialized');
+        // Load page-specific components
+        const pageComponents = this.getPageComponents(page);
+        
+        for (const componentName of pageComponents) {
+            try {
+                await this.loadComponent(componentName);
+            } catch (error) {
+                console.error(`Failed to load page component ${componentName}:`, error);
+            }
+        }
+        
+        // Initialize page-specific functionality
+        await this.initializePageSpecific(page);
+        
+        // Update document title
+        this.updateDocumentTitle(page);
+    }
+
+    /**
+     * Load a component dynamically
+     */
+    async loadComponent(name) {
+        if (this.components.has(name)) {
+            return this.components.get(name);
+        }
+
+        try {
+            console.log(`📦 Loading component: ${name}`);
+            
+            const moduleLoader = componentModules[name];
+            if (!moduleLoader) {
+                console.warn(`⚠️ Component module loader not found: ${name}`);
+                return null;
+            }
+
+            const module = await moduleLoader();
+            if (!module) {
+                console.log(`📦 Component module not yet implemented: ${name}`);
+                return null;
+            }
+            
+            const ComponentClass = module[name] || module.default;
+            
+            if (!ComponentClass) {
+                console.warn(`⚠️ Component class not found in module: ${name}`);
+                return null;
+            }
+
+            // Find component container
+            const container = document.querySelector(`[data-component="${name.toLowerCase()}"]`) ||
+                            document.querySelector(`.${name.toLowerCase()}-container`) ||
+                            document.querySelector(`#${name.toLowerCase()}`);
+
+            let componentInstance;
+            if (container) {
+                // Initialize component with container
+                componentInstance = new ComponentClass(container);
+            } else {
+                // Some components don't need containers (e.g., global ones)
+                componentInstance = new ComponentClass();
+            }
+
+            this.components.set(name, componentInstance);
+            window.NCS.components.set(name, componentInstance);
+            
+            // Update performance counter
+            const currentCount = window.NCS.state.get('performance.componentsLoaded') || 0;
+            window.NCS.state.set('performance.componentsLoaded', currentCount + 1);
+            
+            console.log(`✅ Component loaded: ${name}`);
+            return componentInstance;
+            
+        } catch (error) {
+            console.warn(`⚠️ Failed to load component ${name}:`, error);
+            // Return null instead of throwing - components are optional during development
+            return null;
+        }
+    }
+
+    /**
+     * Get components needed for a specific page
+     */
+    getPageComponents(page) {
+        const componentMap = {
+            'landing': ['Hero'],
+            'playground': ['Playground', 'DataUploader', 'ClusterVisualizer'],
+            'docs': ['ApiExplorer'],
+            'benchmarks': ['PerformanceMonitor'],
+            'examples': ['ClusterVisualizer']
+        };
+        
+        return componentMap[page] || [];
     }
 
     /**
      * Initialize page-specific functionality
      */
-    async initializePage() {
-        const currentPage = this.getCurrentPageName();
-        console.log(`🏠 Initializing page: ${currentPage}`);
-        
+    async initializePageSpecific(page) {
         try {
-            switch (currentPage) {
-                case 'landing':
-                    await this.initializeLandingPage();
-                    break;
-                case 'playground':
-                    await this.initializePlaygroundPage();
-                    break;
-                case 'docs':
-                    await this.initializeDocsPage();
-                    break;
-                default:
-                    console.log(`No specific initialization needed for: ${currentPage}`);
-            }
+            // Check if page-specific modules exist and load them dynamically
+            const pageModulePaths = {
+                'landing': '../pages/landing.js',
+                'playground': '../pages/playground.js',
+                'docs': '../pages/docs.js',
+                'benchmarks': '../pages/benchmarks.js',
+                'examples': '../pages/examples.js'
+            };
+
+            const modulePath = pageModulePaths[page];
+if (modulePath) {
+    try {
+        const module = await import(/* @vite-ignore */ modulePath);
+        const initFunction = module.init || module.default;
+       
+        if (typeof initFunction === 'function') {
+            await initFunction();
+            console.log(`✅ Page-specific initialization completed: ${page}`);
+        } else {
+            console.log(`📄 Page module loaded but no init function found: ${page}`);
+        }
+    } catch (importError) {
+        // Page module doesn't exist yet - this is fine
+        console.log(`📄 No page-specific module for: ${page} (will be created later)`);
+    }
+} else {
+    console.log(`📄 Page-specific functionality not required for: ${page}`);
+}
+            
         } catch (error) {
-            console.warn(`Failed to initialize ${currentPage} page:`, error);
+            console.warn(`⚠️ Error during page-specific initialization for ${page}:`, error);
+            // Continue execution - page modules are optional
         }
     }
 
     /**
-     * Initialize landing page
+     * Setup global event listeners
      */
-    async initializeLandingPage() {
-        console.log('🏠 Setting up landing page...');
+    setupGlobalEvents() {
+        // Handle theme changes
+        window.NCS.eventBus.on('theme:change', this.handleThemeChange.bind(this));
         
-        // Add scroll animations
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
+        // Handle navigation
+        window.NCS.eventBus.on('navigation:navigate', this.handleNavigation.bind(this));
         
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('animate-in');
-                }
-            });
-        }, observerOptions);
-        
-        // Observe elements for animation
-        document.querySelectorAll('.hero, .feature-card, .stat-item').forEach(el => {
-            observer.observe(el);
+        // Handle API events
+        window.NCS.eventBus.on('api:connected', () => {
+            window.NCS.state.set('apiConnected', true);
         });
         
-        // Add CTA button functionality
-        document.querySelectorAll('.cta-button, .btn-primary').forEach(button => {
-            if (button.textContent.includes('Playground') || button.textContent.includes('Try')) {
-                button.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    window.location.href = '/playground.html';
-                });
-            }
-        });
-    }
-
-    /**
-     * Initialize playground page
-     */
-    async initializePlaygroundPage() {
-        console.log('🧪 Setting up playground page...');
-        
-        // Initialize file upload
-        this.initializeFileUpload();
-        
-        // Initialize sample data selector
-        this.initializeSampleData();
-        
-        // Initialize visualization placeholder
-        this.initializeVisualization();
-        
-        // Initialize algorithm selection
-        this.initializeAlgorithmSelection();
-    }
-
-    /**
-     * Initialize file upload
-     */
-    initializeFileUpload() {
-        const uploadArea = document.getElementById('data-upload');
-        const fileInput = document.getElementById('file-input');
-        
-        if (uploadArea && fileInput) {
-            // Click to upload
-            uploadArea.addEventListener('click', () => {
-                fileInput.click();
-            });
-            
-            // File selection
-            fileInput.addEventListener('change', (e) => {
-                if (e.target.files.length > 0) {
-                    this.handleFileUpload(e.target.files[0]);
-                }
-            });
-            
-            // Drag and drop
-            uploadArea.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                uploadArea.classList.add('dragover');
-            });
-            
-            uploadArea.addEventListener('dragleave', () => {
-                uploadArea.classList.remove('dragover');
-            });
-            
-            uploadArea.addEventListener('drop', (e) => {
-                e.preventDefault();
-                uploadArea.classList.remove('dragover');
-                
-                if (e.dataTransfer.files.length > 0) {
-                    this.handleFileUpload(e.dataTransfer.files[0]);
-                }
-            });
-            
-            console.log('✅ File upload initialized');
-        }
-    }
-
-    /**
-     * Handle file upload
-     */
-    handleFileUpload(file) {
-        console.log('📁 File uploaded:', file.name);
-        
-        // Show success message
-        this.showMessage(`File "${file.name}" uploaded successfully!`, 'success');
-        
-        // Update visualization placeholder
-        const vizOverlay = document.getElementById('viz-overlay');
-        if (vizOverlay) {
-            vizOverlay.innerHTML = `
-                <div class="visualization-placeholder">
-                    <div class="placeholder-icon">✅</div>
-                    <h3>Data loaded: ${file.name}</h3>
-                    <p>Configure algorithm parameters and click "Start Clustering"</p>
-                </div>
-            `;
-        }
-        
-        // Enable clustering button
-        const clusterButton = document.getElementById('start-clustering');
-        if (clusterButton) {
-            clusterButton.disabled = false;
-            clusterButton.textContent = 'Start Clustering';
-        }
-    }
-
-    /**
-     * Initialize sample data
-     */
-    initializeSampleData() {
-        const sampleSelect = document.getElementById('sample-dataset');
-        
-        if (sampleSelect) {
-            sampleSelect.addEventListener('change', (e) => {
-                if (e.target.value) {
-                    console.log('📊 Sample dataset selected:', e.target.value);
-                    this.loadSampleData(e.target.value);
-                }
-            });
-        }
-    }
-
-    /**
-     * Load sample data
-     */
-    loadSampleData(dataset) {
-        console.log(`📊 Loading sample dataset: ${dataset}`);
-        
-        // Show loading state
-        this.showMessage(`Loading ${dataset} dataset...`, 'info');
-        
-        // Simulate loading
-        setTimeout(() => {
-            this.showMessage(`${dataset} dataset loaded successfully!`, 'success');
-            
-            // Update visualization
-            const vizOverlay = document.getElementById('viz-overlay');
-            if (vizOverlay) {
-                vizOverlay.innerHTML = `
-                    <div class="visualization-placeholder">
-                        <div class="placeholder-icon">📊</div>
-                        <h3>${dataset} Dataset Loaded</h3>
-                        <p>Configure algorithm and start clustering</p>
-                    </div>
-                `;
-            }
-            
-            // Enable clustering
-            const clusterButton = document.getElementById('start-clustering');
-            if (clusterButton) {
-                clusterButton.disabled = false;
-            }
-        }, 1000);
-    }
-
-    /**
-     * Initialize visualization
-     */
-    initializeVisualization() {
-        const canvas = document.getElementById('cluster-canvas');
-        if (canvas) {
-            // Set canvas size
-            const container = canvas.parentElement;
-            const rect = container.getBoundingClientRect();
-            canvas.width = rect.width;
-            canvas.height = rect.height;
-            
-            // Add resize handler
-            window.addEventListener('resize', () => {
-                const rect = container.getBoundingClientRect();
-                canvas.width = rect.width;
-                canvas.height = rect.height;
-            });
-        }
-        
-        // Initialize clustering button
-        const clusterButton = document.getElementById('start-clustering');
-        if (clusterButton) {
-            clusterButton.addEventListener('click', () => {
-                this.startClustering();
-            });
-        }
-    }
-
-    /**
-     * Start clustering simulation
-     */
-    startClustering() {
-        console.log('🚀 Starting clustering...');
-        
-        const button = document.getElementById('start-clustering');
-        const status = document.getElementById('clustering-status');
-        const progress = document.getElementById('clustering-progress');
-        
-        // Update UI
-        if (button) button.disabled = true;
-        if (status) {
-            status.className = 'status-indicator running';
-            status.innerHTML = '<span class="status-dot pulse"></span><span>Processing...</span>';
-        }
-        if (progress) progress.style.display = 'block';
-        
-        // Simulate clustering progress
-        let progressValue = 0;
-        const progressInterval = setInterval(() => {
-            progressValue += Math.random() * 15;
-            if (progressValue >= 100) {
-                progressValue = 100;
-                clearInterval(progressInterval);
-                this.clusteringComplete();
-            }
-            
-            const progressFill = document.getElementById('progress-fill');
-            const progressPercent = document.getElementById('progress-percent');
-            
-            if (progressFill) progressFill.style.width = `${progressValue}%`;
-            if (progressPercent) progressPercent.textContent = `${Math.round(progressValue)}%`;
-        }, 200);
-    }
-
-    /**
-     * Clustering complete
-     */
-    clusteringComplete() {
-        console.log('✅ Clustering complete!');
-        
-        const button = document.getElementById('start-clustering');
-        const status = document.getElementById('clustering-status');
-        const progress = document.getElementById('clustering-progress');
-        
-        // Update UI
-        if (button) {
-            button.disabled = false;
-            button.textContent = 'Run Again';
-        }
-        if (status) {
-            status.className = 'status-indicator complete';
-            status.innerHTML = '<span class="status-dot"></span><span>Complete</span>';
-        }
-        if (progress) progress.style.display = 'none';
-        
-        // Update metrics
-        this.updateMetrics();
-        
-        this.showMessage('Clustering completed successfully!', 'success');
-    }
-
-    /**
-     * Update metrics display
-     */
-    updateMetrics() {
-        const metrics = {
-            'silhouette-score': (0.7 + Math.random() * 0.2).toFixed(3),
-            'inertia': Math.round(100 + Math.random() * 500),
-            'davies-bouldin': (0.5 + Math.random() * 0.3).toFixed(3),
-            'processing-time': Math.round(500 + Math.random() * 2000) + 'ms',
-            'data-points': '1,000',
-            'clusters-found': Math.round(2 + Math.random() * 6)
-        };
-        
-        Object.entries(metrics).forEach(([id, value]) => {
-            const element = document.getElementById(id);
-            if (element) {
-                element.textContent = value;
-                element.className = 'metric-value success';
-            }
-        });
-    }
-
-    /**
-     * Initialize algorithm selection
-     */
-    initializeAlgorithmSelection() {
-        const algorithmInputs = document.querySelectorAll('input[name="algorithm"]');
-        
-        algorithmInputs.forEach(input => {
-            input.addEventListener('change', (e) => {
-                console.log('⚙️ Algorithm selected:', e.target.value);
-                this.updateParameterPanel(e.target.value);
-            });
-        });
-    }
-
-    /**
-     * Update parameter panel based on algorithm
-     */
-    updateParameterPanel(algorithm) {
-        // Hide all parameter sections
-        document.querySelectorAll('[id$="-params"]').forEach(section => {
-            section.style.display = 'none';
+        window.NCS.eventBus.on('api:disconnected', () => {
+            window.NCS.state.set('apiConnected', false);
         });
         
-        // Show relevant parameter section
-        const paramSection = document.getElementById(`${algorithm}-params`);
-        if (paramSection) {
-            paramSection.style.display = 'block';
-        }
+        // Handle errors
+        window.addEventListener('error', this.handleGlobalError.bind(this));
+        window.addEventListener('unhandledrejection', this.handleUnhandledRejection.bind(this));
+        
+        // Handle visibility changes
+        document.addEventListener('visibilitychange', this.handleVisibilityChange.bind(this));
+        
+        // Handle offline/online
+        window.addEventListener('online', () => {
+            window.NCS.eventBus.emit('app:online');
+        });
+        
+        window.addEventListener('offline', () => {
+            window.NCS.eventBus.emit('app:offline');
+        });
+        
+        console.log('🎯 Global event listeners setup');
     }
 
     /**
-     * Initialize docs page
+     * Connect to API
      */
-    async initializeDocsPage() {
-        console.log('📚 Setting up docs page...');
-        
-        // Add syntax highlighting placeholder
-        document.querySelectorAll('pre code').forEach(block => {
-            block.classList.add('language-javascript');
-        });
+    async connectToApi() {
+        try {
+            console.log('🔌 Connecting to NCS API...');
+            
+            // Test API connection
+            await window.NCS.apiClient.healthCheck();
+            
+            window.NCS.state.set('apiConnected', true);
+            window.NCS.eventBus.emit('api:connected');
+            
+            console.log('✅ API connection established');
+            
+        } catch (error) {
+            console.warn('⚠️ API connection failed, running in offline mode:', error);
+            window.NCS.state.set('apiConnected', false);
+            window.NCS.eventBus.emit('api:disconnected', error);
+        }
     }
 
     /**
      * Get current page name
      */
-    getCurrentPageName() {
+    getCurrentPage() {
         const path = window.location.pathname;
-        if (path === '/' || path === '/index.html') return 'landing';
-        if (path.includes('playground')) return 'playground';
-        if (path.includes('docs')) return 'docs';
-        if (path.includes('examples')) return 'examples';
-        if (path.includes('benchmarks')) return 'benchmarks';
-        return 'unknown';
+        const page = window.location.pathname.split('/').pop() || 'index.html';
+        
+        if (path === '/' || page === 'index.html') return 'landing';
+        if (page === 'playground.html') return 'playground';
+        if (page === 'docs.html') return 'docs';
+        if (page === 'benchmarks.html') return 'benchmarks';
+        if (page === 'examples.html') return 'examples';
+        
+        return 'landing';
     }
 
     /**
-     * Show message/toast
+     * Get API base URL
      */
-    showMessage(message, type = 'info') {
-        console.log(`📢 ${type.toUpperCase()}: ${message}`);
+    getApiBaseUrl() {
+        // Check for environment-specific API URLs
+        const hostname = window.location.hostname;
         
-        // Create simple toast
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
-        toast.innerHTML = `
-            <div class="toast-content">
-                <span class="toast-icon">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
-                <span class="toast-message">${message}</span>
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+            return 'http://localhost:8000/api/v1';
+        }
+        
+        if (hostname.includes('staging')) {
+            return 'https://staging-api.ncs-clustering.com/v1';
+        }
+        
+        return 'https://api.ncs-clustering.com/v1';
+    }
+
+    /**
+     * Event Handlers
+     */
+    handleThemeChange(theme) {
+        try {
+            document.documentElement.classList.remove('theme-light', 'theme-dark');
+            document.documentElement.classList.add(`theme-${theme}`);
+            
+            window.NCS.state.set('theme', theme);
+            this.updateMetaThemeColor(theme);
+            
+            // Save preference
+            try {
+                localStorage.setItem('ncs-theme', theme);
+            } catch (e) {
+                console.warn('Failed to save theme preference');
+            }
+            
+            console.log(`🎨 Theme changed to: ${theme}`);
+            
+        } catch (error) {
+            console.error('Failed to change theme:', error);
+        }
+    }
+
+    handleNavigation(data) {
+        if (data.external) {
+            window.open(data.url, '_blank');
+        } else {
+            window.NCS.router.navigate(data.url);
+        }
+    }
+
+    handleRouteChange(route) {
+        // This will be called by the router when routes change
+        console.log(`🧭 Route changed to: ${route}`);
+    }
+
+    handleApiStatusChange(status) {
+        window.NCS.state.set('apiConnected', status === 'online');
+        window.NCS.eventBus.emit(`api:${status}`);
+    }
+
+    handleGlobalError(event) {
+        console.error('🚨 Global error:', event.error);
+        window.NCS.eventBus.emit('app:error', {
+            type: 'javascript',
+            error: event.error,
+            filename: event.filename,
+            lineno: event.lineno
+        });
+    }
+
+    handleUnhandledRejection(event) {
+        console.error('🚨 Unhandled promise rejection:', event.reason);
+        window.NCS.eventBus.emit('app:error', {
+            type: 'promise',
+            error: event.reason
+        });
+    }
+
+    handleVisibilityChange() {
+        const isVisible = !document.hidden;
+        window.NCS.eventBus.emit('app:visibility', { visible: isVisible });
+        
+        if (isVisible && window.NCS.state.get('apiConnected') === false) {
+            // Try to reconnect when page becomes visible
+            this.connectToApi();
+        }
+    }
+
+    /**
+     * Utility Methods
+     */
+    updateMetaThemeColor(theme) {
+        const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+        if (metaThemeColor) {
+            metaThemeColor.content = theme === 'dark' ? '#0f172a' : '#ffffff';
+        }
+    }
+
+    updateDocumentTitle(page) {
+        const titles = {
+            'landing': 'NCS-API - Advanced Clustering Solutions',
+            'playground': 'Clustering Playground - NCS-API',
+            'docs': 'API Documentation - NCS-API',
+            'benchmarks': 'Performance Benchmarks - NCS-API',
+            'examples': 'Examples & Use Cases - NCS-API'
+        };
+        
+        document.title = titles[page] || 'NCS-API';
+    }
+
+    showLoadingState(message) {
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const loadingMessage = document.getElementById('loading-message');
+        
+        if (loadingOverlay) {
+            loadingOverlay.style.display = 'flex';
+        }
+        
+        if (loadingMessage && message) {
+            loadingMessage.textContent = message;
+        }
+    }
+
+    hideLoadingState() {
+        const loadingOverlay = document.getElementById('loading-overlay');
+        if (loadingOverlay) {
+            loadingOverlay.style.opacity = '0';
+            setTimeout(() => {
+                loadingOverlay.style.display = 'none';
+            }, 300);
+        }
+    }
+
+    handleInitializationError(error) {
+        console.error('🚨 Initialization error:', error);
+        
+        // Show basic error message to user
+        const errorHTML = `
+            <div class="error-container">
+                <h2>Application Error</h2>
+                <p>Failed to initialize the application. Please refresh the page.</p>
+                <button onclick="window.location.reload()">Refresh Page</button>
             </div>
         `;
         
-        toast.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
-            color: white;
-            padding: 1rem;
-            border-radius: 8px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            z-index: 10000;
-            animation: slideIn 0.3s ease-out;
-        `;
+        document.body.innerHTML = errorHTML;
+    }
+
+    handleStartupError(error) {
+        console.error('🚨 Startup error:', error);
+        this.hideLoadingState();
         
-        document.body.appendChild(toast);
-        
-        // Remove after 3 seconds
-        setTimeout(() => {
-            toast.style.animation = 'slideOut 0.3s ease-out';
-            setTimeout(() => {
-                if (toast.parentElement) {
-                    toast.parentElement.removeChild(toast);
-                }
-            }, 300);
-        }, 3000);
+        // Show error state but keep basic functionality
+        window.NCS.eventBus.emit('app:startup-error', error);
     }
 
     /**
-     * Update loading status
+     * Public API Methods
      */
-    updateLoadingStatus(message) {
-        console.log(`📋 ${message}`);
-        
-        if (this.loadingOverlay) {
-            const statusElement = this.loadingOverlay.querySelector('.loading-status');
-            if (statusElement) {
-                statusElement.textContent = message;
-            }
-        }
+    getComponent(name) {
+        return this.components.get(name);
     }
 
-    /**
-     * Hide loading overlay
-     */
-    async hideLoadingOverlay() {
-        if (!this.loadingOverlay) return;
-        
-        // Update final status
-        this.updateLoadingStatus('Application ready!');
-        
-        // Wait a moment
-        await this.delay(500);
-        
-        // Fade out animation
-        this.loadingOverlay.style.opacity = '0';
-        this.loadingOverlay.style.transition = 'opacity 0.5s ease-out';
-        
-        // Remove from DOM after animation
-        setTimeout(() => {
-            if (this.loadingOverlay) {
-                this.loadingOverlay.style.display = 'none';
-            }
-        }, 500);
+    getState(key) {
+        return window.NCS.state.get(key);
     }
 
-    /**
-     * Show error state
-     */
-    showErrorState(error) {
-        console.error('Application startup error:', error);
-        
-        if (this.loadingOverlay) {
-            this.loadingOverlay.innerHTML = `
-                <div class="error-state">
-                    <div class="error-icon">⚠️</div>
-                    <h2>Application Failed to Start</h2>
-                    <p>We're sorry, but the application encountered an error during startup.</p>
-                    <details class="error-details">
-                        <summary>Technical Details</summary>
-                        <pre>${error.message}</pre>
-                        ${error.stack ? `<pre class="error-stack">${error.stack}</pre>` : ''}
-                    </details>
-                    <div class="error-actions">
-                        <button onclick="window.location.reload()" class="btn btn-primary">
-                            Reload Page
-                        </button>
-                    </div>
-                </div>
-                <style>
-                    .error-state {
-                        text-align: center;
-                        padding: 2rem;
-                        max-width: 500px;
-                        margin: 0 auto;
-                        color: var(--color-text-primary, #1f2937);
-                    }
-                    .error-icon { font-size: 4rem; margin-bottom: 1rem; }
-                    .error-state h2 { color: #ef4444; margin-bottom: 1rem; }
-                    .error-state p { margin-bottom: 1.5rem; color: #6b7280; }
-                    .error-details {
-                        text-align: left; margin-bottom: 1.5rem;
-                        background: #f9fafb; border-radius: 8px; padding: 1rem;
-                    }
-                    .error-details pre {
-                        white-space: pre-wrap; word-break: break-word;
-                        font-size: 0.875rem; color: #dc2626;
-                    }
-                    .btn {
-                        padding: 0.75rem 1.5rem; border-radius: 6px; border: none;
-                        font-weight: 500; cursor: pointer; background: #6366f1; color: white;
-                    }
-                </style>
-            `;
-            
-            this.loadingOverlay.style.opacity = '1';
-            this.loadingOverlay.style.display = 'flex';
-        }
+    setState(key, value) {
+        return window.NCS.state.set(key, value);
     }
 
-    /**
-     * Utility delay function
-     */
-    delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+    emit(event, data) {
+        return window.NCS.eventBus.emit(event, data);
+    }
+
+    on(event, handler) {
+        return window.NCS.eventBus.on(event, handler);
+    }
+
+    off(event, handler) {
+        return window.NCS.eventBus.off(event, handler);
     }
 }
 
 /**
- * Start the application
+ * Application Bootstrap
+ * Initialize and start the application when DOM is ready
  */
-async function startApplication() {
+function bootstrap() {
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bootstrap);
+        return;
+    }
+
     try {
-        console.log('🚀 Starting NCS-API application (minimal version)...');
+        // Create application instance
+        const app = new NCSApplication();
         
-        const bootstrap = new SimpleBootstrap();
-        await bootstrap.init();
+        // Store globally for debugging
+        window.NCS.app = app;
+        
+        // Start the application
+        app.start().catch(error => {
+            console.error('Failed to start application:', error);
+        });
         
     } catch (error) {
-        console.error('Critical startup error:', error);
+        console.error('Failed to bootstrap application:', error);
         
         // Show fallback error message
         document.body.innerHTML = `
-            <div style="text-align: center; padding: 2rem; font-family: system-ui, sans-serif;">
-                <h1 style="color: #dc2626;">Application Error</h1>
-                <p>Unable to start the application.</p>
-                <details style="margin: 1rem 0; text-align: left;">
-                    <summary>Error Details</summary>
-                    <pre style="background: #f3f4f6; padding: 1rem; border-radius: 4px;">${error.message}</pre>
-                </details>
-                <button onclick="window.location.reload()" style="background: #6366f1; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; cursor: pointer;">
-                    Reload Page
+            <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">
+                <h1>Application Error</h1>
+                <p>Failed to start the NCS-API website.</p>
+                <p>Please refresh the page or try again later.</p>
+                <button onclick="window.location.reload()" style="padding: 10px 20px; font-size: 16px;">
+                    Refresh Page
                 </button>
             </div>
         `;
     }
 }
 
-/**
- * Start when DOM is ready
- */
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', startApplication);
-} else {
-    startApplication();
+// Export for module usage
+export { NCSApplication, bootstrap };
+
+// Auto-bootstrap when loaded as a script
+if (typeof module === 'undefined') {
+    bootstrap();
 }
-
-// Add basic animations CSS
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes slideOut {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-    }
-    .animate-in {
-        animation: fadeInUp 0.6s ease-out;
-    }
-    @keyframes fadeInUp {
-        from { transform: translateY(30px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
-    }
-`;
-document.head.appendChild(style);
-
-// Global error handlers for debugging
-window.addEventListener('error', (event) => {
-    console.error('Global error:', event.error);
-});
-
-window.addEventListener('unhandledrejection', (event) => {
-    console.error('Unhandled promise rejection:', event.reason);
-});
-
-console.log('📄 Main.js loaded successfully');

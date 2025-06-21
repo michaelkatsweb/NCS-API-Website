@@ -192,7 +192,7 @@ js/
 │   ├── app.js         # Main application class
 │   ├── router.js      # Client-side routing
 │   ├── state.js       # Global state management
-│   └── eventBus.js    # Event system
+│   └── eventBusNew.js    # Event system
 ├── api/               # API Communication
 │   ├── client.js      # HTTP API client
 │   ├── websocket.js   # WebSocket connections

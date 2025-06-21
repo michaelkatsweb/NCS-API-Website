@@ -6,7 +6,7 @@
 
 import { buildApiUrl, API_CONFIG } from '../config/api.js';
 import { STORAGE_KEYS, ERROR_CODES, EVENTS } from '../config/constants.js';
-import eventBus from '../core/eventBus.js';
+import { EventBus } from '../core/eventBusNew.js';  // ✅ FIXED: Changed from default to named import
 import store, { actions } from '../core/state.js';
 import apiClient from './client.js';
 
@@ -22,6 +22,9 @@ export class AuthManager {
     this.tokenExpiresAt = null;
     this.refreshPromise = null;
     this.isRefreshing = false;
+    
+    // ✅ FIXED: Create EventBus instance properly
+    this.eventBus = new EventBus();
     
     // Auto-refresh settings
     this.autoRefresh = API_CONFIG.auth.autoRefresh;
@@ -107,7 +110,8 @@ export class AuthManager {
       
       console.log('✅ User login successful');
       
-      eventBus.emit(EVENTS.USER_LOGIN, {
+      // ✅ FIXED: Use this.eventBus instead of global eventBus
+      this.eventBus.emit(EVENTS.USER_LOGIN, {
         user: this.currentUser,
         timestamp: Date.now()
       });
@@ -150,7 +154,8 @@ export class AuthManager {
       
       console.log('✅ User logout successful');
       
-      eventBus.emit(EVENTS.USER_LOGOUT, {
+      // ✅ FIXED: Use this.eventBus instead of global eventBus
+      this.eventBus.emit(EVENTS.USER_LOGOUT, {
         timestamp: Date.now(),
         reason: options.reason || 'user_initiated'
       });
@@ -323,7 +328,8 @@ export class AuthManager {
       
       this.setUser(response.user);
       
-      eventBus.emit(EVENTS.USER_PREFERENCES_CHANGE, {
+      // ✅ FIXED: Use this.eventBus instead of global eventBus
+      this.eventBus.emit(EVENTS.USER_PREFERENCES_CHANGE, {
         user: this.currentUser,
         updates,
         timestamp: Date.now()
@@ -653,8 +659,9 @@ export class AuthManager {
    * Setup event listeners
    */
   setupEventListeners() {
+    // ✅ FIXED: Use this.eventBus instead of global eventBus
     // Listen for network changes
-    eventBus.on(EVENTS.NETWORK_ONLINE, async () => {
+    this.eventBus.on(EVENTS.NETWORK_ONLINE, async () => {
       if (this.isAuthenticated()) {
         await this.checkAuth();
       }

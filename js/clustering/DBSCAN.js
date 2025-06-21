@@ -4,7 +4,7 @@
  * Ideal for discovering clusters of arbitrary shapes and handling noise/outliers
  */
 
-import { EventBus } from '../core/eventBus.js';
+import { EventBus } from '../core/eventBusNew.js';
 import { calculateDistance, normalizeData } from '../utils/math.js';
 
 export class DBSCANAlgorithm {

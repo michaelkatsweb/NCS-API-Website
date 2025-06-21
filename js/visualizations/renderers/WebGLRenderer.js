@@ -13,8 +13,8 @@
  * - Post-processing effects
  */
 
-import { EventBus } from '../../core/eventBus.js';
-import { UI, PERFORMANCE } from '../../config/constants.js';
+import { EventBus } from '../core/eventBusNew.js';
+import { UI, PERFORMANCE } from '../config/constants.js';
 
 export class WebGLRenderer {
     constructor(container, options = {}) {

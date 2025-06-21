@@ -11,7 +11,7 @@
  * - Historical data visualization
  */
 
-import { EventBus } from '../core/eventBus.js';
+import { EventBus } from '../core/eventBusNew.js';
 import { CONFIG, PERFORMANCE, EVENTS } from '../config/constants.js';
 
 export class PerformanceMonitor {

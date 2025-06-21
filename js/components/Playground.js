@@ -5,14 +5,15 @@
 
 import NCSApiClient from '../api/ncs-client.js';
 import DataProcessor from '../data/processor.js';
+import { EventBus } from '../core/eventBusNew.js';
 
 export class RealPlayground {
     constructor() {
         // Initialize API client and data processor
         this.apiClient = new NCSApiClient({
             // TODO: Update these URLs to your actual deployed API
-            baseURL: 'https://your-ncs-api.herokuapp.com/api/v1', // Change this!
-            wsURL: 'wss://your-ncs-api.herokuapp.com/ws',          // Change this!
+            baseURL: 'https://ncs-api.herokuapp.com/api/v1', // Change this!
+            wsURL: 'wss://ncs-api.herokuapp.com/ws',          // Change this!
             apiKey: null // Will be set when user provides it
         });
         

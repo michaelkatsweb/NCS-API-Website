@@ -3,7 +3,7 @@
 // Documentation page logic for NCS-API-Website
 // Handles API documentation, interactive examples, code generation, and developer tools
 
-import { EventBus } from '../core/eventBus.js';
+import { EventBus } from '../core/eventBusNew.js';
 import { ApiClient } from '../api/client.js';
 import { CodeGenerator } from '../components/CodeGenerator.js';
 import { Modal } from '../components/Modal.js';

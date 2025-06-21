@@ -15,7 +15,7 @@
  */
 
 import { CONFIG } from '../config/constants.js';
-import { EventBus } from '../core/eventBus.js';
+import { EventBus } from '../core/eventBusNew.js';
 import { PerformanceMonitor } from '../components/PerformanceMonitor.js';
 import { MetricsChart } from '../visualizations/charts/MetricsChart.js';
 import { ApiClient } from '../api/client.js';
@@ -818,3 +818,5 @@ if (document.readyState === 'loading') {
 } else {
     window.benchmarks = new BenchmarksPage();
 }
+
+export default { init: () => console.log('Benchmarks page loaded') };

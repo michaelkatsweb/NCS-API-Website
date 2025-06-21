@@ -6,7 +6,7 @@
 // API Configuration
 export const API_CONFIG = {
     // Production API endpoint
-    BASE_URL: 'https://api.ncs-clustering.com/v1',
+    BASE_URL: 'https://api.ncs.com/',
     
     // Development fallback
     DEV_URL: 'http://localhost:8000/api/v1',
@@ -163,6 +163,32 @@ export const VISUALIZATION_CONFIG = {
         MAX_PARTICLES: 10000
     }
 };
+export const UI_STATES = {
+    IDLE: 'idle',
+    LOADING: 'loading', 
+    PROCESSING: 'processing',
+    SUCCESS: 'success',
+    ERROR: 'error'
+};
+
+export const PROCESSING_STATUS = {
+    PENDING: 'pending',
+    IN_PROGRESS: 'in_progress', 
+    COMPLETED: 'completed',
+    FAILED: 'failed'
+};
+
+export const PERFORMANCE = {
+    MAX_POINTS: 100000,
+    SAMPLE_RATE: 0.1,
+    TIMEOUT: 30000
+};
+
+export const DEFAULTS = {
+    THEME: 'light',
+    ALGORITHM: 'kmeans',
+    CLUSTERS: 3
+};
 
 // Error Messages
 export const ERROR_MESSAGES = {
@@ -258,6 +284,8 @@ export const CONFIG = {
     EVENTS: EVENTS,
     URLS: URLS
 };
+
+
 
 // Development overrides
 if (APP_CONFIG.IS_DEVELOPMENT) {

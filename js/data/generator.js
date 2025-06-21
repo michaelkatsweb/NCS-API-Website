@@ -4,7 +4,7 @@
  * Includes various data patterns, clustering scenarios, and real-world simulations
  */
 
-import { EventBus } from '../core/eventBus.js';
+import { EventBus } from '../core/eventBusNew.js';
 
 export class DataGenerator {
     constructor(options = {}) {

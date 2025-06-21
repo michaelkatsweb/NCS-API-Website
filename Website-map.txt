@@ -77,7 +77,7 @@ ncs-api-website/
 │   │   ├── 📄 app.js                  # Main application class
 │   │   ├── 📄 router.js               # Client-side routing
 │   │   ├── 📄 state.js                # Global state management
-│   │   └── 📄 eventBus.js             # Event system
+│   │   └── 📄 eventBusNew.js             # Event system
 │   │
 │   ├── 📁 api/                        # API communication
 │   │   ├── 📄 client.js               # HTTP API client

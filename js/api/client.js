@@ -8,8 +8,8 @@ export class NCSApiClient {
         // API Configuration - adjust these URLs to match your deployed API
         this.config = {
             // Change these to your actual API URLs
-            baseURL: options.baseURL || 'https://api.ncs-clustering.com/api/v1',
-            wsURL: options.wsURL || 'wss://api.ncs-clustering.com/ws',
+            baseURL: options.baseURL || 'https://api.ncs.com/api/v1',
+            wsURL: options.wsURL || 'wss://api.ncs.com/ws',
             timeout: options.timeout || 30000,
             apiKey: options.apiKey || null,
             ...options
@@ -459,6 +459,7 @@ export class NCSApiClient {
         }
         this.eventHandlers.clear();
     }
+    
 
     /**
      * Sample Data Endpoints
@@ -488,5 +489,6 @@ export class NCSApiClient {
         }
     }
 }
-
 export default NCSApiClient;
+export { NCSApiClient as APIClient };
+export { NCSApiClient as ApiClient };

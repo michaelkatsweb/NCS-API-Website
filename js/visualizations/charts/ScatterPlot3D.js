@@ -14,8 +14,8 @@
  */
 
 import * as THREE from 'three';
-import { EventBus } from '../../core/eventBus.js';
-import { UI, PERFORMANCE } from '../../config/constants.js';
+import { EventBus } from '../core/eventBusNew.js';
+import { UI, PERFORMANCE } from '../config/constants.js';
 
 export class ScatterPlot3D {
     constructor(container, options = {}) {

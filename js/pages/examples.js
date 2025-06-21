@@ -15,7 +15,7 @@
  */
 
 import { CONFIG } from '../config/constants.js';
-import { EventBus } from '../core/eventBus.js';
+import { EventBus } from '../core/eventBusNew.js';
 import { CodeGenerator } from '../components/CodeGenerator.js';
 import { ClusterVisualizer } from '../components/ClusterVisualizer.js';
 import { DataUploader } from '../components/DataUploader.js';
@@ -1242,3 +1242,5 @@ if (document.readyState === 'loading') {
 } else {
     window.examples = new ExamplesPage();
 }
+
+export default { init: () => console.log('Examples page loaded') };

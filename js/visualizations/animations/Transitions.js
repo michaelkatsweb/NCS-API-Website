@@ -3,7 +3,7 @@
 // Smooth transitions utility for NCS-API-Website data visualizations
 // Provides easing functions, transition states, and animation helpers
 
-import { EventBus } from '../../core/eventBus.js';
+import { EventBus } from '../../core/eventBusNew.js';
 
 /**
  * Easing functions for smooth animations

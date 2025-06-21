@@ -4,7 +4,7 @@
  * Provides robust data type detection and normalization
  */
 
-import { EventBus } from '../core/eventBus.js';
+import { EventBus } from '../core/eventBusNew.js';
 
 export class DataParser {
     constructor() {

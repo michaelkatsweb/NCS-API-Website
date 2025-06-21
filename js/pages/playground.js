@@ -3,7 +3,7 @@
 // Interactive clustering playground functionality for NCS-API-Website
 // Handles data upload, algorithm execution, visualization, and results analysis
 
-import { EventBus } from '../core/eventBus.js';
+import { EventBus } from '../core/eventBusNew.js';
 import { ClusterVisualizer } from '../components/ClusterVisualizer.js';
 import { DataUploader } from '../components/DataUploader.js';
 import { ParameterControls } from '../components/ParameterControls.js';

@@ -15,7 +15,7 @@
  * - Backup and restore functionality
  */
 
-import { EventBus } from '../core/eventBus.js';
+import { EventBus } from '../core/eventBusNew.js';
 
 export class Storage {
     constructor(options = {}) {

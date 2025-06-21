@@ -3,7 +3,7 @@
 // Data point selection system for NCS-API-Website interactive visualizations
 // Handles single/multi-select, selection areas, and selection events
 
-import { EventBus } from '../../core/eventBus.js';
+import { EventBus } from '../../core/eventBusNew.js';
 import { calculateDistance } from '../../utils/math.js';
 
 /**
