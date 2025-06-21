@@ -1,14 +1,16 @@
 /**
- * Global Event Bus System
+ * FILE: js/core/eventBusNew.js
+ * Global Event Bus System - FIXED MODULE EXPORTS
  * Centralized event management for the NCS-API application
  * 
  * Features:
  * - Type-safe event handling
- * - Namespace support
+ * - Namespace support  
  * - Once-only listeners
  * - Event priority
  * - Performance monitoring
  * - Memory leak prevention
+ * - Singleton pattern with getInstance() method
  */
 
 /**
@@ -39,6 +41,17 @@ export class EventBus {
     }
 
     /**
+     * ✅ ADDED: Static getInstance method for singleton pattern
+     * This allows components to use EventBus.getInstance() 
+     */
+    static getInstance() {
+        if (!EventBus._instance) {
+            EventBus._instance = new EventBus();
+        }
+        return EventBus._instance;
+    }
+
+    /**
      * Register an event listener
      * @param {string} event - Event name (can include namespace: 'namespace:event')
      * @param {Function} listener - Event handler function
@@ -61,23 +74,22 @@ export class EventBus {
 
         // Create listener object with metadata
         const listenerObj = {
-            fn: listener,
+            id: this.generateListenerId(),
+            handler: listener,
             priority,
             namespace,
             once,
-            id: this.generateListenerId(),
-            createdAt: Date.now()
+            timestamp: Date.now()
         };
 
-        // Initialize event listeners array if needed
+        // Store listener
         if (!this.listeners.has(event)) {
             this.listeners.set(event, new Set());
         }
-
-        // Add listener
+        
         this.listeners.get(event).add(listenerObj);
 
-        // Track namespace if provided
+        // Track namespace
         if (namespace) {
             if (!this.namespaceListeners.has(namespace)) {
                 this.namespaceListeners.set(namespace, new Set());
@@ -89,11 +101,6 @@ export class EventBus {
         if (once) {
             this.onceListeners.add(listenerObj);
         }
-
-        // Sort listeners by priority (higher priority first)
-        const listeners = Array.from(this.listeners.get(event));
-        listeners.sort((a, b) => b.priority - a.priority);
-        this.listeners.set(event, new Set(listeners));
 
         this.metrics.listenersRegistered++;
 
@@ -113,49 +120,43 @@ export class EventBus {
     }
 
     /**
-     * Remove an event listener
-     * @param {string} event - Event name
+     * Remove event listener(s)
+     * @param {string} eventOrNamespace - Event name or namespace
      * @param {Function|Object} listener - Listener function or listener object
-     * @returns {boolean} True if listener was removed
+     * @returns {number} Number of listeners removed
      */
-    off(event, listener) {
-        if (!this.listeners.has(event)) {
-            return false;
+    off(eventOrNamespace, listener = null) {
+        let removedCount = 0;
+
+        if (listener === null) {
+            // Remove all listeners for event or namespace
+            return this.removeAllListeners(eventOrNamespace);
         }
 
-        const eventListeners = this.listeners.get(event);
-        let removed = false;
+        if (this.listeners.has(eventOrNamespace)) {
+            const listeners = this.listeners.get(eventOrNamespace);
+            const toRemove = [];
 
-        // Handle different listener types
-        if (typeof listener === 'function') {
-            // Remove by function reference
-            for (const listenerObj of eventListeners) {
-                if (listenerObj.fn === listener) {
-                    eventListeners.delete(listenerObj);
-                    this.onceListeners.delete(listenerObj);
-                    removed = true;
-                    break;
+            for (const listenerObj of listeners) {
+                if (listenerObj === listener || listenerObj.handler === listener) {
+                    toRemove.push(listenerObj);
                 }
             }
-        } else if (listener && typeof listener === 'object') {
-            // Remove by listener object
-            if (eventListeners.has(listener)) {
-                eventListeners.delete(listener);
-                this.onceListeners.delete(listener);
-                removed = true;
+
+            for (const listenerObj of toRemove) {
+                listeners.delete(listenerObj);
+                this.onceListeners.delete(listenerObj);
+                removedCount++;
+            }
+
+            // Clean up empty events
+            if (listeners.size === 0) {
+                this.listeners.delete(eventOrNamespace);
             }
         }
 
-        // Clean up empty event entries
-        if (eventListeners.size === 0) {
-            this.listeners.delete(event);
-        }
-
-        if (removed) {
-            this.metrics.listenersRemoved++;
-        }
-
-        return removed;
+        this.metrics.listenersRemoved += removedCount;
+        return removedCount;
     }
 
     /**
@@ -166,19 +167,16 @@ export class EventBus {
     removeAllListeners(eventOrNamespace) {
         let removedCount = 0;
 
-        if (eventOrNamespace.includes(':')) {
-            // Remove specific event
-            if (this.listeners.has(eventOrNamespace)) {
-                const listeners = this.listeners.get(eventOrNamespace);
-                removedCount = listeners.size;
-                
-                // Remove from once listeners
-                for (const listener of listeners) {
-                    this.onceListeners.delete(listener);
-                }
-                
-                this.listeners.delete(eventOrNamespace);
+        if (this.listeners.has(eventOrNamespace)) {
+            // Remove by event name
+            const listeners = this.listeners.get(eventOrNamespace);
+            
+            for (const listener of listeners) {
+                this.onceListeners.delete(listener);
+                removedCount++;
             }
+            
+            this.listeners.delete(eventOrNamespace);
         } else {
             // Remove by namespace
             if (this.namespaceListeners.has(eventOrNamespace)) {
@@ -241,140 +239,94 @@ export class EventBus {
             return async ? Promise.resolve([]) : [];
         }
 
-        // Create event object
-        const eventObj = {
-            type: event,
-            data,
-            timestamp: Date.now(),
-            preventDefault: false,
-            stopPropagation: false
-        };
-
-        const listeners = Array.from(eventListeners);
-        const results = [];
-        const listenersToRemove = new Set();
+        // Sort listeners by priority (higher priority first)
+        const sortedListeners = Array.from(eventListeners).sort((a, b) => b.priority - a.priority);
 
         if (async) {
-            // Asynchronous execution
-            return this.executeListenersAsync(listeners, eventObj, timeout, listenersToRemove);
+            // Async execution with timeout
+            return this.executeListenersAsync(sortedListeners, event, data, timeout);
         } else {
-            // Synchronous execution
-            for (const listener of listeners) {
-                try {
-                    const result = listener.fn(eventObj);
-                    results.push(result);
-
-                    // Mark once listeners for removal
-                    if (listener.once) {
-                        listenersToRemove.add(listener);
-                    }
-
-                    // Stop propagation if requested
-                    if (eventObj.stopPropagation) {
-                        break;
-                    }
-                } catch (error) {
-                    console.error(`Error in event listener for ${event}:`, error);
-                    this.metrics.errorCount++;
-                    
-                    // Emit error event
-                    this.emit('eventbus:error', {
-                        originalEvent: event,
-                        error,
-                        listener: listener.id
-                    });
-                }
-            }
-
-            // Remove once listeners
-            this.removeOnceListeners(event, listenersToRemove);
-
-            return results;
+            // Sync execution
+            return this.executeListenersSync(sortedListeners, event, data);
         }
     }
 
     /**
-     * Execute listeners asynchronously
+     * Execute listeners synchronously
      * @private
      */
-    async executeListenersAsync(listeners, eventObj, timeout, listenersToRemove) {
+    executeListenersSync(listeners, event, data) {
         const results = [];
-        const promises = [];
+        const listenersToRemove = [];
 
-        for (const listener of listeners) {
-            const promise = this.executeListenerWithTimeout(listener, eventObj, timeout)
-                .then(result => {
-                    results.push(result);
-                    
-                    if (listener.once) {
-                        listenersToRemove.add(listener);
-                    }
-                    
-                    return result;
-                })
-                .catch(error => {
-                    console.error(`Error in async event listener for ${eventObj.type}:`, error);
-                    this.metrics.errorCount++;
-                    
-                    this.emit('eventbus:error', {
-                        originalEvent: eventObj.type,
-                        error,
-                        listener: listener.id
-                    });
-                    
-                    return null;
-                });
+        for (const listenerObj of listeners) {
+            try {
+                const result = listenerObj.handler(data, event);
+                results.push(result);
 
-            promises.push(promise);
-
-            // Stop propagation if requested
-            if (eventObj.stopPropagation) {
-                break;
+                // Mark once listeners for removal
+                if (listenerObj.once || this.onceListeners.has(listenerObj)) {
+                    listenersToRemove.push(listenerObj);
+                }
+            } catch (error) {
+                console.error(`EventBus: Error in listener for event "${event}":`, error);
+                this.metrics.errorCount++;
+                results.push({ error });
             }
         }
 
-        await Promise.allSettled(promises);
-
         // Remove once listeners
-        this.removeOnceListeners(eventObj.type, listenersToRemove);
+        this.removeOnceListeners(event, listenersToRemove);
 
         return results;
     }
 
     /**
-     * Execute listener with timeout
+     * Execute listeners asynchronously  
      * @private
      */
-    async executeListenerWithTimeout(listener, eventObj, timeout) {
-        return new Promise((resolve, reject) => {
-            const timer = setTimeout(() => {
-                reject(new Error(`Listener timeout after ${timeout}ms`));
-            }, timeout);
+    async executeListenersAsync(listeners, event, data, timeout) {
+        const promises = [];
+        const listenersToRemove = [];
 
-            try {
-                const result = listener.fn(eventObj);
-                
-                if (result && typeof result.then === 'function') {
-                    // Handle promise result
-                    result
-                        .then(value => {
-                            clearTimeout(timer);
-                            resolve(value);
-                        })
-                        .catch(error => {
-                            clearTimeout(timer);
-                            reject(error);
-                        });
-                } else {
-                    // Handle synchronous result
-                    clearTimeout(timer);
+        for (const listenerObj of listeners) {
+            const promise = new Promise(async (resolve) => {
+                try {
+                    const result = await Promise.resolve(listenerObj.handler(data, event));
                     resolve(result);
+
+                    // Mark once listeners for removal
+                    if (listenerObj.once || this.onceListeners.has(listenerObj)) {
+                        listenersToRemove.push(listenerObj);
+                    }
+                } catch (error) {
+                    console.error(`EventBus: Error in async listener for event "${event}":`, error);
+                    this.metrics.errorCount++;
+                    resolve({ error });
                 }
-            } catch (error) {
-                clearTimeout(timer);
-                reject(error);
-            }
-        });
+            });
+
+            promises.push(promise);
+        }
+
+        // Execute with timeout
+        try {
+            const results = await Promise.race([
+                Promise.all(promises),
+                new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Timeout')), timeout)
+                )
+            ]);
+
+            // Remove once listeners
+            this.removeOnceListeners(event, listenersToRemove);
+
+            return results;
+        } catch (error) {
+            console.warn(`EventBus: Async execution timeout for event "${event}"`);
+            this.metrics.errorCount++;
+            return [];
+        }
     }
 
     /**
@@ -382,7 +334,7 @@ export class EventBus {
      * @private
      */
     removeOnceListeners(event, listenersToRemove) {
-        if (listenersToRemove.size > 0) {
+        if (listenersToRemove.length > 0) {
             const eventListeners = this.listeners.get(event);
             if (eventListeners) {
                 for (const listener of listenersToRemove) {
@@ -499,8 +451,10 @@ export class EventBus {
             listenersRemoved: 0,
             errorCount: 0
         };
+        
+        // Clear singleton instance
+        EventBus._instance = null;
     }
-    
 
     /**
      * Create a scoped event bus for a specific namespace
@@ -540,12 +494,14 @@ export class EventBus {
     }
 }
 
+// ✅ STANDARDIZED EXPORTS:
+// 1. Named export of the class (for components that need EventBus.getInstance())
+export { EventBus };
 
+// 2. Create singleton instance using getInstance() method
+export const eventBus = EventBus.getInstance();
 
-// Create global event bus instance
-export const eventBus = new EventBus();
-
-// Export for use in other modules
+// 3. Default export as the singleton instance (for simple imports)
 export default eventBus;
 
 // Development helpers
